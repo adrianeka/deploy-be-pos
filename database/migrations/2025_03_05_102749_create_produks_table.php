@@ -14,15 +14,12 @@ return new class extends Migration
         Schema::create('produks', function (Blueprint $table) {
             $table->id('id_produk');
             $table->string('nama_produk');
-            $table->foreignId('id_kategori')->nullable()
-                ->constrained('kategoris', 'id_kategori')
-                ->onDelete('set null');
-            $table->string('gambar')->nullable();
-            $table->foreignId('id_satuan')->nullable()
-                ->constrained('satuans', 'id_satuan')
-                ->onDelete('set null');
-            $table->decimal('harga_beli', 10, 2);
-            $table->integer('stok');
+            $table->foreignId('id_kategori')->nullable()->references('id_kategori')->on('kategoris')->onDelete('set null');
+            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemiliks')->onDelete('cascade');
+            $table->foreignId('id_satuan')->nullable()->references('id_satuan')->on('satuans')->onDelete('set null');
+            $table->string('foto_produk')->nullable();
+            $table->integer('harga_beli');
+            $table->integer('stok_minimum');
             $table->text('deskripsi')->nullable();
             $table->timestamps();
         });

@@ -13,12 +13,9 @@ return new class extends Migration
     {
         Schema::create('level_hargas', function (Blueprint $table) {
             $table->id('id_level_harga');
-            $table->foreignId('id_produk')
-                ->constrained('produks', 'id_produk')
-                ->onDelete('cascade');
-            $table->string('nama_level'); // Standard, Grosir, Reseller
-            $table->decimal('harga_jual', 10, 2)->default(0);
-            $table->boolean('is_applied')->default(false); // Harga aktif
+            $table->foreignId('id_produk')->references('id_produk')->on('produks')->onDelete('cascade');
+            $table->string('nama_level');
+            $table->integer('harga_jual');
             $table->timestamps();
         });
     }

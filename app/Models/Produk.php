@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Produk extends Model
@@ -16,10 +15,12 @@ class Produk extends Model
     protected $fillable = [
         'nama_produk',
         'id_kategori',
-        'gambar',
+        'id_pemilik',
         'id_satuan',
+        'id_stok',
+        'foto_produk',
         'harga_beli',
-        'stok',
+        'stok_minimum',
         'deskripsi',
     ];
 
@@ -33,13 +34,18 @@ class Produk extends Model
         return $this->belongsTo(Satuan::class, 'id_satuan');
     }
 
-    public function levelHargas()
+    public function pemilik(): BelongsTo
+    {
+        return $this->belongsTo(Pemilik::class, 'id_pemilik');
+    }
+
+    public function level_hargas()
     {
         return $this->hasMany(LevelHarga::class, 'id_produk');
     }
 
-    public function appliedLevelHarga()
+    public function stok()
     {
-        return $this->hasOne(LevelHarga::class, 'id_produk')->where('is_applied', true);
+        return $this->hasMany(Stok::class, 'id_stok');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Kategori extends Model
 {
@@ -11,5 +12,13 @@ class Kategori extends Model
 
     protected $table = 'kategoris';
     protected $primaryKey = 'id_kategori';
-    protected $fillable = ['nama_kategori'];
+    protected $fillable = [
+        'nama_kategori',
+        'id_pemilik',
+    ];
+
+    public function pemilik(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'id_pemilik');
+    }
 }

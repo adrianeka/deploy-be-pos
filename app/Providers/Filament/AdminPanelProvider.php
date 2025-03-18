@@ -27,8 +27,6 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName("POS Nur'afie")
-            // ->brandLogo(asset('logo.png')) // Ganti dengan path logo
-            // ->brandLogoHeight('50px')
             ->login()
             ->colors([
                 'primary' => Color::Amber,

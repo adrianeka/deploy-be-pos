@@ -16,7 +16,6 @@ class LevelHarga extends Model
         'id_produk',
         'nama_level',
         'harga_jual',
-        'is_applied',
     ];
 
     public function produk(): BelongsTo

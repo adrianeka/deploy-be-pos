@@ -16,14 +16,14 @@ class ProdukSeeder extends Seeder
         $faker = Faker::create();
 
         $data = [];
-        for ($i = 0; $i < 3000; $i++) {
+        for ($i = 0; $i < 10; $i++) {
             $data[] = [
                 'nama_produk' => $faker->word,
-                'id_kategori' => rand(1, 4),
-                'gambar' => $faker->imageUrl(200, 200, 'technics'),
+                'id_kategori' => rand(1, 2),
                 'id_satuan' => rand(1, 4),
                 'harga_beli' => $faker->numberBetween(10000, 500000),
-                'stok' => $faker->numberBetween(1, 100),
+                'id_pemilik' => rand(1, 2),
+                'stok_minimum' => $faker->numberBetween(1, 100),
                 'deskripsi' => $faker->sentence(10),
                 'created_at' => now(),
                 'updated_at' => now(),
