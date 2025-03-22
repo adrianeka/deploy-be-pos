@@ -2,54 +2,58 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\SupplierResource\Pages;
-use App\Models\Supplier;
+use App\Filament\Resources\PemasokResource\Pages;
+use App\Models\Pemasok;
+use Filament\Facades\Filament;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Hidden;
-use Filament\Facades\Filament;
-use Filament\Infolists\Infolist;
-use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Tables\Actions\BulkAction;
+use Filament\Forms\Components;
 use Filament\Infolists\Components\Grid;
 use Filament\Infolists\Components\Group;
+use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Split;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
+use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Columns\TextColumn;
 
-class SupplierResource extends Resource
+class PemasokResource extends Resource
 {
-    protected static ?string $model = Supplier::class;
+    protected static ?string $model = Pemasok::class;
     protected static ?string $navigationIcon = 'heroicon-o-users';
-    protected static ?string $label = 'Supplier';
-    protected static ?string $pluralLabel = 'Supplier';
-    protected static ?string $navigationLabel = 'Supplier';
+    protected static ?string $label = 'Pemasok';
+    protected static ?string $pluralLabel = 'Pemasok';
+    protected static ?string $navigationLabel = 'Pemasok';
     protected static ?string $navigationGroup = 'Data Master';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('nama_perusahaan')
-                    ->label('Nama Perusahaan')
-                    ->required()
-                    ->maxLength(255)
-                    ->required(),
-                TextInput::make('no_telp')
-                    ->label('Nomor Telepon')
-                    ->required()
-                    ->numeric()
-                    ->minLength(10)
-                    ->maxLength(15)
-                    ->required(),
-                TextInput::make('alamat')
-                    ->label('Alamat')
-                    ->required()
-                    ->maxLength(255)->required(),
-                Hidden::make('id_pemilik')
+                Components\Section::make('Form Pemasok')
+                    ->schema([
+                        Components\Grid::make(2)
+                            ->schema([
+                                Components\TextInput::make('nama_perusahaan')
+                                    ->label('Nama Perusahaan')
+                                    ->required()
+                                    ->maxLength(255),
+                                Components\TextInput::make('no_telp')
+                                    ->label('Nomor Telepon')
+                                    ->required()
+                                    ->numeric()
+                                    ->minLength(10)
+                                    ->maxLength(15),
+                                Components\TextInput::make('alamat')
+                                    ->label('Alamat')
+                                    ->required()
+                                    ->maxLength(255),
+                            ])
+                    ])
+                    ->collapsible(),
+                Components\Hidden::make('id_pemilik')
                     ->default(fn() => Filament::auth()->id())
                     ->dehydrated(true),
             ]);
@@ -58,7 +62,7 @@ class SupplierResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(fn() => Supplier::query()->where('id_pemilik', Filament::auth()->user()->id))
+            ->query(fn() => Pemasok::query()->where('id_pemilik', Filament::auth()->user()->id))
             ->columns([
                 TextColumn::make('nama_perusahaan')
                     ->label('Nama Perusahaan')
@@ -86,11 +90,18 @@ class SupplierResource extends Resource
             ]);
     }
 
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
             ->schema([
-                Section::make()
+                Section::make('Data Pemasok')
                     ->schema([
                         Split::make([
                             Grid::make(2)
@@ -99,17 +110,14 @@ class SupplierResource extends Resource
                                         TextEntry::make('nama_perusahaan')
                                             ->label('Nama Perusahaan'),
                                         TextEntry::make('no_telp')
-                                            ->label('No. Telepon'),
-                                        TextEntry::make('alamat')
-                                            ->label('Alamat'),
+                                            ->label('Nomor Telepon'),
                                     ]),
                                     Group::make([
+                                        TextEntry::make('alamat')
+                                            ->label('Alamat'),
                                         TextEntry::make('created_at')
                                             ->label('Dibuat pada')
-                                            ->dateTime(),
-                                        TextEntry::make('updated_at')
-                                            ->label('Diperbarui pada')
-                                            ->dateTime(),
+                                            ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
                                     ]),
                                 ]),
                         ])->from('lg'),
@@ -120,7 +128,10 @@ class SupplierResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListSuppliers::route('/'),
+            'index' => Pages\ListPemasoks::route('/'),
+            'create' => Pages\CreatePemasok::route('/create'),
+            'edit' => Pages\EditPemasok::route('/{record}/edit'),
+            'view' => Pages\ViewPemasok::route('/{record}'),
         ];
     }
 }

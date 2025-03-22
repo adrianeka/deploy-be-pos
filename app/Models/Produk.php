@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Produk extends Model
@@ -47,5 +48,17 @@ class Produk extends Model
     public function stok()
     {
         return $this->hasMany(Stok::class, 'id_stok');
+    }
+
+    public static function getStokProdukByPemilik($id_pemilik): Builder
+    {
+        return self::query()
+            ->select('produks.*')
+            ->where('produks.id_pemilik', $id_pemilik)
+            ->whereIn('produks.id_produk', function ($subquery) {
+                $subquery->select('id_produk')
+                    ->from('stoks')
+                    ->distinct();
+            });
     }
 }

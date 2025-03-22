@@ -2,16 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Supplier extends Model
+class Pemasok extends Model
 {
     use HasFactory;
 
-    protected $table = 'suppliers';
-    protected $primaryKey = 'id_supplier';
+    protected $table = 'pemasok';
+    protected $primaryKey = 'id_pemasok';
     protected $fillable = [
         'id_pemilik',
         'nama_perusahaan',

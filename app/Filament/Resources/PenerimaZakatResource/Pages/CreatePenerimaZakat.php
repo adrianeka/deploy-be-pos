@@ -9,4 +9,5 @@ use Filament\Resources\Pages\CreateRecord;
 class CreatePenerimaZakat extends CreateRecord
 {
     protected static string $resource = PenerimaZakatResource::class;
+    protected static ?string $title = 'Tambah Penerima Zakat';
 }

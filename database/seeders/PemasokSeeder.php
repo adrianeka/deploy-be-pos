@@ -5,9 +5,9 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Faker\Factory as Faker;
-use App\Models\Supplier;
+use App\Models\Pemasok;
 
-class SupplierSeeder extends Seeder
+class PemasokSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -28,6 +28,6 @@ class SupplierSeeder extends Seeder
             ];
         }
 
-        Supplier::insert($data);
+        Pemasok::insert($data);
     }
 }

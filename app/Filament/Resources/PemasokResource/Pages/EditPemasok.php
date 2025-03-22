@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\KasirResource\Pages;
+namespace App\Filament\Resources\PemasokResource\Pages;
 
-use App\Filament\Resources\KasirResource;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\PemasokResource;
 use Filament\Actions;
+use Filament\Resources\Pages\EditRecord;
 
-class EditKasir extends EditRecord
+class EditPemasok extends EditRecord
 {
-    protected static string $resource = KasirResource::class;
+    protected static string $resource = PemasokResource::class;
 
     protected function getHeaderActions(): array
     {

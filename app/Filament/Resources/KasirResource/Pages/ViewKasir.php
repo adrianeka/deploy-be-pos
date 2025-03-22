@@ -4,18 +4,19 @@ namespace App\Filament\Resources\KasirResource\Pages;
 
 use App\Filament\Resources\KasirResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Pages\ViewRecord;
 
-class ListKasirs extends ListRecords
+class ViewKasir extends ViewRecord
 {
     protected static string $resource = KasirResource::class;
-    protected static ?string $title = 'Daftar Kasir';
+    protected static ?string $navigationLabel = 'Detail Kasir';
+    protected static ?string $title = 'Detail Kasir';
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
-                ->label('Tambah Kasir'),
+            Actions\EditAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
 }

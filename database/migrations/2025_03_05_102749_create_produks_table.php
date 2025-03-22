@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemiliks')->onDelete('cascade');
             $table->foreignId('id_satuan')->nullable()->references('id_satuan')->on('satuans')->onDelete('set null');
             $table->string('foto_produk')->nullable();
-            $table->integer('harga_beli');
+            $table->bigInteger('harga_beli');
             $table->integer('stok_minimum');
             $table->text('deskripsi')->nullable();
             $table->timestamps();

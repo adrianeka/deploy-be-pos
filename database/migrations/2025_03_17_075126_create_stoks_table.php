@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('stoks', function (Blueprint $table) {
             $table->id('id_stok');
             $table->foreignId('id_produk')->references('id_produk')->on('produks')->onDelete('cascade');
-            $table->integer('jumlah_stok');
+            $table->bigInteger('jumlah_stok');
             $table->enum('jenis_stok', ['In', 'Out']);
             $table->string('jenis_transaksi');
-            $table->date('tanggal_stok');
+            $table->text('keterangan');
+            $table->datetime('tanggal_stok');
             $table->timestamps();
         });
     }

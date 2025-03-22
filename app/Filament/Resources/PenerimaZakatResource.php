@@ -4,8 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PenerimaZakatResource\Pages;
 use App\Models\PenerimaZakat;
-use App\Models\User;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -18,7 +17,6 @@ use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
-use Filament\Forms\Components\Hidden;
 use Filament\Facades\Filament;
 
 class PenerimaZakatResource extends Resource
@@ -34,49 +32,44 @@ class PenerimaZakatResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('nama_penerima')
-                    ->label('Nama Penerima')
-                    ->regex('/^[A-Za-z\s]+$/')
-                    ->searchable()
-                    ->required()
-                    ->maxLength(255),
-
-                TextInput::make('no_telp')
-                    ->label('Nomor Telepon')
-                    ->numeric()
-                    ->minLength(10)
-                    ->maxLength(13)
-                    ->searchable()
-                    ->required(),
-
-                TextInput::make('no_rekening')
-                    ->label('Nomor Rekening')
-                    ->numeric()
-                    ->length(16)
-                    ->searchable()
-                    ->required(),
-
-                TextInput::make('nama_bank')
-                    ->label('Nama Bank')
-                    ->regex('/^[A-Za-z\s]+$/')
-                    ->required()
-                    ->searchable()
-                    ->maxLength(255),
-
-                TextInput::make('rekening_atas_nama')
-                    ->label('Nama Pemilik Rekening')
-                    ->regex('/^[A-Za-z\s]+$/')
-                    ->required()
-                    ->searchable()
-                    ->maxLength(255),
-
-                TextInput::make('alamat')
-                    ->label('Alamat')
-                    ->required()
-                    ->searchable()
-                    ->maxLength(1000),
-
-                Hidden::make('id_pemilik') // Sembunyikan field
+                Components\Section::make('Form Penerima Zakat')
+                    ->schema([
+                        Components\Grid::make(2)
+                            ->schema([
+                                Components\TextInput::make('nama_penerima')
+                                    ->label('Nama Penerima')
+                                    ->regex('/^[A-Za-z\s]+$/')
+                                    ->required()
+                                    ->maxLength(255),
+                                Components\TextInput::make('no_telp')
+                                    ->label('Nomor Telepon')
+                                    ->numeric()
+                                    ->minLength(10)
+                                    ->maxLength(13)
+                                    ->required(),
+                                Components\TextInput::make('no_rekening')
+                                    ->label('Nomor Rekening')
+                                    ->numeric()
+                                    ->length(16)
+                                    ->required(),
+                                Components\TextInput::make('nama_bank')
+                                    ->label('Nama Bank')
+                                    ->regex('/^[A-Za-z\s]+$/')
+                                    ->required()
+                                    ->maxLength(20),
+                                Components\TextInput::make('rekening_atas_nama')
+                                    ->label('Nama Pemilik Rekening')
+                                    ->regex('/^[A-Za-z\s]+$/')
+                                    ->required()
+                                    ->maxLength(30),
+                                Components\TextInput::make('alamat')
+                                    ->label('Alamat')
+                                    ->required()
+                                    ->maxLength(255),
+                            ])
+                    ])
+                    ->collapsible(),
+                Components\Hidden::make('id_pemilik')
                     ->default(fn() => Filament::auth()->id())
                     ->dehydrated(true),
             ]);
@@ -103,9 +96,6 @@ class PenerimaZakatResource extends Resource
                     ->sortable()
                     ->limit(50),
             ])
-            ->filters([
-                // Filters dapat ditambahkan sesuai kebutuhan
-            ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
@@ -123,7 +113,7 @@ class PenerimaZakatResource extends Resource
     {
         return $infolist
             ->schema([
-                Section::make()
+                Section::make('Data Penerima Zakat')
                     ->schema([
                         Split::make([
                             Grid::make(2)
@@ -132,17 +122,20 @@ class PenerimaZakatResource extends Resource
                                         TextEntry::make('nama_penerima')
                                             ->label('Nama Penerima Zakat'),
                                         TextEntry::make('no_telp')
-                                            ->label('Nomor Handphone'),
+                                            ->label('Nomor Telepon'),
                                         TextEntry::make('no_rekening')
                                             ->label('Nomor Rekening'),
+                                        TextEntry::make('rekening_atas_nama')
+                                            ->label('Nama Pemilik Rekening'),
                                     ]),
                                     Group::make([
                                         TextEntry::make('nama_bank')
                                             ->label('Nama Bank'),
-                                        TextEntry::make('rekening_atas_nama')
-                                            ->label('Nama Pemilik Rekening'),
                                         TextEntry::make('alamat')
                                             ->label('Alamat Penerima Zakat'),
+                                        TextEntry::make('created_at')
+                                            ->label('Dibuat pada')
+                                            ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
                                     ]),
                                 ]),
                         ])->from('lg'),
@@ -161,6 +154,9 @@ class PenerimaZakatResource extends Resource
     {
         return [
             'index' => Pages\ListPenerimaZakats::route('/'),
+            'create' => Pages\CreatePenerimaZakat::route('/create'),
+            'edit' => Pages\EditPenerimaZakat::route('/{record}/edit'),
+            'view' => Pages\ViewPenerimaZakat::route('/{record}'),
         ];
     }
 }
