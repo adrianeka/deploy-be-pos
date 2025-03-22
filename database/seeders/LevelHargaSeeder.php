@@ -15,32 +15,32 @@ class LevelHargaSeeder extends Seeder
     public function run(): void
     {
         $faker = Faker::create();
-        $produks = Produk::all(); // Ambil semua produk
 
-        foreach ($produks as $produk) {
-            $levels = ['Standard', 'Grosir', 'Reseller'];
-            $harga_beli = $produk->harga_beli;
+        // Ambil semua produk yang sudah ada
+        $produkList = Produk::all();
 
-            $levelHargaData = [];
-            foreach ($levels as $index => $level) {
-                $harga_jual = match ($level) {
-                    'Standard' => $harga_beli * 1.2, // 20% profit
-                    'Grosir'   => $harga_beli * 1.15, // 15% profit
-                    'Reseller' => $harga_beli * 1.1, // 10% profit
-                    default    => $harga_beli * 1.2,
-                };
+        foreach ($produkList as $produk) {
+            // Level harga wajib: Standar
+            LevelHarga::create([
+                'id_produk'  => $produk->id_produk,
+                'nama_level' => 'Standart',
+                'harga_jual' => $produk->harga_beli + 5000, // Harga jual sedikit lebih tinggi dari harga beli
+            ]);
 
-                $levelHargaData[] = [
-                    'id_produk' => $produk->id_produk,
-                    'nama_level' => $level,
-                    'harga_jual' => round($harga_jual, 2),
-                    'is_applied' => $index === 0, // Standard sebagai default
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            // Tambahkan level harga "Mahal" atau "Murah" berdasarkan harga beli
+            if ($produk->harga_beli > 100000) {
+                LevelHarga::create([
+                    'id_produk'  => $produk->id_produk,
+                    'nama_level' => 'Mahal',
+                    'harga_jual' => $produk->harga_beli + 20000,
+                ]);
+            } elseif ($produk->harga_beli < 50000) {
+                LevelHarga::create([
+                    'id_produk'  => $produk->id_produk,
+                    'nama_level' => 'Murah',
+                    'harga_jual' => $produk->harga_beli + 10000,
+                ]);
             }
-
-            LevelHarga::insert($levelHargaData);
         }
     }
 }

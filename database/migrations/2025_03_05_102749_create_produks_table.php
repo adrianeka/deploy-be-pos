@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('produks', function (Blueprint $table) {
+        Schema::create('produk', function (Blueprint $table) {
             $table->id('id_produk');
             $table->string('nama_produk');
-            $table->foreignId('id_kategori')->nullable()->references('id_kategori')->on('kategoris')->onDelete('set null');
-            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemiliks')->onDelete('cascade');
-            $table->foreignId('id_satuan')->nullable()->references('id_satuan')->on('satuans')->onDelete('set null');
+            $table->foreignId('id_kategori')->nullable()->references('id_kategori')->on('kategori')->onDelete('set null');
+            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
+            $table->foreignId('id_satuan')->nullable()->references('id_satuan')->on('satuan')->onDelete('set null');
             $table->string('foto_produk')->nullable();
             $table->bigInteger('harga_beli');
             $table->integer('stok_minimum');
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('produks');
+        Schema::dropIfExists('produk');
     }
 };

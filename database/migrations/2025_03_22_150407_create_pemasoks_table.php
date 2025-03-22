@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('pemasok', function (Blueprint $table) {
             $table->id('id_pemasok');
-            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemiliks')->onDelete('cascade');
+            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
             $table->string('nama_perusahaan');
             $table->string('no_telp', 15);
             $table->text('alamat');

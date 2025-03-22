@@ -10,7 +10,7 @@ class Stok extends Model
 {
     use HasFactory;
 
-    protected $table = 'stoks';
+    protected $table = 'stok';
     protected $primaryKey = 'id_stok';
     public $timestamps = true;
 

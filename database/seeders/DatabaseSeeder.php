@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\PenerimaZakat;
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -21,7 +18,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PemasokSeeder::class);
         $this->call(PelangganSeeder::class);
         $this->call(PenerimaZakatSeeder::class);
-        // $this->call(ProdukSeeder::class);
-        // $this->call(LevelHargaSeeder::class);
+        $this->call(ProdukSeeder::class);
+        $this->call(LevelHargaSeeder::class);
+        $this->call(StokProdukSeeder::class);
     }
 }

@@ -10,7 +10,7 @@ class LevelHarga extends Model
 {
     use HasFactory;
 
-    protected $table = 'level_hargas';
+    protected $table = 'level_harga';
     protected $primaryKey = 'id_level_harga';
     protected $fillable = [
         'id_produk',

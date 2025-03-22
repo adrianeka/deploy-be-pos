@@ -32,6 +32,7 @@ class StokResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-cube';
     protected static ?string $label = 'Stok Produk';
     protected static ?string $pluralLabel = 'Stok Produk';
+    protected static ?string $recordTitleAttribute = 'nama_produk';
     protected static ?string $navigationLabel = 'Stok Produk';
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?int $navigationSort = 0;
@@ -147,10 +148,5 @@ class StokResource extends Resource
             'comments' => Pages\RiwayatStok::route('/{record}/riwayat-stok'),
             'view' => Pages\ViewStok::route('/{record}'),
         ];
-    }
-
-    public static function getGlobalSearchEloquentQuery(): Builder
-    {
-        return parent::getGlobalSearchEloquentQuery()->with(['nama_produk']);
     }
 }

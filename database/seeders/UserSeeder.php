@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
         $pemilikData1 = Pemilik::create([
             'id_user' => $pemilik1->id,
             'nama_pemilik' => 'Pemilik 1',
-            'nama_perusahaan' => 'Perusahaan 1',
+            'nama_perusahaan' => 'Toko Nurafie',
             'alamat_toko' => 'Alamat 1',
             'jenis_usaha' => 'Retail',
             'no_telp' => '08123456789'

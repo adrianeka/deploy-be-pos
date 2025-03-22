@@ -9,7 +9,7 @@ class Pemilik extends Model
 {
     use HasFactory;
 
-    protected $table = 'pemiliks';
+    protected $table = 'pemilik';
     protected $primaryKey = 'id_pemilik';
     public $timestamps = true;
 
@@ -27,7 +27,7 @@ class Pemilik extends Model
         return $this->belongsTo(User::class, 'id_user');
     }
 
-    public function kasirs()
+    public function kasir()
     {
         return $this->hasMany(Kasir::class, 'id_pemilik');
     }

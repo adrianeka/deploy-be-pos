@@ -9,7 +9,7 @@ class KategoriSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('kategoris')->insert([
+        DB::table('kategori')->insert([
             ['id_kategori' => 1, 'nama_kategori' => 'Makanan', 'id_pemilik' => 1],
             ['id_kategori' => 2, 'nama_kategori' => 'Minuman', 'id_pemilik' => 1],
             ['id_kategori' => 3, 'nama_kategori' => 'Elektronik', 'id_pemilik' => 1],

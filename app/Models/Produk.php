@@ -11,7 +11,7 @@ class Produk extends Model
 {
     use HasFactory;
 
-    protected $table = 'produks';
+    protected $table = 'produk';
     protected $primaryKey = 'id_produk';
     protected $fillable = [
         'nama_produk',
@@ -53,11 +53,11 @@ class Produk extends Model
     public static function getStokProdukByPemilik($id_pemilik): Builder
     {
         return self::query()
-            ->select('produks.*')
-            ->where('produks.id_pemilik', $id_pemilik)
-            ->whereIn('produks.id_produk', function ($subquery) {
+            ->select('produk.*')
+            ->where('produk.id_pemilik', $id_pemilik)
+            ->whereIn('produk.id_produk', function ($subquery) {
                 $subquery->select('id_produk')
-                    ->from('stoks')
+                    ->from('stok')
                     ->distinct();
             });
     }

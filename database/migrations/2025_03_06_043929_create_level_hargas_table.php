@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('level_hargas', function (Blueprint $table) {
+        Schema::create('level_harga', function (Blueprint $table) {
             $table->id('id_level_harga');
-            $table->foreignId('id_produk')->references('id_produk')->on('produks')->onDelete('cascade');
+            $table->foreignId('id_produk')->references('id_produk')->on('produk')->onDelete('cascade');
             $table->string('nama_level');
             $table->integer('harga_jual');
             $table->timestamps();
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('level_hargas');
+        Schema::dropIfExists('level_harga');
     }
 };

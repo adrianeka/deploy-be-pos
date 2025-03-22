@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('penerima_zakats', function (Blueprint $table) {
+        Schema::create('penerima_zakat', function (Blueprint $table) {
             $table->id('id_penerima_zakat');
-            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemiliks')->onDelete('cascade');
+            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
             $table->string('nama_penerima');
             $table->string('no_telp', 15);
             $table->string('no_rekening', 16);
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('penerima_zakats');
+        Schema::dropIfExists('penerima_zakat');
     }
 };

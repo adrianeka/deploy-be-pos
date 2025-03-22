@@ -3,19 +3,20 @@
 namespace App\Filament\Resources\ProdukResource\Pages;
 
 use App\Filament\Resources\ProdukResource;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Actions;
+use Filament\Resources\Pages\ViewRecord;
 
-class ListProduks extends ListRecords
+class ViewProduk extends ViewRecord
 {
     protected static string $resource = ProdukResource::class;
-    protected static ?string $title = 'Daftar Produk';
+    protected static ?string $navigationLabel = 'Detail Pro';
+    protected static ?string $title = 'Detail Produk';
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
-                ->label('Tambah Produk'),
+            Actions\EditAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
 }

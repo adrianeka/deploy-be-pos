@@ -48,7 +48,6 @@ class RiwayatStok extends ManageRelatedRecords
                     ->searchable(),
                 TextColumn::make('keterangan')
                     ->label('Keterangan')
-                    ->limit(30)
                     ->searchable(),
                 TextColumn::make('tanggal_stok')
                     ->label('Tanggal')

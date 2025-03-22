@@ -17,15 +17,14 @@ use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 
 class KasirResource extends Resource
 {
     protected static ?string $model = Kasir::class;
     protected static ?string $navigationIcon = 'heroicon-o-users';
     protected static ?string $label = 'Kasir';
+    protected static ?string $recordTitleAttribute = 'nama';
     protected static ?string $pluralLabel = 'Kasir';
     protected static ?string $navigationLabel = 'Kasir';
     protected static ?string $navigationGroup = 'Data Master';

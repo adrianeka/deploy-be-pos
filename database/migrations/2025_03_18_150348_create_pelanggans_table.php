@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pelanggans', function (Blueprint $table) {
+        Schema::create('pelanggan', function (Blueprint $table) {
             $table->id('id_pelanggan');
-            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemiliks')->onDelete('cascade');
+            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
             $table->string('nama_pelanggan');
             $table->string('no_telp', 15);
             $table->text('alamat');
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pelanggans');
+        Schema::dropIfExists('pelanggan');
     }
 };

@@ -24,6 +24,7 @@ class PenerimaZakatResource extends Resource
     protected static ?string $model = PenerimaZakat::class;
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $label = 'Penerima Zakat';
+    protected static ?string $recordTitleAttribute = 'nama_penerima';
     protected static ?string $pluralLabel = 'Penerima Zakat';
     protected static ?string $navigationLabel = 'Penerima Zakat';
     protected static ?string $navigationGroup = 'Data Master';

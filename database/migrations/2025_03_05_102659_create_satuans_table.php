@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('satuans', function (Blueprint $table) {
+        Schema::create('satuan', function (Blueprint $table) {
             $table->id('id_satuan');
             $table->string('nama_satuan');
-            $table->foreignId('id_pemilik')->nullable()->references('id_pemilik')->on('pemiliks')->onDelete('cascade');
+            $table->foreignId('id_pemilik')->nullable()->references('id_pemilik')->on('pemilik')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('satuans');
+        Schema::dropIfExists('satuan');
     }
 };

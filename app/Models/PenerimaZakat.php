@@ -10,7 +10,7 @@ class PenerimaZakat extends Model
 {
     use HasFactory;
 
-    protected $table = 'penerima_zakats';
+    protected $table = 'penerima_zakat';
     protected $primaryKey = 'id_penerima_zakat';
     protected $fillable = [
         'id_penerima_zakat',

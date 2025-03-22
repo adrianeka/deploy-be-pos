@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('stoks', function (Blueprint $table) {
+        Schema::create('stok', function (Blueprint $table) {
             $table->id('id_stok');
-            $table->foreignId('id_produk')->references('id_produk')->on('produks')->onDelete('cascade');
+            $table->foreignId('id_produk')->references('id_produk')->on('produk')->onDelete('cascade');
             $table->bigInteger('jumlah_stok');
             $table->enum('jenis_stok', ['In', 'Out']);
             $table->string('jenis_transaksi');
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('stoks');
+        Schema::dropIfExists('stok');
     }
 };

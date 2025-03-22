@@ -9,7 +9,7 @@ class SatuanSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('satuans')->insert([
+        DB::table('satuan')->insert([
             ['id_satuan' => 1, 'nama_satuan' => 'Pcs', 'id_pemilik' => null],
             ['id_satuan' => 2, 'nama_satuan' => 'Kg', 'id_pemilik' => null],
             ['id_satuan' => 3, 'nama_satuan' => 'Liter', 'id_pemilik' => null],
