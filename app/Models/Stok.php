@@ -33,6 +33,12 @@ class Stok extends Model
         return $this->hasMany(Stok::class, 'id_produk');
     }
 
+    public function getNamaProdukAttribute()
+    {
+        return $this->produk?->nama_produk ?? '-';
+    }
+
+
     public static function getStokTersediaByProduk($id_produk)
     {
         return self::where('id_produk', $id_produk)

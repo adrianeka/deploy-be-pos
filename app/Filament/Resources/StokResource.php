@@ -34,7 +34,7 @@ class StokResource extends Resource
     protected static ?string $pluralLabel = 'Stok Produk';
     protected static ?string $recordTitleAttribute = 'nama_produk';
     protected static ?string $navigationLabel = 'Stok Produk';
-    protected static ?string $navigationGroup = 'Data Master';
+    protected static ?string $navigationGroup = 'Inventaris';
     protected static ?int $navigationSort = 0;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -128,7 +128,8 @@ class StokResource extends Resource
                                     ]),
                                 ]),
                         ])->from('lg'),
-                    ]),
+                    ])
+                    ->collapsible(),
             ]);
     }
 

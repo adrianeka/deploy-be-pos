@@ -39,7 +39,7 @@ class ProdukResource extends Resource
     protected static ?string $recordTitleAttribute = 'nama_produk';
     protected static ?string $navigationLabel = 'Produk';
     protected static ?string $pluralLabel = 'Produk';
-    protected static ?string $navigationGroup = 'Data Master';
+    protected static ?string $navigationGroup = 'Inventaris';
 
     public static function form(Form $form): Form
     {
@@ -323,8 +323,8 @@ class ProdukResource extends Resource
                                 ->size(100)
                                 ->grow(false)
                         ])->from('lg'),
-                    ]),
-
+                    ])
+                    ->collapsible(),
                 Section::make('Deskripsi Produk')
                     ->schema([
                         TextEntry::make('deskripsi')

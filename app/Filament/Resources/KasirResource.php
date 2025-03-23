@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Model;
 class KasirResource extends Resource
 {
     protected static ?string $model = Kasir::class;
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $label = 'Kasir';
     protected static ?string $recordTitleAttribute = 'nama';
     protected static ?string $pluralLabel = 'Kasir';
@@ -160,7 +160,8 @@ class KasirResource extends Resource
                                     ]),
                                 ]),
                         ])->from('lg'),
-                    ]),
+                    ])
+                    ->collapsible(),
             ]);
     }
 

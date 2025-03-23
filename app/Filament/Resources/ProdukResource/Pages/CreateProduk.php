@@ -9,6 +9,7 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateProduk extends CreateRecord
 {
     protected static string $resource = ProdukResource::class;
+    protected static ?string $title = 'Tambah Produk';
 
     protected function afterCreate(): void
     {

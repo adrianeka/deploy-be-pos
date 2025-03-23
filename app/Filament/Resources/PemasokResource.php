@@ -22,7 +22,7 @@ use Filament\Tables\Columns\TextColumn;
 class PemasokResource extends Resource
 {
     protected static ?string $model = Pemasok::class;
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $label = 'Pemasok';
     protected static ?string $recordTitleAttribute = 'nama_perusahaan';
     protected static ?string $pluralLabel = 'Pemasok';
@@ -122,7 +122,8 @@ class PemasokResource extends Resource
                                     ]),
                                 ]),
                         ])->from('lg'),
-                    ]),
+                    ])
+                    ->collapsible(),
             ]);
     }
 

@@ -9,7 +9,6 @@ use Filament\Resources\Pages\ViewRecord;
 class ViewProduk extends ViewRecord
 {
     protected static string $resource = ProdukResource::class;
-    protected static ?string $navigationLabel = 'Detail Pro';
     protected static ?string $title = 'Detail Produk';
 
     protected function getHeaderActions(): array
