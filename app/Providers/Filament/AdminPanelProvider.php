@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Models\Pemilik;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -11,6 +12,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
+use Illuminate\Container\Attributes\Auth;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -26,7 +28,20 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName("POS Nur'afie")
+            ->brandName(function () {
+                // Mendapatkan user yang sedang login dari request
+                $user = request()->user();
+
+                if ($user && $user->isPemilik()) {
+                    $pemilik = Pemilik::where('id_user', $user->getKey())->first();
+
+                    if ($pemilik && $pemilik->nama_perusahaan) {
+                        return $pemilik->nama_perusahaan;
+                    }
+                }
+
+                return "";
+            })
             ->login()
             ->colors([
                 'primary' => Color::Green,

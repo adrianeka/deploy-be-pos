@@ -150,4 +150,9 @@ class StokResource extends Resource
             'view' => Pages\ViewStok::route('/{record}'),
         ];
     }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['produk.nama_produk'];
+    }
 }

@@ -31,6 +31,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Actions\ActionGroup;
+use Illuminate\Database\Eloquent\Model;
 
 class ProdukResource extends Resource
 {
@@ -405,5 +406,10 @@ class ProdukResource extends Resource
                     $set('id_satuan', $pcsSatuan->id_satuan);
                 }
             });
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('view', ['record' => $record]);
     }
 }

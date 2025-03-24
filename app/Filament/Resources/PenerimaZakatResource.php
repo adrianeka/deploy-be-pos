@@ -18,6 +18,7 @@ use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Facades\Filament;
+use Illuminate\Database\Eloquent\Model;
 
 class PenerimaZakatResource extends Resource
 {
@@ -160,5 +161,10 @@ class PenerimaZakatResource extends Resource
             'edit' => Pages\EditPenerimaZakat::route('/{record}/edit'),
             'view' => Pages\ViewPenerimaZakat::route('/{record}'),
         ];
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('view', ['record' => $record]);
     }
 }

@@ -174,4 +174,9 @@ class KasirResource extends Resource
             'view' => Pages\ViewKasir::route('/{record}'),
         ];
     }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('view', ['record' => $record]);
+    }
 }

@@ -18,6 +18,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Model;
 
 class PemasokResource extends Resource
 {
@@ -135,5 +136,10 @@ class PemasokResource extends Resource
             'edit' => Pages\EditPemasok::route('/{record}/edit'),
             'view' => Pages\ViewPemasok::route('/{record}'),
         ];
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('view', ['record' => $record]);
     }
 }
