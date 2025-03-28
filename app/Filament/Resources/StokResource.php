@@ -21,8 +21,6 @@ use Filament\Infolists\Components\Grid;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\Split;
 use Filament\Pages\SubNavigationPosition;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Resources\Pages\Page;
 use Filament\Forms\Components;
 
@@ -146,7 +144,7 @@ class StokResource extends Resource
         return [
             'index' => Pages\ListStoks::route('/'),
             'create' => Pages\CreateStok::route('/create'),
-            'comments' => Pages\RiwayatStok::route('/{record}/riwayat-stok'),
+            'riwayat-stok' => Pages\RiwayatStok::route('/{record}/riwayat-stok'),
             'view' => Pages\ViewStok::route('/{record}'),
         ];
     }

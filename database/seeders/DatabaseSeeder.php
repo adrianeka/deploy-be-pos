@@ -21,5 +21,6 @@ class DatabaseSeeder extends Seeder
         $this->call(ProdukSeeder::class);
         $this->call(LevelHargaSeeder::class);
         $this->call(StokProdukSeeder::class);
+        $this->call(PenjualanSeeder::class);
     }
 }

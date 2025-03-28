@@ -52,7 +52,8 @@ class PenerimaZakatResource extends Resource
                                 Components\TextInput::make('no_rekening')
                                     ->label('Nomor Rekening')
                                     ->numeric()
-                                    ->length(16)
+                                    ->minLength(10)
+                                    ->maxLength(16)
                                     ->required(),
                                 Components\TextInput::make('nama_bank')
                                     ->label('Nama Bank')

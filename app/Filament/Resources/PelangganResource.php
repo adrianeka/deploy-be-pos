@@ -16,6 +16,8 @@ use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Pages\Page;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +31,8 @@ class PelangganResource extends Resource
     protected static ?string $pluralLabel = 'Pelanggan';
     protected static ?string $navigationLabel = 'Pelanggan';
     protected static ?string $navigationGroup = 'Data Master';
+    protected static ?int $navigationSort = 0;
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function form(Form $form): Form
     {
@@ -72,10 +76,12 @@ class PelangganResource extends Resource
                     ->sortable(),
                 TextColumn::make('no_telp')
                     ->label('Nomor Telepon')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('alamat')
                     ->label('Alamat')
                     ->searchable()
+                    ->sortable()
                     ->limit(50),
             ])
             ->actions([
@@ -128,6 +134,14 @@ class PelangganResource extends Resource
             ]);
     }
 
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            Pages\ViewPelanggan::class,
+            Pages\RiwayatTransaksi::class,
+        ]);
+    }
+
     public static function getPages(): array
     {
         return [
@@ -135,6 +149,7 @@ class PelangganResource extends Resource
             'create' => Pages\CreatePelanggan::route('/create'),
             'edit' => Pages\EditPelanggan::route('/{record}/edit'),
             'view' => Pages\ViewPelanggan::route('/{record}'),
+            'riwayat-transaksi' => Pages\RiwayatTransaksi::route('/{record}/riwayat-transaksi'),
         ];
     }
 
