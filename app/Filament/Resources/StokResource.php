@@ -23,6 +23,7 @@ use Filament\Infolists\Components\Split;
 use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Pages\Page;
 use Filament\Forms\Components;
+use Illuminate\Database\Eloquent\Builder;
 
 class StokResource extends Resource
 {
@@ -93,16 +94,34 @@ class StokResource extends Resource
                     ->getStateUsing(function ($record) {
                         return Stok::getStokTersediaByProduk($record->id_produk);
                     })
-                    ->searchable(query: function ($query, $search) {
-                        return $query->searchStokTersedia($search);
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('stok', function (Builder $query) use ($search) {
+                            $query->groupBy('id_produk')
+                                ->havingRaw('SUM(CASE WHEN jenis_stok = "In" THEN jumlah_stok ELSE -jumlah_stok END) LIKE ?', ["%{$search}%"]);
+                        });
                     })
-                    ->sortable(query: function ($query, $direction) {
-                        return $query->sortStokTersedia($direction);
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderByRaw('(
+                            SELECT SUM(CASE WHEN jenis_stok = "In" THEN jumlah_stok ELSE -jumlah_stok END) 
+                            FROM stok 
+                            WHERE stok.id_produk = produk.id_produk
+                        ) ' . $direction);
                     }),
-                // TextColumn::make('produk.satuan.nama_satuan')
-                //     ->label('Satuan')
-                //     ->searchable()
-                //     ->sortable(),
+                TextColumn::make('satuan')
+                    ->label('Satuan')
+                    ->getStateUsing(function ($record) {
+                        $produk = Produk::with('satuan')->find($record->id_produk);
+                        return $produk->satuan->nama_satuan ?? '-';
+                    })
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('satuan', function (Builder $query) use ($search) {
+                            $query->where('nama_satuan', 'LIKE', "%{$search}%");
+                        });
+                    })
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->join('satuan', 'produk.id_satuan', '=', 'satuan.id_satuan')
+                            ->orderBy('satuan.nama_satuan', $direction);
+                    }),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -51,23 +50,5 @@ class Stok extends Model
                     return -$stok->jumlah_stok;
                 }
             });
-    }
-
-    // Scope untuk searching stok tersedia
-    public function scopeSearchStokTersedia(Builder $query, string $search): Builder
-    {
-        return $query->whereHas('produk', function ($q) use ($search) {
-            $q->whereRaw('(SELECT COALESCE(SUM(CASE WHEN jenis_stok = "In" THEN jumlah_stok ELSE -jumlah_stok END), 0) 
-                 FROM stoks 
-                 WHERE stoks.id_produk = produks.id_produk) LIKE ?', ["%{$search}%"]);
-        });
-    }
-
-    // Scope untuk sorting stok tersedia
-    public function scopeSortStokTersedia(Builder $query, string $direction): Builder
-    {
-        return $query->orderByRaw('(SELECT COALESCE(SUM(CASE WHEN jenis_stok = "In" THEN jumlah_stok ELSE -jumlah_stok END), 0) 
-             FROM stoks 
-             WHERE stoks.id_produk = produks.id_produk) ' . $direction);
     }
 }
