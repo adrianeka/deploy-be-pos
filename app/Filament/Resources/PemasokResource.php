@@ -16,7 +16,7 @@ use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
-use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 
@@ -87,7 +87,7 @@ class PemasokResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                BulkAction::make('delete_selected')
+                DeleteBulkAction::make('delete_selected')
                     ->label('Hapus yang Dipilih')
                     ->action(fn($records) => $records->each->delete())
                     ->requiresConfirmation()

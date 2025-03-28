@@ -36,22 +36,29 @@ class RiwayatStok extends ManageRelatedRecords
                 TextColumn::make('jenis_stok')
                     ->label('Jenis Stok')
                     ->badge()
+                    ->searchable()
+                    ->sortable()
                     ->color(fn(string $state): string => match ($state) {
                         'In' => 'success',
                         'Out' => 'danger',
                     }),
                 TextColumn::make('jumlah_stok')
                     ->label('Jumlah')
-                    ->numeric(),
+                    ->numeric()
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('jenis_transaksi')
                     ->label('Jenis Transaksi')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('keterangan')
                     ->label('Keterangan')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('tanggal_stok')
                     ->label('Tanggal')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
+                    ->searchable()
                     ->sortable(),
             ])
             ->filters([

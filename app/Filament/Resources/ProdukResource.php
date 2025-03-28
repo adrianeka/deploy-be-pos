@@ -29,7 +29,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ActionGroup;
 use Illuminate\Database\Eloquent\Model;
 
@@ -263,11 +263,12 @@ class ProdukResource extends Resource
                                 ->success()
                                 ->send();
                         }),
-                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                        ->successNotificationTitle('Data berhasil dihapus'),
                 ])
             ])
             ->bulkActions([
-                BulkAction::make('delete_selected')
+                DeleteBulkAction::make('delete_selected')
                     ->label('Hapus yang Dipilih')
                     ->action(fn($records) => $records->each->delete())
                     ->requiresConfirmation()

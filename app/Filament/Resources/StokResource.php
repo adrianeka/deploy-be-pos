@@ -90,10 +90,19 @@ class StokResource extends Resource
                     ->sortable(),
                 TextColumn::make('stok_tersedia')
                     ->label('Stok Tersedia')
-                    ->sortable()
                     ->getStateUsing(function ($record) {
                         return Stok::getStokTersediaByProduk($record->id_produk);
+                    })
+                    ->searchable(query: function ($query, $search) {
+                        return $query->searchStokTersedia($search);
+                    })
+                    ->sortable(query: function ($query, $direction) {
+                        return $query->sortStokTersedia($direction);
                     }),
+                // TextColumn::make('produk.satuan.nama_satuan')
+                //     ->label('Satuan')
+                //     ->searchable()
+                //     ->sortable(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

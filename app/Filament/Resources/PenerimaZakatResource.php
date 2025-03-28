@@ -10,7 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Infolists\Components\Grid;
 use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\Section;
@@ -102,9 +102,10 @@ class PenerimaZakatResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->successNotificationTitle('Data berhasil dihapus'),
             ])->bulkActions([
-                BulkAction::make('delete_selected')
+                DeleteBulkAction::make('delete_selected')
                     ->label('Hapus yang Dipilih')
                     ->action(fn($records) => $records->each->delete())
                     ->requiresConfirmation()

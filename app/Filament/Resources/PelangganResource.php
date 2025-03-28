@@ -16,9 +16,10 @@ use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Pages\SubNavigationPosition;
-use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
 
@@ -87,12 +88,19 @@ class PelangganResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->successNotificationTitle('Data berhasil dihapus')
             ])
             ->bulkActions([
-                BulkAction::make('delete_selected')
+                DeleteBulkAction::make()
                     ->label('Hapus yang Dipilih')
-                    ->action(fn($records) => $records->each->delete())
+                    ->action(function ($records) {
+                        $records->each->delete();
+                        Notification::make()
+                            ->title('Data berhasil dihapus')
+                            ->success()
+                            ->send();
+                    })
                     ->requiresConfirmation()
                     ->deselectRecordsAfterCompletion(),
             ]);

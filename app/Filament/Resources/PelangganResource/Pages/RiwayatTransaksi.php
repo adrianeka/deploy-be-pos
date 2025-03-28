@@ -8,11 +8,12 @@ use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class RiwayatTransaksi extends ManageRelatedRecords
 {
     protected static string $resource = PelangganResource::class;
-    protected static string $relationship = 'penjualan'; // Sesuaikan dengan relasi yang benar
+    protected static string $relationship = 'penjualan';
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Riwayat Transaksi';
     protected static ?string $title = 'Riwayat Transaksi Pelanggan';
@@ -24,34 +25,66 @@ class RiwayatTransaksi extends ManageRelatedRecords
 
     public function table(Table $table): Table
     {
-        $id_pelanggan = $this->record->id_pelanggan; // Ambil ID pelanggan yang sedang dipilih
+        $id_pelanggan = $this->record->id_pelanggan;
 
         return $table
             ->query(
                 Penjualan::query()
-                    ->where('id_pelanggan', $id_pelanggan) // Ambil transaksi berdasarkan pelanggan
+                    ->where('id_pelanggan', $id_pelanggan)
+                    ->withSum('pembayaran', 'total_bayar')
             )
             ->defaultSort('tanggal_penjualan', 'desc')
             ->columns([
                 TextColumn::make('id_penjualan')
                     ->label('Nomor Invoice')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('kasir.nama')
                     ->label('Kasir yang Melayani')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('total_pembayaran')
                     ->label('Total Bayar')
-                    ->formatStateUsing(fn($state) => $state ? 'Rp. ' . number_format($state, 0, ',', '.') : '-'),
+                    ->getStateUsing(function (Penjualan $record): string {
+                        $totalBayar = $record->pembayaran_sum_total_bayar ?? 0;
+                        return $totalBayar ? 'Rp. ' . number_format($totalBayar, 0, ',', '.') : '-';
+                    })
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('pembayaran', function ($q) use ($search) {
+                            $q->where('total_bayar', 'like', "%{$search}%");
+                        });
+                    })
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderBy('pembayaran_sum_total_bayar', $direction);
+                    }),
+
                 TextColumn::make('sisa_pembayaran')
                     ->label('Sisa Bayar')
-                    ->formatStateUsing(fn($state) => $state ? 'Rp. ' . number_format($state, 0, ',', '.') : '-'),
+                    ->getStateUsing(function (Penjualan $record): string {
+                        $totalBayar = $record->pembayaran_sum_total_bayar ?? 0;
+                        $sisaBayar = $record->total_harga - $totalBayar;
+                        return $sisaBayar ? 'Rp. ' . number_format($sisaBayar, 0, ',', '.') : '-';
+                    })
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereRaw("(total_harga - (SELECT COALESCE(SUM(total_bayar), 0) FROM pembayaran WHERE pembayaran.id_penjualan = penjualan.id_penjualan)) LIKE ?", ["%{$search}%"]);
+                    })
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderByRaw("(total_harga - (SELECT COALESCE(SUM(total_bayar), 0) FROM pembayaran WHERE pembayaran.id_penjualan = penjualan.id_penjualan)) {$direction}");
+                    }),
+
                 TextColumn::make('tanggal_penjualan')
                     ->label('Tanggal')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
+                    ->searchable()
                     ->sortable(),
+
                 TextColumn::make('status_penjualan')
                     ->label('Status Transaksi')
                     ->badge()
+                    ->searchable()
+                    ->sortable()
                     ->color(fn(string $state): string => match ($state) {
                         'Lunas' => 'success',
                         'Belum Lunas' => 'danger',

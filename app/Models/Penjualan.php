@@ -35,18 +35,4 @@ class Penjualan extends Model
     {
         return $this->hasMany(Pembayaran::class, 'id_penjualan');
     }
-
-    protected function totalPembayaran(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => $this->pembayaran()->sum('total_bayar')
-        );
-    }
-
-    protected function sisaPembayaran(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => $this->total_harga - $this->totalPembayaran
-        );
-    }
 }
