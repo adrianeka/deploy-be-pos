@@ -29,6 +29,13 @@ class UserSeeder extends Seeder
             'role' => 'pemilik',
         ]);
 
+        $kasir1 = User::create([
+            'name' => 'Kasir 1',
+            'email' => 'kasir@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'kasir',
+        ]);
+
         $pemilikData1 = Pemilik::create([
             'id_user' => $pemilik1->id,
             'nama_pemilik' => 'Pemilik 1',
@@ -45,6 +52,14 @@ class UserSeeder extends Seeder
             'alamat_toko' => 'Alamat 2',
             'jenis_usaha' => 'Grosir',
             'no_telp' => '08987654321'
+        ]);
+
+        Kasir::create([
+            'id_user' => $kasir1->id,
+            'id_pemilik' => $pemilikData1->id_pemilik,
+            'nama' => "Test Kasir",
+            'no_telp' => "0822222232",
+            'alamat' => "Alamat Kasir312"
         ]);
 
         for ($i = 1; $i <= 10; $i++) {
