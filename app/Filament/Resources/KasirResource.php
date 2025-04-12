@@ -44,6 +44,7 @@ class KasirResource extends Resource
                                 Components\TextInput::make('nama')
                                     ->label('Nama')
                                     ->required()
+                                    ->regex('/^[A-Za-z.\s]+$/')
                                     ->maxLength(255),
                                 Components\TextInput::make('email')
                                     ->label('Email')
@@ -103,7 +104,6 @@ class KasirResource extends Resource
                 TextColumn::make('nama')
                     ->label('Nama')
                     ->searchable()
-                    ->regex('/^[A-Za-z\s]+$/')
                     ->sortable(),
                 TextColumn::make('user.email')
                     ->label('Email')
