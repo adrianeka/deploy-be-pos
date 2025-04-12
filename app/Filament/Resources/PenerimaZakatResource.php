@@ -44,7 +44,7 @@ class PenerimaZakatResource extends Resource
                             ->schema([
                                 Components\TextInput::make('nama_penerima')
                                     ->label('Nama Penerima')
-                                    ->regex('/^[A-Za-z\s]+$/')
+                                    ->regex('/^[A-Za-z.\s]+$/')
                                     ->required()
                                     ->maxLength(255),
                                 Components\TextInput::make('no_telp')
@@ -61,12 +61,14 @@ class PenerimaZakatResource extends Resource
                                     ->required(),
                                 Components\TextInput::make('nama_bank')
                                     ->label('Nama Bank')
-                                    ->regex('/^[A-Za-z\s]+$/')
+                                    ->regex('/^[A-Za-z.\s]+$/')
+
                                     ->required()
                                     ->maxLength(20),
                                 Components\TextInput::make('rekening_atas_nama')
                                     ->label('Nama Pemilik Rekening')
-                                    ->regex('/^[A-Za-z\s]+$/')
+                                    ->regex('/^[A-Za-z.\s]+$/')
+
                                     ->required()
                                     ->maxLength(30),
                                 Components\TextInput::make('alamat')

@@ -45,7 +45,7 @@ class PelangganResource extends Resource
                             ->schema([
                                 Components\TextInput::make('nama_pelanggan')
                                     ->label('Nama Pelanggan')
-                                    ->regex('/^[A-Za-z\s]+$/')
+                                    ->regex('/^[A-Za-z.\s]+$/')
                                     ->required()
                                     ->maxLength(255),
                                 Components\TextInput::make('no_telp')
