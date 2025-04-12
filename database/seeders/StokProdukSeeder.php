@@ -73,7 +73,9 @@ class StokProdukSeeder extends Seeder
                 }
 
                 // Generate tanggal acak antara stok awal dan sekarang
-                $tanggalStok = Carbon::now()->subDays(rand(1, 27));
+                $tanggalStok = Carbon::now()
+                    ->subDays(rand(1, 27))
+                    ->setTime(rand(0, 23), rand(0, 59), rand(0, 59));
                 $this->addStok($produk, $jumlahStok, $jenisStok, $jenisTransaksi, $keterangan, $tanggalStok);
             }
         }
