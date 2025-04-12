@@ -13,18 +13,23 @@ class PenerimaZakatSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create();
+        $faker = Faker::create('id_ID');
 
         $data = [];
         for ($i = 0; $i < 10; $i++) {
+            $nama = $faker->name;
+            $length = rand(11, 13);
+            $no_telp = '08' . $faker->numerify(str_repeat('#', $length - 2));
+            $no_rekening = $faker->numerify(str_repeat('#', 16));
+
             $data[] = [
-                'id_pemilik' => rand(1, 2),
-                'nama_penerima' => $faker->word,
-                'no_telp' => $faker->numerify(str_repeat('#', rand(10, 15))),
-                'no_rekening' => $faker->numerify(str_repeat('#', 16)),
-                'nama_bank' => $faker->randomElement(['BRI', 'BCA', 'BNI']),
-                'rekening_atas_nama' => $faker->word,
-                'alamat' => $faker->sentence(10),
+                'id_pemilik' => 1,
+                'nama_penerima' => $nama,
+                'no_telp' => $no_telp,
+                'no_rekening' => $no_rekening,
+                'nama_bank' => $faker->randomElement(['BRI', 'BCA', 'BNI', 'Mandiri', 'BSI']),
+                'rekening_atas_nama' => $nama,
+                'alamat' => $faker->address,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

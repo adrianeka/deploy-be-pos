@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('pembelian', function (Blueprint $table) {
             $table->id('id_pembelian');
             $table->foreignId('id_pemasok')->references('id_pemasok')->on('pemasok')->onDelete('cascade');
-            $table->date('tanggal_pembelian');
-            $table->integer('total_harga')->default(0);
-            $table->enum('status_pembelian', ['diproses', 'belum bayar', 'sudah bayar']);
+            $table->dateTime('tanggal_pembelian');
+            $table->bigInteger('total_harga')->default(0);
+            $table->enum('status_pembelian', ['Diproses', 'Lunas', 'Belum Lunas']);
             $table->timestamps();
         });
     }

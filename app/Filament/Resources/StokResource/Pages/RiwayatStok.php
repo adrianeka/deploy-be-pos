@@ -30,9 +30,16 @@ class RiwayatStok extends ManageRelatedRecords
             ->query(
                 Stok::query()
                     ->where('id_produk', $id_produk)
+                    ->where('keterangan', '!=', 'Stok Awal') // Menghilangkan data dengan keterangan "Stok Awal"
             )
             ->defaultSort('tanggal_stok', 'desc')
             ->columns([
+                TextColumn::make('tanggal_stok')
+                    ->label('Tanggal')
+                    ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('jenis_stok')
                     ->label('Jenis Stok')
                     ->badge()
@@ -53,11 +60,6 @@ class RiwayatStok extends ManageRelatedRecords
                     ->sortable(),
                 TextColumn::make('keterangan')
                     ->label('Keterangan')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('tanggal_stok')
-                    ->label('Tanggal')
-                    ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
                     ->searchable()
                     ->sortable(),
             ])

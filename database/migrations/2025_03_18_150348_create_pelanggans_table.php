@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id_pelanggan');
             $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
             $table->string('nama_pelanggan');
-            $table->string('no_telp', 15);
+            $table->string('no_telp', 25);
             $table->text('alamat');
             $table->timestamps();
         });

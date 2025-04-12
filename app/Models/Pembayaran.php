@@ -17,4 +17,9 @@ class Pembayaran extends Model
     {
         return $this->hasMany(Penjualan::class, 'id_penjualan');
     }
+
+    public function pembelian()
+    {
+        return $this->hasMany(Pembelian::class, 'id_pembelian');
+    }
 }

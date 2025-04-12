@@ -33,10 +33,10 @@ class CreateProduk extends CreateRecord
         $this->record->stok()->create([
             'id_produk' => $this->record->id_produk,
             'jumlah_stok' => 0,
-            'jenis_stok' => 'In',
-            'jenis_transaksi' => 'Produk Awal',
+            'jenis_stok' => null,
+            'jenis_transaksi' => null,
             'tanggal_stok' => now(),
-            'keterangan' => 'Menambahkan Stok Produk Awal',
+            'keterangan' => 'Stok Awal',
         ]);
     }
 }

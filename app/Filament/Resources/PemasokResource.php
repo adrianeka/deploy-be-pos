@@ -16,6 +16,8 @@ use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Pages\Page;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +31,8 @@ class PemasokResource extends Resource
     protected static ?string $pluralLabel = 'Pemasok';
     protected static ?string $navigationLabel = 'Pemasok';
     protected static ?string $navigationGroup = 'Data Master';
+    protected static ?int $navigationSort = 1;
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function form(Form $form): Form
     {
@@ -131,6 +135,18 @@ class PemasokResource extends Resource
             ]);
     }
 
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        if ($page instanceof Pages\EditPemasok) {
+            return [];
+        }
+
+        return $page->generateNavigationItems([
+            Pages\ViewPemasok::class,
+            Pages\RiwayatTransaksi::class,
+        ]);
+    }
+
     public static function getPages(): array
     {
         return [
@@ -138,6 +154,7 @@ class PemasokResource extends Resource
             'create' => Pages\CreatePemasok::route('/create'),
             'edit' => Pages\EditPemasok::route('/{record}/edit'),
             'view' => Pages\ViewPemasok::route('/{record}'),
+            'riwayat-transaksi' => Pages\RiwayatTransaksi::route('/{record}/riwayat-transaksi'),
         ];
     }
 

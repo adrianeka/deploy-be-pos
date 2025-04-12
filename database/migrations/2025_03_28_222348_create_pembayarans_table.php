@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('pembayaran', function (Blueprint $table) {
             $table->id('id_pembayaran');
-            $table->string('id_penjualan');
+            $table->string('id_penjualan')->nullable();
             $table->foreign('id_penjualan')->references('id_penjualan')->on('penjualan')->onDelete('cascade');
-            //$table->foreignId('id_pembelian')->references('id_pembelian')->on('pembelian')->onDelete('cascade');
+            $table->foreignId('id_pembelian')->nullable()->references('id_pembelian')->on('pembelian')->onDelete('cascade');
             //$table->foreignId('id_metode_pembayaran')->references('id_metode_pembayaran')->on('metode_pembayaran')->onDelete('cascade');
             $table->dateTime('tanggal_pembayaran');
-            $table->integer('total_bayar');
+            $table->bigInteger('total_bayar');
             $table->string('keterangan')->nullable();
             $table->timestamps();
         });

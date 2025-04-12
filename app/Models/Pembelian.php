@@ -22,4 +22,9 @@ class Pembelian extends Model
     {
         return $this->hasMany(PembelianDetail::class, 'id_pembelian');
     }
+
+    public function pembayaran()
+    {
+        return $this->hasMany(Pembayaran::class, 'id_penjualan');
+    }
 }

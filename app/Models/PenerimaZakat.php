@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PenerimaZakat extends Model
 {
@@ -23,8 +24,13 @@ class PenerimaZakat extends Model
         'alamat',
     ];
 
-    public function owner(): BelongsTo
+    public function pemilik(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id_pemilik');
+        return $this->belongsTo(Pemilik::class, 'id_pemilik', 'id_pemilik');
+    }
+
+    public function bayar_zakat(): HasMany
+    {
+        return $this->hasMany(BayarZakat::class, 'id_penerima_zakat', 'id_penerima_zakat');
     }
 }

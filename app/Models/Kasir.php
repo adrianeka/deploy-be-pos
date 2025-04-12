@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Kasir extends Model
 {
@@ -29,5 +30,10 @@ class Kasir extends Model
     public function pemilik()
     {
         return $this->belongsTo(Pemilik::class, 'id_pemilik');
+    }
+
+    public function penjualan(): BelongsTo
+    {
+        return $this->belongsTo(Penjualan::class, 'id_penjualan');
     }
 }

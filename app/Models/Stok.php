@@ -12,6 +12,7 @@ class Stok extends Model
 
     protected $table = 'stok';
     protected $primaryKey = 'id_stok';
+    public $incrementing = true;
     public $timestamps = true;
 
     protected $fillable = [
@@ -28,16 +29,10 @@ class Stok extends Model
         return $this->belongsTo(Produk::class, 'id_produk');
     }
 
-    public function stok()
-    {
-        return $this->hasMany(Stok::class, 'id_produk');
-    }
-
     public function getNamaProdukAttribute()
     {
         return $this->produk?->nama_produk ?? '-';
     }
-
 
     public static function getStokTersediaByProduk($id_produk)
     {

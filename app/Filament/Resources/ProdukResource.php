@@ -41,6 +41,7 @@ class ProdukResource extends Resource
     protected static ?string $navigationLabel = 'Produk';
     protected static ?string $pluralLabel = 'Produk';
     protected static ?string $navigationGroup = 'Inventaris';
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
@@ -154,6 +155,12 @@ class ProdukResource extends Resource
                     ->sortable()
                     ->searchable(),
 
+                TextColumn::make('harga_beli')
+                    ->label('Harga Beli')
+                    ->sortable()
+                    ->formatStateUsing(fn($state) => $state ? 'Rp. ' . number_format($state, 0, ',', '.') : '-')
+                    ->searchable(),
+
                 TextColumn::make('level_hargas.harga_jual')
                     ->label('Harga Jual')
                     ->getStateUsing(function ($record) {
@@ -167,12 +174,34 @@ class ProdukResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('stok_minimum')
-                    ->label('Stok Minimum')
+                TextColumn::make('satuan.nama_satuan')
+                    ->label('Satuan')
                     ->sortable()
                     ->searchable(),
             ])
-            ->filters([])
+            ->filters([
+                Tables\Filters\SelectFilter::make('id_kategori')
+                    ->label('Kategori')
+                    ->options(function () {
+                        return Kategori::where(function ($query) {
+                            $query->where('id_pemilik', Filament::auth()->id())
+                                ->orWhereNull('id_pemilik');
+                        })->pluck('nama_kategori', 'id_kategori')->toArray();
+                    })
+                    ->preload()
+                    ->multiple(),
+
+                Tables\Filters\SelectFilter::make('id_satuan')
+                    ->label('Satuan')
+                    ->options(function () {
+                        return Satuan::where(function ($query) {
+                            $query->where('id_pemilik', Filament::auth()->id())
+                                ->orWhereNull('id_pemilik');
+                        })->pluck('nama_satuan', 'id_satuan')->toArray();
+                    })
+                    ->preload()
+                    ->multiple(),
+            ])
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
@@ -334,6 +363,7 @@ class ProdukResource extends Resource
                             ->markdown()
                             ->hiddenLabel(),
                     ])
+                    ->visible(fn($record) => !is_null($record->deskripsi))
                     ->collapsible(),
             ]);
     }

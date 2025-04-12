@@ -34,7 +34,7 @@ class StokResource extends Resource
     protected static ?string $recordTitleAttribute = 'nama_produk';
     protected static ?string $navigationLabel = 'Stok Produk';
     protected static ?string $navigationGroup = 'Inventaris';
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = 5;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function form(Form $form): Form
@@ -123,6 +123,29 @@ class StokResource extends Resource
                             ->orderBy('satuan.nama_satuan', $direction);
                     }),
             ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('id_satuan')
+                    ->label('Satuan')
+                    ->relationship('satuan', 'nama_satuan', function ($query) {
+                        return $query->where(function ($query) {
+                            $query->where('id_pemilik', Filament::auth()->id())
+                                ->orWhereNull('id_pemilik');
+                        });
+                    })
+                    ->preload()
+                    ->multiple(),
+
+                Tables\Filters\SelectFilter::make('id_kategori')
+                    ->label('Kategori')
+                    ->relationship('kategori', 'nama_kategori', function ($query) {
+                        return $query->where(function ($query) {
+                            $query->where('id_pemilik', Filament::auth()->id())
+                                ->orWhereNull('id_pemilik');
+                        });
+                    })
+                    ->preload()
+                    ->multiple(),
+            ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
             ]);
@@ -171,7 +194,7 @@ class StokResource extends Resource
     {
         return [
             'index' => Pages\ListStoks::route('/'),
-            'create' => Pages\CreateStok::route('/create'),
+            'create' => Pages\CreateStok::route('/edit'),
             'riwayat-stok' => Pages\RiwayatStok::route('/{record}/riwayat-stok'),
             'view' => Pages\ViewStok::route('/{record}'),
         ];

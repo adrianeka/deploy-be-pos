@@ -47,7 +47,7 @@ class Produk extends Model
 
     public function stok()
     {
-        return $this->hasMany(Stok::class, 'id_stok');
+        return $this->hasMany(Stok::class, 'id_produk');
     }
 
     public static function getStokProdukByPemilik($id_pemilik): Builder
