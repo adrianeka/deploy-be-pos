@@ -34,6 +34,11 @@ class Stok extends Model
         return $this->produk?->nama_produk ?? '-';
     }
 
+    public function stok(): BelongsTo
+    {
+        return $this->belongsTo(Stok::class, 'id_stok');
+    }
+
     public static function getStokTersediaByProduk($id_produk)
     {
         return self::where('id_produk', $id_produk)
