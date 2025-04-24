@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('id_penjualan')->nullable();
             $table->foreign('id_penjualan')->references('id_penjualan')->on('penjualan')->onDelete('cascade');
             $table->foreignId('id_pembelian')->nullable()->references('id_pembelian')->on('pembelian')->onDelete('cascade');
-            //$table->foreignId('id_metode_pembayaran')->references('id_metode_pembayaran')->on('metode_pembayaran')->onDelete('cascade');
+            // $table->foreignId('id_metode_pembayaran')->references('id_metode_pembayaran')->on('metode_pembayaran')->onDelete('cascade');
+            $table->unsignedTinyInteger('id_metode_pembayaran');
+            $table->foreign('id_metode_pembayaran')->references('id_metode_pembayaran')->on('metode_pembayaran')->onDelete('cascade');
             $table->dateTime('tanggal_pembayaran');
             $table->bigInteger('total_bayar');
             $table->string('keterangan')->nullable();

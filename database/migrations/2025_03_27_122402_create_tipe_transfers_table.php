@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tipe_transfer', function (Blueprint $table) {
-            $table->id();
+            $table->tinyIncrements('id_tipe_transfer');
+            $table->enum('metode_transfer', ['bank', 'e-money']);
+            $table->string('jenis_transfer');
             $table->timestamps();
         });
     }
