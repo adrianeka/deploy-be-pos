@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id('id_bayar_zakat');
             $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
             $table->foreignId('id_penerima_zakat')->references('id_penerima_zakat')->on('penerima_zakat')->onDelete('cascade');
-            //$table->foreignId('id_metode_pembayaran')->references('id_metode_pembayaran')->on('metode_pembayaran')->onDelete('cascade');
+            $table->unsignedTinyInteger('id_metode_pembayaran');
+            $table->foreign('id_metode_pembayaran')->references('id_metode_pembayaran')->on('metode_pembayaran')->onDelete('cascade');
             $table->bigInteger('modal_terjual');
             $table->bigInteger('nominal_zakat');
             $table->dateTime('tanggal_bayar');

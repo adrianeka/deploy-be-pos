@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\PenjualanController;
+use App\Http\Controllers\ProdukController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
@@ -12,4 +14,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('pelanggan', PelangganController::class);
     Route::post('/pembelian', [PembelianController::class, 'store']);
+    Route::apiResource('/penjualan', PenjualanController::class);
+    Route::apiResource('/menu', ProdukController::class);
+    Route::get('/cek-stok/{id}', [PenjualanController::class, 'cekStok']);
+    Route::post('/bayar-penjualan/{id}', [PenjualanController::class, 'bayarPenjualan']);
+    Route::post('/ambil-barang/{id}', [PenjualanController::class, 'barangSudahDiambil']);
 });

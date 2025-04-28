@@ -8,15 +8,23 @@ use App\Models\Kasir;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     public function login(Request $request): JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
-        ]);
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'password' => 'required|string|min:6',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        }
 
         $user = User::where('email', $request->email)->first();
 
@@ -31,17 +39,15 @@ class AuthController extends Controller
             if (!$kasir) {
                 return response()->json(['message' => 'Cashier data not found'], 404);
             }
-            return response()->json(['token' => $token, 'role' => 'kasir', 'kasir' => $kasir]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Login berhasil!',
+                'token' => $token,
+                'role' => 'kasir',
+                'kasir' => $kasir
+            ]);
         }
         return response()->json(['message' => 'Invalid role'], 403);
-
-        // if ($user->role !== 'kasir') {
-        //     return response()->json(['message' => 'Access denied'], 403);
-        // }
-
-        //$token = $user->createToken('auth')->plainTextToken;
-
-        // return response()->json(['token' => $token]);
     }
 
     public function logout(Request $request): JsonResponse

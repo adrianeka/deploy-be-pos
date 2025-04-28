@@ -11,7 +11,7 @@ class PenjualanDetail extends Model
 
     protected $table = 'penjualan_detail';
     protected $primaryKey = 'id_penjualan_detail';
-    protected $fillable = ['id_penjualan', 'id_produk', 'jumlah_produk'];
+    protected $fillable = ['id_penjualan', 'id_produk', 'jumlah_produk', 'nama_produk', 'harga_jual'];
 
     public function penjualan()
     {
