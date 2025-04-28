@@ -109,13 +109,8 @@ class PenerimaZakatResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->successNotificationTitle('Data berhasil dihapus'),
             ])->bulkActions([
-                DeleteBulkAction::make('delete_selected')
-                    ->label('Hapus yang Dipilih')
-                    ->action(fn($records) => $records->each->delete())
-                    ->requiresConfirmation()
-                    ->deselectRecordsAfterCompletion(),
+                DeleteBulkAction::make()
             ]);
     }
 

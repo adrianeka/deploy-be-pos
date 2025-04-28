@@ -91,11 +91,7 @@ class PemasokResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                DeleteBulkAction::make('delete_selected')
-                    ->label('Hapus yang Dipilih')
-                    ->action(fn($records) => $records->each->delete())
-                    ->requiresConfirmation()
-                    ->deselectRecordsAfterCompletion(),
+                DeleteBulkAction::make()
             ]);
     }
 

@@ -90,20 +90,9 @@ class PelangganResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->successNotificationTitle('Data berhasil dihapus')
             ])
             ->bulkActions([
                 DeleteBulkAction::make()
-                    ->label('Hapus yang Dipilih')
-                    ->action(function ($records) {
-                        $records->each->delete();
-                        Notification::make()
-                            ->title('Data berhasil dihapus')
-                            ->success()
-                            ->send();
-                    })
-                    ->requiresConfirmation()
-                    ->deselectRecordsAfterCompletion(),
             ]);
     }
 
