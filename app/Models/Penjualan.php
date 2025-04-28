@@ -14,9 +14,9 @@ class Penjualan extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     protected $primaryKey = 'id_penjualan';
-    protected $fillable = ['id_penjualan', 'id_kasir', 'id_pelanggan', 'id_bayar_zakaat', 'tanggal_penjualan', 'total_harga', 'status_penjualan', 'status_retur', 'diskon'];
+    protected $fillable = ['id_penjualan', 'id_kasir', 'id_pelanggan', 'id_bayar_zakat', 'tanggal_penjualan', 'total_harga', 'status_penjualan', 'status_retur', 'diskon'];
 
-public function kasir()
+    public function kasir()
     {
         return $this->belongsTo(Kasir::class, 'id_kasir');
     }

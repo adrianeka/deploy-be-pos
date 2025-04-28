@@ -22,4 +22,9 @@ class Pembayaran extends Model
     {
         return $this->hasMany(Pembelian::class, 'id_pembelian');
     }
+
+    public function metode_pembayaran()
+    {
+        return $this->belongsTo(MetodePembayaran::class, 'id_metode_pembayaran');
+    }
 }
