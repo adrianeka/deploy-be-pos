@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\PelangganResource\Pages;
+namespace App\Filament\Resources\KasirResource\Pages;
 
-use App\Filament\Resources\PelangganResource;
+use App\Filament\Resources\KasirResource;
 use App\Models\Penjualan;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables\Columns\TextColumn;
@@ -12,11 +12,11 @@ use Filament\Tables\Actions\Action;
 
 class RiwayatTransaksi extends ManageRelatedRecords
 {
-    protected static string $resource = PelangganResource::class;
+    protected static string $resource = KasirResource::class;
     protected static string $relationship = 'penjualan';
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Riwayat Transaksi';
-    protected static ?string $title = 'Riwayat Transaksi Pelanggan';
+    protected static ?string $title = 'Riwayat Transaksi Kasir';
 
     public function getBreadcrumb(): string
     {
@@ -25,12 +25,12 @@ class RiwayatTransaksi extends ManageRelatedRecords
 
     public function table(Table $table): Table
     {
-        $id_pelanggan = $this->record->id_pelanggan;
+        $id_kasir = $this->record->id_kasir;
 
         return $table
             ->query(
                 Penjualan::query()
-                    ->where('id_pelanggan', $id_pelanggan)
+                    ->where('id_kasir', $id_kasir)
                     ->withSum('pembayaran', 'total_bayar')
             )
             ->defaultSort('tanggal_penjualan', 'desc')
@@ -43,11 +43,6 @@ class RiwayatTransaksi extends ManageRelatedRecords
 
                 TextColumn::make('id_penjualan')
                     ->label('Nomor Invoice')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('kasir.nama')
-                    ->label('Kasir yang Melayani')
                     ->searchable()
                     ->sortable(),
 

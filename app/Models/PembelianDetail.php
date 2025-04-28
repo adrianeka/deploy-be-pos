@@ -9,13 +9,13 @@ class PembelianDetail extends Model
 {
     use HasFactory;
 
-    protected $table = 'pembelian_detail';
-    protected $primaryKey = 'id_pembelian_detail';
-    protected $fillable = ['id_pembelian', 'id_produk', 'jumlah_produk'];
+    protected $table = 'penjualan_detail';
+    protected $primaryKey = 'id_penjualan_detail';
+    protected $fillable = ['id_penjualan', 'id_produk', 'jumlah_produk'];
 
     public function pembelian()
     {
-        return $this->belongsTo(Penjualan::class, 'id_pembelian');
+        return $this->belongsTo(Penjualan::class, 'id_penjualan');
     }
 
     public function produk()

@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id('id_stok');
             $table->foreignId('id_produk')->references('id_produk')->on('produk')->onDelete('cascade');
             $table->bigInteger('jumlah_stok');
-            $table->enum('jenis_stok', ['In', 'Out']);
-            $table->string('jenis_transaksi');
-            $table->text('keterangan');
-            $table->datetime('tanggal_stok');
+            $table->enum('jenis_stok', ['In', 'Out'])->nullable();
+            $table->string('jenis_transaksi')->nullable();
+            $table->text('keterangan')->nullable();
+            $table->dateTime('tanggal_stok');
             $table->timestamps();
         });
     }

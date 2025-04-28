@@ -32,7 +32,7 @@ class PelangganResource extends Resource
     protected static ?string $pluralLabel = 'Pelanggan';
     protected static ?string $navigationLabel = 'Pelanggan';
     protected static ?string $navigationGroup = 'Data Master';
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = 4;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function form(Form $form): Form
@@ -45,6 +45,7 @@ class PelangganResource extends Resource
                             ->schema([
                                 Components\TextInput::make('nama_pelanggan')
                                     ->label('Nama Pelanggan')
+                                    ->regex('/^[A-Za-z.\s]+$/')
                                     ->required()
                                     ->maxLength(255),
                                 Components\TextInput::make('no_telp')
@@ -52,7 +53,7 @@ class PelangganResource extends Resource
                                     ->required()
                                     ->numeric()
                                     ->minLength(10)
-                                    ->maxLength(13),
+                                    ->maxLength(15),
                                 Components\TextInput::make('alamat')
                                     ->label('Alamat')
                                     ->required()
@@ -144,6 +145,10 @@ class PelangganResource extends Resource
 
     public static function getRecordSubNavigation(Page $page): array
     {
+        if ($page instanceof Pages\EditPelanggan) {
+            return [];
+        }
+
         return $page->generateNavigationItems([
             Pages\ViewPelanggan::class,
             Pages\RiwayatTransaksi::class,

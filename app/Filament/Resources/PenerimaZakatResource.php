@@ -18,7 +18,9 @@ use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Facades\Filament;
+use Filament\Pages\SubNavigationPosition;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Pages\Page;
 
 class PenerimaZakatResource extends Resource
 {
@@ -29,6 +31,8 @@ class PenerimaZakatResource extends Resource
     protected static ?string $pluralLabel = 'Penerima Zakat';
     protected static ?string $navigationLabel = 'Penerima Zakat';
     protected static ?string $navigationGroup = 'Data Master';
+    protected static ?int $navigationSort = 3;
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function form(Form $form): Form
     {
@@ -40,7 +44,7 @@ class PenerimaZakatResource extends Resource
                             ->schema([
                                 Components\TextInput::make('nama_penerima')
                                     ->label('Nama Penerima')
-                                    ->regex('/^[A-Za-z\s]+$/')
+                                    ->regex('/^[A-Za-z.\s]+$/')
                                     ->required()
                                     ->maxLength(255),
                                 Components\TextInput::make('no_telp')
@@ -57,12 +61,14 @@ class PenerimaZakatResource extends Resource
                                     ->required(),
                                 Components\TextInput::make('nama_bank')
                                     ->label('Nama Bank')
-                                    ->regex('/^[A-Za-z\s]+$/')
+                                    ->regex('/^[A-Za-z.\s]+$/')
+
                                     ->required()
                                     ->maxLength(20),
                                 Components\TextInput::make('rekening_atas_nama')
                                     ->label('Nama Pemilik Rekening')
-                                    ->regex('/^[A-Za-z\s]+$/')
+                                    ->regex('/^[A-Za-z.\s]+$/')
+
                                     ->required()
                                     ->maxLength(30),
                                 Components\TextInput::make('alamat')
@@ -155,6 +161,18 @@ class PenerimaZakatResource extends Resource
         ];
     }
 
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        if ($page instanceof Pages\EditPenerimaZakat) {
+            return [];
+        }
+
+        return $page->generateNavigationItems([
+            Pages\ViewPenerimaZakat::class,
+            Pages\RiwayatZakat::class,
+        ]);
+    }
+
     public static function getPages(): array
     {
         return [
@@ -162,6 +180,7 @@ class PenerimaZakatResource extends Resource
             'create' => Pages\CreatePenerimaZakat::route('/create'),
             'edit' => Pages\EditPenerimaZakat::route('/{record}/edit'),
             'view' => Pages\ViewPenerimaZakat::route('/{record}'),
+            'riwayat-zakat' => Pages\RiwayatZakat::route('/{record}/riwayat-zakat'),
         ];
     }
 

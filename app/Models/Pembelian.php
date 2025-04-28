@@ -11,13 +11,8 @@ class Pembelian extends Model
 
     protected $table = 'pembelian';
     protected $primaryKey = 'id_pembelian';
-    protected $fillable = ['id_pemilik','id_pemasok', 'tanggal_pembelian', 'total_harga', 'status_pembelian'];
+    protected $fillable = ['id_pemasok', 'tanggal_pembelian', 'total_harga', 'status_pembelian'];
 
-    public function pemilik()
-    {
-        return $this->belongsTo(Pemilik::class, 'id_pemilik');
-    }
-    
     public function pemasok()
     {
         return $this->belongsTo(Pemasok::class, 'id_pemasok');
@@ -26,5 +21,10 @@ class Pembelian extends Model
     public function pembelianDetail()
     {
         return $this->hasMany(PembelianDetail::class, 'id_pembelian');
+    }
+
+    public function pembayaran()
+    {
+        return $this->hasMany(Pembayaran::class, 'id_penjualan');
     }
 }

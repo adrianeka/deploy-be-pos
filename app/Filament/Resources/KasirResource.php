@@ -18,6 +18,8 @@ use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Pages\Page;
+use Filament\Pages\SubNavigationPosition;
 
 class KasirResource extends Resource
 {
@@ -28,6 +30,8 @@ class KasirResource extends Resource
     protected static ?string $pluralLabel = 'Kasir';
     protected static ?string $navigationLabel = 'Kasir';
     protected static ?string $navigationGroup = 'Data Master';
+    protected static ?int $navigationSort = 0;
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -40,6 +44,7 @@ class KasirResource extends Resource
                                 Components\TextInput::make('nama')
                                     ->label('Nama')
                                     ->required()
+                                    ->regex('/^[A-Za-z.\s]+$/')
                                     ->maxLength(255),
                                 Components\TextInput::make('email')
                                     ->label('Email')
@@ -166,6 +171,18 @@ class KasirResource extends Resource
             ]);
     }
 
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        if ($page instanceof Pages\EditKasir) {
+            return [];
+        }
+
+        return $page->generateNavigationItems([
+            Pages\ViewKasir::class,
+            Pages\RiwayatTransaksi::class,
+        ]);
+    }
+
     public static function getPages(): array
     {
         return [
@@ -173,6 +190,7 @@ class KasirResource extends Resource
             'create' => Pages\CreateKasir::route('/create'),
             'edit' => Pages\EditKasir::route('/{record}/edit'),
             'view' => Pages\ViewKasir::route('/{record}'),
+            'riwayat-transaksi' => Pages\RiwayatTransaksi::route('/{record}/riwayat-transaksi'),
         ];
     }
 

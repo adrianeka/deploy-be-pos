@@ -13,15 +13,20 @@ class PelangganSeeder extends Seeder
      */
     public function run(): void
     {
-        $faker = Faker::create();
+        $faker = Faker::create('id_ID');
 
         $data = [];
-        for ($i = 0; $i < 100; $i++) {
+        for ($i = 0; $i < 10; $i++) {
+            // Tentukan panjang total nomor telepon (antara 10 sampai 15 digit)
+            $totalLength = rand(11, 13);
+            $remainingDigits = $totalLength - 2; // dikurangi panjang '08'
+            $number = '08' . $faker->numerify(str_repeat('#', $remainingDigits));
+
             $data[] = [
-                'nama_pelanggan' => $faker->word,
-                'id_pemilik' => rand(1, 2),
-                'no_telp' => $faker->numerify(str_repeat('#', rand(10, 15))),
-                'alamat' => $faker->sentence(10),
+                'nama_pelanggan' => $faker->name,
+                'id_pemilik' => 1,
+                'no_telp' => $number,
+                'alamat' => $faker->address,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

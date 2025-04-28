@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id_level_harga');
             $table->foreignId('id_produk')->references('id_produk')->on('produk')->onDelete('cascade');
             $table->string('nama_level');
-            $table->integer('harga_jual');
+            $table->bigInteger('harga_jual');
             $table->timestamps();
         });
     }

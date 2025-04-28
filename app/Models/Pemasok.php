@@ -19,8 +19,13 @@ class Pemasok extends Model
         'alamat',
     ];
 
-    public function owner(): BelongsTo
+    // public function produk(): BelongsTo
+    // {
+    //     return $this->belongsTo(Pemilik::class, 'id_pemilik');
+    // }
+
+    public function pembelian(): BelongsTo
     {
-        return $this->belongsTo(Pemilik::class, 'id_pemilik');
+        return $this->belongsTo(Pembelian::class, 'id_pembelian');
     }
 }

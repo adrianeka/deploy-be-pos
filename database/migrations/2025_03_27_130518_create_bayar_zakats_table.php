@@ -11,16 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pembayaran', function (Blueprint $table) {
-            $table->id('id_pembayaran');
-            $table->string('id_penjualan')->nullable();
-            $table->foreign('id_penjualan')->references('id_penjualan')->on('penjualan')->onDelete('cascade');
-            $table->foreignId('id_pembelian')->nullable()->references('id_pembelian')->on('pembelian')->onDelete('cascade');
+        Schema::create('bayar_zakat', function (Blueprint $table) {
+            $table->id('id_bayar_zakat');
+            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
+            $table->foreignId('id_penerima_zakat')->references('id_penerima_zakat')->on('penerima_zakat')->onDelete('cascade');
             $table->unsignedTinyInteger('id_metode_pembayaran');
             $table->foreign('id_metode_pembayaran')->references('id_metode_pembayaran')->on('metode_pembayaran')->onDelete('cascade');
-            $table->dateTime('tanggal_pembayaran');
-            $table->bigInteger('total_bayar');
-            $table->string('keterangan')->nullable();
+            $table->bigInteger('modal_terjual');
+            $table->bigInteger('nominal_zakat');
+            $table->dateTime('tanggal_bayar');
             $table->timestamps();
         });
     }
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pembayaran');
+        Schema::dropIfExists('bayar_zakat');
     }
 };
