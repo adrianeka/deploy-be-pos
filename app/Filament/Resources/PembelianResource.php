@@ -14,10 +14,11 @@ use Filament\Pages\SubNavigationPosition;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 
+
 class PembelianResource extends Resource
 {
     protected static ?string $model = Pembelian::class;
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
     protected static ?string $label = 'Transaksi Pembelian';
     // protected static ?string $recordTitleAttribute = '  ';
     protected static ?string $pluralLabel = 'Transaksi Pembelian';
@@ -85,7 +86,7 @@ class PembelianResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 DeleteBulkAction::make()
@@ -96,7 +97,8 @@ class PembelianResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            // RelationManagers\PembelianDetailRelationManager::class,
+            // RelationManagers\PembayaranRelationManager::class,
         ];
     }
 
@@ -105,7 +107,7 @@ class PembelianResource extends Resource
         return [
             'index' => Pages\ListPembelians::route('/'),
             'create' => Pages\CreatePembelian::route('/create'),
-            // 'edit' => Pages\EditPembelian::route('/{record}/edit'),
+            'view' => Pages\ViewTransaksiPembelian::route('/{record}'),
         ];
     }
 }

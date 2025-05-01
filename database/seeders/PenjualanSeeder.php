@@ -13,9 +13,9 @@ class PenjualanSeeder extends Seeder
     {
         Schema::disableForeignKeyConstraints();
 
-        DB::table('pembayaran')->truncate();
         DB::table('penjualan_detail')->truncate();
         DB::table('penjualan')->truncate();
+        DB::table('pembayaran_penjualan')->truncate();
 
         Schema::enableForeignKeyConstraints();
 
@@ -81,8 +81,7 @@ class PenjualanSeeder extends Seeder
 
         $pembayaranData = [
             [
-                'id_penjualan' => 'INV-20250412001',
-                'id_pembelian' => null,
+                'id_pembayaran' => 1,
                 'tanggal_pembayaran' => Carbon::parse('2025-04-12 09:30:00'),
                 'total_bayar' => 50000,
                 'keterangan' => 'lunas langsung',
@@ -91,8 +90,7 @@ class PenjualanSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'id_penjualan' => 'INV-20250412002',
-                'id_pembelian' => null,
+                'id_pembayaran' => 2,
                 'tanggal_pembayaran' => Carbon::parse('2025-04-12 10:30:00'),
                 'total_bayar' => 50000,
                 'keterangan' => 'Bayar sebagian',
@@ -101,8 +99,7 @@ class PenjualanSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'id_penjualan' => 'INV-20250412003',
-                'id_pembelian' => null,
+                'id_pembayaran' => 3,
                 'tanggal_pembayaran' => Carbon::parse('2025-04-12 11:15:00'),
                 'total_bayar' => 75000,
                 'keterangan' => 'lunas',
@@ -114,5 +111,22 @@ class PenjualanSeeder extends Seeder
         ];
 
         DB::table('pembayaran')->insert($pembayaranData);
+
+        $pembayaranPenjualanData = [
+            [
+                'id_pembayaran' => 1,
+                'id_penjualan' => 'INV-20250412001',
+            ],
+            [
+                'id_pembayaran' => 2,
+                'id_penjualan' => 'INV-20250412002',
+            ],
+            [
+                'id_pembayaran' => 3,
+                'id_penjualan' => 'INV-20250412003',
+            ]
+        ];
+
+        DB::table('pembayaran_penjualan')->insert($pembayaranPenjualanData);
     }
 }

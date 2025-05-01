@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('stok', function (Blueprint $table) {
-            $table->id('id_stok');
+            $table->mediumIncrements('id_kasir');
             $table->foreignId('id_produk')->references('id_produk')->on('produk')->onDelete('cascade');
             $table->bigInteger('jumlah_stok');
-            $table->enum('jenis_stok', ['In', 'Out'])->nullable();
+            $table->enum('jenis_stok', ['in', 'out'])->nullable();
             $table->string('jenis_transaksi')->nullable();
             $table->text('keterangan')->nullable();
             $table->dateTime('tanggal_stok');

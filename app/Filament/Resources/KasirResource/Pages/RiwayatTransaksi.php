@@ -31,7 +31,6 @@ class RiwayatTransaksi extends ManageRelatedRecords
             ->query(
                 Penjualan::query()
                     ->where('id_kasir', $id_kasir)
-                    ->withSum('pembayaran', 'total_bayar')
             )
             ->defaultSort('tanggal_penjualan', 'desc')
             ->columns([
@@ -51,10 +50,11 @@ class RiwayatTransaksi extends ManageRelatedRecords
                     ->badge()
                     ->searchable()
                     ->sortable()
+                    ->formatStateUsing(fn(string $state): string => ucwords($state))
                     ->color(fn(string $state): string => match ($state) {
-                        'Lunas' => 'success',
-                        'Belum Lunas' => 'danger',
-                        'Pesanan' => 'warning',
+                        'lunas' => 'success',
+                        'belum lunas' => 'danger',
+                        'pesanan' => 'warning',
                     }),
             ])
             ->filters([

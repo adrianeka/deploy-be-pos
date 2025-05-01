@@ -13,8 +13,8 @@ class PembayaranSeeder extends Seeder
      */
     public function run(): void
     {
-        Pembayaran::insert([
-            ['id_pembayaran' => 1, 'id_pembelian' => 1, 'id_metode_pembayaran' => 1, 'total_bayar' => 50000, 'tanggal_pembayaran' => now()],
-        ]);
+        // Pembayaran::insert([
+        //     ['id_pembayaran' => 1, 'id_pembelian' => 1, 'id_metode_pembayaran' => 1, 'total_bayar' => 50000, 'tanggal_pembayaran' => now()],
+        // ]);
     }
 }

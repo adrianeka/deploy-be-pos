@@ -31,8 +31,33 @@ class Penjualan extends Model
         return $this->hasMany(PenjualanDetail::class, 'id_penjualan');
     }
 
-    public function pembayaran()
+    public function pembayaranPenjualan()
     {
-        return $this->hasMany(Pembayaran::class, 'id_penjualan');
+        return $this->hasOne(PembayaranPenjualan::class, 'id_penjualan', 'id_penjualan');
+    }
+
+    protected function uangDiterima(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->pembayaranPenjualan?->pembayaran?->sum('total_bayar') ?? 0;
+            }
+        );
+    }
+
+    protected function uangKembalian(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $totalDiterima = $this->uang_diterima;
+                $totalHarga = $this->total_harga;
+
+                if ($totalDiterima > $totalHarga) {
+                    return $totalDiterima - $totalHarga;
+                }
+
+                return 0;
+            }
+        );
     }
 }

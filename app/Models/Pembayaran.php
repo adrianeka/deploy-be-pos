@@ -11,17 +11,7 @@ class Pembayaran extends Model
 
     protected $table = 'pembayaran';
     protected $primaryKey = 'id_pembayaran';
-    protected $fillable = ['tanggal_pembayaran', 'total_bayar', 'keterangan', 'id_penjualan', 'id_pembelian', 'id_metode_pembayaran'];
-
-    public function penjualan()
-    {
-        return $this->hasMany(Penjualan::class, 'id_penjualan');
-    }
-
-    public function pembelian()
-    {
-        return $this->hasMany(Pembelian::class, 'id_pembelian');
-    }
+    protected $fillable = ['id_pembayaran', 'tanggal_pembayaran', 'total_bayar', 'keterangan', 'id_metode_pembayaran'];
 
     public function metode_pembayaran()
     {

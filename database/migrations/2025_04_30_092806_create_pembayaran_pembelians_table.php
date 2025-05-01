@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('level_harga', function (Blueprint $table) {
-            $table->mediumIncrements('id_level_harga');
-            $table->foreignId('id_produk')->references('id_produk')->on('produk')->onDelete('cascade');
-            $table->string('nama_level');
-            $table->bigInteger('harga_jual');
+        Schema::create('pembayaran_pembelian', function (Blueprint $table) {
+            $table->foreignId('id_pembelian')->references('id_pembelian')->on('pembelian')->onDelete('cascade');
+            $table->foreignId('id_pembayaran')->references('id_pembayaran')->on('pembayaran')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -25,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('level_harga');
+        Schema::dropIfExists('pembayaran_pembelian');
     }
 };

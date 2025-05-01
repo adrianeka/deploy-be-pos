@@ -73,7 +73,6 @@ class PemasokResource extends Resource
                 TextColumn::make('nama_perusahaan')
                     ->label('Nama Perusahaan')
                     ->searchable()
-                    ->searchable()
                     ->sortable(),
                 TextColumn::make('no_telp')
                     ->label('Nomor Telepon')

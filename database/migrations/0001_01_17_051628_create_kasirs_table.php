@@ -12,9 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('kasir', function (Blueprint $table) {
-            $table->id('id_kasir');
+            $table->tinyIncrements('id_kasir');
             $table->foreignId('id_user')->constrained('users')->onDelete('cascade');
-            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
+            $table->unsignedTinyInteger('id_pemilik');
+            $table->foreign('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
             $table->string('nama');
             $table->string('no_telp');
             $table->string('alamat');

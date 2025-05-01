@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('pembelian', function (Blueprint $table) {
             $table->id('id_pembelian');
-            $table->foreignId('id_pemasok')->references('id_pemasok')->on('pemasok')->onDelete('cascade');
+            $table->unsignedTinyInteger('id_pemasok');
+            $table->foreign('id_pemasok')->references('id_pemasok')->on('pemasok')->onDelete('cascade');
             $table->dateTime('tanggal_pembelian');
             $table->bigInteger('total_harga')->default(0);
             $table->enum('status_pembelian', ['Diproses', 'Lunas', 'Belum Lunas']);
