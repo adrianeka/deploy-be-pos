@@ -14,11 +14,13 @@ class TipeTransferSeeder extends Seeder
     public function run(): void
     {
         TipeTransfer::insert([
-            ['metode_transfer' => 'Bank', 'jenis_transfer' => 'BCA'],
+            ['metode_transfer' => 'Bank', 'jenis_transfer' => 'Bank Central Asia'],
             ['metode_transfer' => 'Bank', 'jenis_transfer' => 'Mandiri'],
-            ['metode_transfer' => 'Bank', 'jenis_transfer' => 'BRI'],
+            ['metode_transfer' => 'Bank', 'jenis_transfer' => 'Bank Rakyat Indonesia'],
             ['metode_transfer' => 'E-money', 'jenis_transfer' => 'OVO'],
             ['metode_transfer' => 'E-money', 'jenis_transfer' => 'DANA'],
+            ['metode_transfer' => 'E-money', 'jenis_transfer' => 'SHOPEEPAY'],
+            ['metode_transfer' => 'E-money', 'jenis_transfer' => 'GOPAY'],
         ]);
     }
 }

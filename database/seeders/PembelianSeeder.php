@@ -13,10 +13,9 @@ class PembelianSeeder extends Seeder
     {
         Schema::disableForeignKeyConstraints();
 
-        // Truncate tabel untuk menghindari duplikasi
-        DB::table('pembayaran')->truncate();
         DB::table('pembelian_detail')->truncate();
         DB::table('pembelian')->truncate();
+        DB::table('pembayaran_pembelian')->truncate();
 
         Schema::enableForeignKeyConstraints();
 
@@ -59,14 +58,23 @@ class PembelianSeeder extends Seeder
         // Data pembayaran juga harus sesuai dengan ID string
         $pembayaranData = [
             [
-                'id_penjualan' => null,
-                'id_pembelian' => 1,
+                'id_pembayaran' => 4,
                 'tanggal_pembayaran' => Carbon::now(),
                 'total_bayar' => 50000,
+                'id_metode_pembayaran' => 1,
                 'keterangan' => 'Lunas',
             ]
         ];
 
         DB::table('pembayaran')->insert($pembayaranData);
+
+        $pembayaranPenjualanData = [
+            [
+                'id_pembayaran' => 4,
+                'id_pembelian' => 1,
+            ],
+        ];
+
+        DB::table('pembayaran_pembelian')->insert($pembayaranPenjualanData);
     }
 }

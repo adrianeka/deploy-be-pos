@@ -12,9 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('kategori', function (Blueprint $table) {
-            $table->id('id_kategori');
+            $table->tinyIncrements('id_kategori');
             $table->string('nama_kategori');
-            $table->foreignId('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
+            $table->unsignedTinyInteger('id_pemilik');
+            $table->foreign('id_pemilik')->references('id_pemilik')->on('pemilik')->onDelete('cascade');
             $table->timestamps();
         });
     }

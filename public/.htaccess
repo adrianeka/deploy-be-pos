@@ -13,14 +13,10 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # Redirect Trailing Slashes If Not A Folder (Fix Method Change Issue)
+    # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^ %1 [L,R=307]   # <--- Ubah dari 301 ke 307
-
-    # Fix Method Change Issue (POST jadi GET)
-    RewriteCond %{REQUEST_METHOD} ^(POST|PUT|DELETE|PATCH) [NC]
-    RewriteRule ^ - [L]
+    RewriteRule ^ %1 [L,R=301]
 
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d

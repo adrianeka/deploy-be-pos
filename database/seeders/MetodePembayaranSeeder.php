@@ -16,7 +16,12 @@ class MetodePembayaranSeeder extends Seeder
         MetodePembayaran::insert([
             ['jenis_pembayaran' => 'Tunai', 'id_tipe_transfer' => null],
             ['jenis_pembayaran' => 'Transfer', 'id_tipe_transfer' => 1], // BCA
-            ['jenis_pembayaran' => 'Transfer', 'id_tipe_transfer' => 3], // OVO
+            ['jenis_pembayaran' => 'Transfer', 'id_tipe_transfer' => 2], // Mandiri
+            ['jenis_pembayaran' => 'Transfer', 'id_tipe_transfer' => 3], // BRI
+            ['jenis_pembayaran' => 'Transfer', 'id_tipe_transfer' => 4], // OVO
+            ['jenis_pembayaran' => 'Transfer', 'id_tipe_transfer' => 5], // DANA
+            ['jenis_pembayaran' => 'Transfer', 'id_tipe_transfer' => 6], // SHOPEEPAY
+            ['jenis_pembayaran' => 'Transfer', 'id_tipe_transfer' => 7], // GOPAY
         ]);
     }
 }

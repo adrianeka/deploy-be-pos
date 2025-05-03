@@ -73,7 +73,6 @@ class PemasokResource extends Resource
                 TextColumn::make('nama_perusahaan')
                     ->label('Nama Perusahaan')
                     ->searchable()
-                    ->searchable()
                     ->sortable(),
                 TextColumn::make('no_telp')
                     ->label('Nomor Telepon')
@@ -91,11 +90,7 @@ class PemasokResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                DeleteBulkAction::make('delete_selected')
-                    ->label('Hapus yang Dipilih')
-                    ->action(fn($records) => $records->each->delete())
-                    ->requiresConfirmation()
-                    ->deselectRecordsAfterCompletion(),
+                DeleteBulkAction::make()
             ]);
     }
 

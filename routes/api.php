@@ -8,18 +8,20 @@ use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\ProdukController;
 
-Route::any('/debug-method', function (Request $request) {
-    return response()->json(['method' => $request->method()]);
-});
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
+    // Route::post('/pembelian', [PembelianController::class, 'store']);
+    // Pelanggan
     Route::apiResource('pelanggan', PelangganController::class);
-    Route::post('/pembelian', [PembelianController::class, 'store']);
-    Route::apiResource('/penjualan', PenjualanController::class);
+    // List Menu
     Route::apiResource('/menu', ProdukController::class);
+    Route::get('/kategori', [ProdukController::class, 'getAllKategori']);
+    // Transaksi Penjualan
+    Route::apiResource('/penjualan', PenjualanController::class);
     Route::get('/cek-stok/{id}', [PenjualanController::class, 'cekStok']);
     Route::post('/bayar-penjualan/{id}', [PenjualanController::class, 'bayarPenjualan']);
     Route::post('/ambil-barang/{id}', [PenjualanController::class, 'barangSudahDiambil']);
+    Route::get('/metode-pembayaran', [PenjualanController::class, 'getAllMetodePembayaran']);
 });

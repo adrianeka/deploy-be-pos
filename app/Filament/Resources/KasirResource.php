@@ -118,7 +118,6 @@ class KasirResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->successNotificationTitle('Data berhasil dihapus')
                     ->before(function (Model $record) {
                         if ($record->user) {
                             $record->user->delete();
@@ -127,9 +126,6 @@ class KasirResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make()
-                    ->label('Hapus yang Dipilih')
-                    ->requiresConfirmation()
-                    ->deselectRecordsAfterCompletion()
                     ->before(function ($records) {
                         foreach ($records as $record) {
                             if ($record->user) {

@@ -25,6 +25,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -115,6 +116,14 @@ class ProdukResource extends Resource
                                     ->suffixAction(self::getHapusSatuanAction()),
                                 TextInput::make('harga_beli')
                                     ->label('Harga Beli')
+                                    ->prefix('Rp')
+                                    ->mask(
+                                        fn($mask) => $mask
+                                            ->money()
+                                            ->thousandsSeparator('.')
+                                            ->decimalSeparator(',')
+                                            ->precision(0)
+                                    )
                                     ->integer()
                                     ->required(),
                                 $isCreateOperation ? TextInput::make('harga_jual')
@@ -293,15 +302,10 @@ class ProdukResource extends Resource
                                 ->send();
                         }),
                     Tables\Actions\DeleteAction::make()
-                        ->successNotificationTitle('Data berhasil dihapus'),
                 ])
             ])
             ->bulkActions([
-                DeleteBulkAction::make('delete_selected')
-                    ->label('Hapus yang Dipilih')
-                    ->action(fn($records) => $records->each->delete())
-                    ->requiresConfirmation()
-                    ->deselectRecordsAfterCompletion(),
+                DeleteBulkAction::make()
             ]);
     }
 
