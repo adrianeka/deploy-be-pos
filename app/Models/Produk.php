@@ -61,4 +61,11 @@ class Produk extends Model
                     ->distinct();
             });
     }
+
+    public function getHargaStandartAttribute()
+    {
+        return $this->level_hargas()
+            ->whereRaw('LOWER(nama_level) = ?', ['standart']) // force lowercase comparison
+            ->first()?->harga_jual;
+    }
 }

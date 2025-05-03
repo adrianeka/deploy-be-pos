@@ -12,10 +12,14 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::middleware('auth:sanctum')->group(function () {
+    // Route::post('/pembelian', [PembelianController::class, 'store']);
+    // Pelanggan
     Route::apiResource('pelanggan', PelangganController::class);
-    Route::post('/pembelian', [PembelianController::class, 'store']);
-    Route::apiResource('/penjualan', PenjualanController::class);
+    // List Menu
     Route::apiResource('/menu', ProdukController::class);
+    Route::get('/kategori', [ProdukController::class, 'getAllKategori']);
+    // Transaksi Penjualan
+    Route::apiResource('/penjualan', PenjualanController::class);
     Route::get('/cek-stok/{id}', [PenjualanController::class, 'cekStok']);
     Route::post('/bayar-penjualan/{id}', [PenjualanController::class, 'bayarPenjualan']);
     Route::post('/ambil-barang/{id}', [PenjualanController::class, 'barangSudahDiambil']);

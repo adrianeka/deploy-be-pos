@@ -36,11 +36,16 @@ class Penjualan extends Model
         return $this->hasOne(PembayaranPenjualan::class, 'id_penjualan', 'id_penjualan');
     }
 
+    public function pembayaran()
+    {
+        return $this->belongsToMany(Pembayaran::class, 'pembayaran_penjualan', 'id_penjualan', 'id_pembayaran');
+    }
+
     protected function uangDiterima(): Attribute
     {
         return Attribute::make(
             get: function () {
-                return $this->pembayaranPenjualan?->pembayaran?->sum('total_bayar') ?? 0;
+                return (int) $this->pembayaran?->sum('total_bayar') ?? 0;
             }
         );
     }
@@ -57,6 +62,15 @@ class Penjualan extends Model
                 }
 
                 return 0;
+            }
+        );
+    }
+    protected function sisaPembayaran(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $sisa = $this->total_harga - $this->uang_diterima;
+                return $sisa > 0 ? $sisa : 0;
             }
         );
     }

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('jumlah_produk');
             $table->string('nama_produk')->nullable();
             $table->bigInteger('harga_jual');
+            $table->boolean('status_retur')->default(false);
             $table->timestamps();
         });
     }
