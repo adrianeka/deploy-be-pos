@@ -25,11 +25,6 @@ return new class extends Migration
             $table->unsignedBigInteger('diskon')->default(0);
             $table->timestamps();
         });
-        
-        // Tambah foreign key setelah tabel pasti ada
-        Schema::table('penjualan', function (Blueprint $table) {
-            $table->foreign('id_bayar_zakat')->references('id_bayar_zakat')->on('bayar_zakat')->onDelete('cascade');
-        });        
     }
 
     /**

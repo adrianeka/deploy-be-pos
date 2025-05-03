@@ -32,7 +32,6 @@ class RiwayatTransaksi extends ManageRelatedRecords
             ->query(
                 Pembelian::query()
                     ->where('id_pemasok', $id_pemasok)
-                    ->withSum('pembayaran', 'total_bayar')
             )
             ->defaultSort('tanggal_pembelian', 'desc')
             ->columns([
@@ -47,6 +46,7 @@ class RiwayatTransaksi extends ManageRelatedRecords
                     ->badge()
                     ->searchable()
                     ->sortable()
+                    ->formatStateUsing(fn(string $state): string => ucwords($state))
                     ->color(fn(string $state): string => match ($state) {
                         'Lunas' => 'success',
                         'Belum Lunas' => 'danger',
