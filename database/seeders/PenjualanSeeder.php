@@ -45,8 +45,8 @@ class PenjualanSeeder extends Seeder
                 'tanggal_penjualan' => Carbon::parse('2025-04-12 10:00:00'),
                 'is_pesanan' => false,
                 'jenis_pembayaran' => 'transfer',
-                'metode_transfer' => 'bank',
-                'jenis_transfer' => 'bri',
+                'metode_transfer' => 'Bank',
+                'jenis_transfer' => 'Bank Rakyat Indonesia',
                 'diskon' => 0,
                 'details' => [
                     ['id_produk' => 2, 'jumlah_produk' => 1, 'harga_jual' => 50000],
@@ -60,8 +60,8 @@ class PenjualanSeeder extends Seeder
                 'tanggal_penjualan' => Carbon::parse('2025-04-12 11:00:00'),
                 'is_pesanan' => true,
                 'jenis_pembayaran' => 'transfer',
-                'metode_transfer' => 'e-money',
-                'jenis_transfer' => 'ovo',
+                'metode_transfer' => 'E-money',
+                'jenis_transfer' => 'OVO',
                 'diskon' => 0,
                 'details' => [
                     ['id_produk' => 4, 'jumlah_produk' => 3, 'harga_jual' => 25000]
