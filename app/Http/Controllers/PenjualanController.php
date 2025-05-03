@@ -155,7 +155,7 @@ class PenjualanController extends Controller
                 'total_bayar' => 'required_if:jenis_pembayaran,tunai,transfer|numeric|min:0',
                 'tanggal_penjualan' => 'required|date',
                 'is_pesanan' => 'required|boolean',
-                'jenis_pembayaran' => 'required|in:tunai,transfer,utang',
+                'jenis_pembayaran' => 'required|in:tunai,transfer,kasbon',
                 'metode_transfer' => 'required_if:jenis_pembayaran,transfer',
                 'jenis_transfer' => 'required_if:jenis_pembayaran,transfer',
                 'diskon' => 'nullable|integer|min:0',
@@ -204,8 +204,8 @@ class PenjualanController extends Controller
             // Process details
             $this->processPenjualanDetails($request->details, $penjualan, $request->tanggal_penjualan);
 
-            // Process payment if not utang
-            if (strtolower($request->jenis_pembayaran) != 'utang') {
+            // Process payment if not kasbon
+            if (strtolower($request->jenis_pembayaran) != 'kasbon') {
                 $pembayaran = Pembayaran::create([
                     'tanggal_pembayaran' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d'),
                     'total_bayar' => $request->total_bayar,
@@ -293,6 +293,28 @@ class PenjualanController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Gagal membayar penjualan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getAllMetodePembayaran(Request $request){
+        try {
+            $metodePembayaranQuery = TipeTransfer::query();
+
+            if ($metodeTransfer = request('metode_transfer')) {
+                $metodePembayaranQuery->where('metode_transfer', $metodeTransfer);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Metode Pembayaran berhasil didapatkan',
+                'data' => $metodePembayaranQuery->get()
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal mendapatkan metode pembayaran',
                 'error' => $e->getMessage()
             ], 500);
         }

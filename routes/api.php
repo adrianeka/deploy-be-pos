@@ -23,4 +23,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/cek-stok/{id}', [PenjualanController::class, 'cekStok']);
     Route::post('/bayar-penjualan/{id}', [PenjualanController::class, 'bayarPenjualan']);
     Route::post('/ambil-barang/{id}', [PenjualanController::class, 'barangSudahDiambil']);
+    Route::get('/metode-pembayaran', [PenjualanController::class, 'getAllMetodePembayaran']);
 });
