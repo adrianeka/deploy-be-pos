@@ -16,8 +16,7 @@ class ListRiwayatPenjualans extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
-                ->label('Buat Transaksi Penjualan'),
+            //
         ];
     }
 

@@ -45,70 +45,88 @@ class KasirResource extends Resource
                                     ->label('Nama')
                                     ->required()
                                     ->regex('/^[A-Za-z.\s]+$/')
+                                    ->debounce(500)
+                                    ->lazy()
                                     ->maxLength(255),
+
                                 Components\TextInput::make('email')
                                     ->label('Email')
                                     ->required()
                                     ->email()
+                                    ->debounce(500)
+                                    ->lazy()
                                     ->unique(
                                         table: User::class,
                                         column: 'email',
                                         ignoreRecord: true,
-                                        modifyRuleUsing: function ($rule, $record) {
-                                            if ($record && $record->user) {
-                                                return $rule->ignore($record->user->id);
-                                            }
-                                            return $rule;
-                                        }
+                                        modifyRuleUsing: fn($rule, $record) =>
+                                        $record?->user ? $rule->ignore($record->user->id) : $rule
                                     )
-                                    ->formatStateUsing(fn($record) => $record?->user?->email),
+                                    ->formatStateUsing(fn($record) => $record?->user?->email)
+                                    ->placeholder('Email kasir yang akan digunakan login'),
+
                                 Components\TextInput::make('no_telp')
                                     ->label('Nomor Telepon')
-                                    ->numeric()
+                                    ->required()
+                                    ->regex('/^[0-9]+$/')
                                     ->minLength(10)
                                     ->maxLength(13)
-                                    ->required(),
+                                    ->lazy()
+                                    ->debounce(500),
+
                                 Components\TextInput::make('alamat')
                                     ->label('Alamat')
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
+
                                 Components\TextInput::make('password')
                                     ->label('Password')
                                     ->password()
                                     ->revealable()
                                     ->required(fn($context) => $context === 'create')
                                     ->dehydrated(fn($state) => filled($state))
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->columnSpan(1),
+
                                 Components\TextInput::make('password_confirmation')
                                     ->label('Konfirmasi Password')
                                     ->password()
                                     ->revealable()
-                                    ->required(fn($context) => $context === 'create')
                                     ->same('password')
-                                    ->visible(fn($context) => $context === 'create'),
-                            ])
+                                    ->visible(fn($context) => $context === 'create')
+                                    ->dehydrated(false)
+                                    ->required(fn($context) => $context === 'create')
+                                    ->columnSpan(1),
+                            ]),
                     ])
                     ->collapsible(),
+
                 Components\Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()->id()),
+                    ->default(fn() => Filament::auth()?->id()),
             ]);
     }
 
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
-            ->query(function () {
-                return Kasir::query()->where('id_pemilik', Filament::auth()->id());
-            })
+            ->query(
+                fn() =>
+                Kasir::query()
+                    ->with('user') // eager load user to avoid N+1
+                    ->where('id_pemilik', Filament::auth()->id())
+            )
             ->columns([
                 TextColumn::make('nama')
                     ->label('Nama')
                     ->searchable()
                     ->sortable(),
+
                 TextColumn::make('user.email')
                     ->label('Email')
                     ->searchable()
                     ->sortable(),
+
                 TextColumn::make('no_telp')
                     ->label('Nomor Telepon')
                     ->searchable()

@@ -4,12 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PenerimaZakatResource\Pages;
 use App\Models\PenerimaZakat;
+use Filament\Facades\Filament;
 use Filament\Forms\Components;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Infolists\Components\Grid;
 use Filament\Infolists\Components\Group;
@@ -17,20 +18,19 @@ use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
-use Filament\Facades\Filament;
 use Filament\Pages\SubNavigationPosition;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Pages\Page;
+use Illuminate\Database\Eloquent\Model;
 
 class PenerimaZakatResource extends Resource
 {
     protected static ?string $model = PenerimaZakat::class;
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $label = 'Penerima Zakat';
-    protected static ?string $recordTitleAttribute = 'nama_penerima';
     protected static ?string $pluralLabel = 'Penerima Zakat';
     protected static ?string $navigationLabel = 'Penerima Zakat';
     protected static ?string $navigationGroup = 'Data Master';
+    protected static ?string $recordTitleAttribute = 'nama_penerima';
     protected static ?int $navigationSort = 3;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -46,40 +46,49 @@ class PenerimaZakatResource extends Resource
                                     ->label('Nama Penerima')
                                     ->regex('/^[A-Za-z.\s]+$/')
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->debounce(500)
+                                    ->lazy(),
+
                                 Components\TextInput::make('no_telp')
                                     ->label('Nomor Telepon')
                                     ->numeric()
                                     ->minLength(10)
                                     ->maxLength(13)
-                                    ->required(),
+                                    ->required()
+                                    ->debounce(500)
+                                    ->lazy(),
+
                                 Components\TextInput::make('no_rekening')
                                     ->label('Nomor Rekening')
                                     ->numeric()
                                     ->minLength(10)
                                     ->maxLength(16)
                                     ->required(),
+
                                 Components\TextInput::make('nama_bank')
                                     ->label('Nama Bank')
                                     ->regex('/^[A-Za-z.\s]+$/')
-
                                     ->required()
                                     ->maxLength(20),
+
                                 Components\TextInput::make('rekening_atas_nama')
                                     ->label('Nama Pemilik Rekening')
                                     ->regex('/^[A-Za-z.\s]+$/')
-
                                     ->required()
                                     ->maxLength(30),
+
                                 Components\TextInput::make('alamat')
                                     ->label('Alamat')
                                     ->required()
-                                    ->maxLength(255),
-                            ])
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
+                            ]),
                     ])
                     ->collapsible(),
+
                 Components\Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()->id())
+                    ->default(fn() => Filament::auth()?->id())
                     ->dehydrated(true),
             ]);
     }
@@ -87,7 +96,7 @@ class PenerimaZakatResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(fn() => PenerimaZakat::query()->where('id_pemilik', Filament::auth()->user()->id)) // Filter berdasarkan user login
+            ->query(fn() => PenerimaZakat::query()->where('id_pemilik', Filament::auth()?->id()))
             ->columns([
                 TextColumn::make('nama_penerima')
                     ->label('Nama Penerima')
@@ -108,9 +117,10 @@ class PenerimaZakatResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
-            ])->bulkActions([
-                DeleteBulkAction::make()
+                Tables\Actions\DeleteAction::make(),
+            ])
+            ->bulkActions([
+                DeleteBulkAction::make(),
             ]);
     }
 
@@ -140,7 +150,9 @@ class PenerimaZakatResource extends Resource
                                             ->label('Alamat Penerima Zakat'),
                                         TextEntry::make('created_at')
                                             ->label('Dibuat pada')
-                                            ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
+                                            ->formatStateUsing(
+                                                fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')
+                                            ),
                                     ]),
                                 ]),
                         ])->from('lg'),
@@ -152,7 +164,7 @@ class PenerimaZakatResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Relations dapat ditambahkan sesuai kebutuhan
+            // Tambahkan relasi jika diperlukan
         ];
     }
 

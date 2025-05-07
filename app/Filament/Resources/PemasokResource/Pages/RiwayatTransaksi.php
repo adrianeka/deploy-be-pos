@@ -57,9 +57,9 @@ class RiwayatTransaksi extends ManageRelatedRecords
                 SelectFilter::make('status_pembelian')
                     ->label('Filter Status Transaksi')
                     ->options([
-                        'Lunas' => 'Lunas',
-                        'Belum Lunas' => 'Belum Lunas',
-                        'Pesanan' => 'Pesanan',
+                        'lunas' => 'Lunas',
+                        'belum lunas' => 'Belum Lunas',
+                        'pesanan' => 'Pesanan',
                     ]),
             ])
             ->actions([

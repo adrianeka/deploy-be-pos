@@ -29,18 +29,32 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName(function () {
-                // Mendapatkan user yang sedang login dari request
+                $sessionKey = 'brand_name';
+
+                // Cek apakah sudah tersimpan di session
+                if (session()->has($sessionKey)) {
+                    return session($sessionKey);
+                }
+
+                // Ambil user yang sedang login
                 $user = request()->user();
 
+                // Default kosong
+                $brand = '';
+
+                // Jika user adalah pemilik, ambil nama perusahaan
                 if ($user && $user->isPemilik()) {
                     $pemilik = Pemilik::where('id_user', $user->getKey())->first();
 
                     if ($pemilik && $pemilik->nama_perusahaan) {
-                        return $pemilik->nama_perusahaan;
+                        $brand = $pemilik->nama_perusahaan;
                     }
                 }
 
-                return "";
+                // Simpan ke session
+                session([$sessionKey => $brand]);
+
+                return $brand;
             })
             ->login()
             ->colors([

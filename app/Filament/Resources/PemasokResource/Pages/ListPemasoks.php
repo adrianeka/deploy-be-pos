@@ -8,9 +8,16 @@ use Filament\Resources\Pages\ListRecords;
 
 class ListPemasoks extends ListRecords
 {
+    // Set resource class statis untuk kemudahan akses
     protected static string $resource = PemasokResource::class;
-    protected static ?string $title = 'Daftar Pemasok';
 
+    // Gunakan konstanta untuk judul halaman agar tidak dievaluasi berulang
+    protected const TITLE = 'Daftar Pemasok';
+
+    // Override judul dengan konstanta
+    protected static ?string $title = self::TITLE;
+
+    // Gunakan method untuk mendapatkan aksi header
     protected function getHeaderActions(): array
     {
         return [

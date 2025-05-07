@@ -19,4 +19,12 @@ class ViewRiwayatPenjualan extends ViewRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    public function getRelationManagers(): array
+    {
+        return [
+            \App\Filament\Resources\RiwayatPenjualanResource\RelationManagers\ProdukRelationManager::class,
+            \App\Filament\Resources\RiwayatPenjualanResource\RelationManagers\PembayaranRelationManager::class,
+        ];
+    }
 }
