@@ -44,7 +44,7 @@ class Stok extends Model
         return self::where('id_produk', $id_produk)
             ->get()
             ->sum(function ($stok) {
-                if ($stok->jenis_stok === 'In') {
+                if ($stok->jenis_stok === 'in') {
                     return $stok->jumlah_stok;
                 } else {
                     return -$stok->jumlah_stok;

@@ -2,8 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\Kasir;
+use App\Models\MetodePembayaran;
+use App\Models\Pembayaran;
+use App\Models\PembayaranPenjualan;
+use App\Models\Penjualan;
+use App\Models\PenjualanDetail;
+use App\Models\TipeTransfer;
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -12,121 +19,159 @@ class PenjualanSeeder extends Seeder
     public function run()
     {
         Schema::disableForeignKeyConstraints();
-
         DB::table('penjualan_detail')->truncate();
-        DB::table('penjualan')->truncate();
         DB::table('pembayaran_penjualan')->truncate();
-
+        DB::table('penjualan')->truncate();
         Schema::enableForeignKeyConstraints();
 
-        $penjualanData = [
+        // Create sample transactions
+        $transactions = [
             [
-                'id_penjualan' => 'INV-20250412001',
-                'id_kasir' => 1,
                 'id_pelanggan' => 1,
-                'id_bayar_zakat' => null,
-                'tanggal_penjualan' => Carbon::parse('2025-04-12 09:00:00'),
                 'total_harga' => 50000,
-                'status_penjualan' => 'lunas',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'total_bayar' => 50000,
+                'tanggal_penjualan' => Carbon::parse('2025-04-12 09:00:00'),
+                'is_pesanan' => false,
+                'jenis_pembayaran' => 'tunai',
+                'diskon' => 0,
+                'details' => [
+                    ['id_produk' => 1, 'jumlah_produk' => 2, 'harga_jual' => 25000]
+                ]
             ],
             [
-                'id_penjualan' => 'INV-20250412002',
-                'id_kasir' => 1,
                 'id_pelanggan' => 2,
-                'id_bayar_zakat' => null,
-                'tanggal_penjualan' => Carbon::parse('2025-04-12 10:00:00'),
                 'total_harga' => 100000,
-                'status_penjualan' => 'belum lunas',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'total_bayar' => 50000,
+                'tanggal_penjualan' => Carbon::parse('2025-04-12 10:00:00'),
+                'is_pesanan' => false,
+                'jenis_pembayaran' => 'transfer',
+                'metode_transfer' => 'Bank',
+                'jenis_transfer' => 'Bank Rakyat Indonesia',
+                'diskon' => 0,
+                'details' => [
+                    ['id_produk' => 2, 'jumlah_produk' => 1, 'harga_jual' => 50000],
+                    ['id_produk' => 3, 'jumlah_produk' => 1, 'harga_jual' => 50000]
+                ]
             ],
             [
-                'id_penjualan' => 'INV-20250412003',
-                'id_kasir' => 2,
                 'id_pelanggan' => 3,
-                'id_bayar_zakat' => null,
-                'tanggal_penjualan' => Carbon::parse('2025-04-12 11:00:00'),
                 'total_harga' => 75000,
-                'status_penjualan' => 'lunas',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id_penjualan' => 'INV-20250412004',
-                'id_kasir' => 2,
-                'id_pelanggan' => 4,
-                'id_bayar_zakat' => null,
-                'tanggal_penjualan' => Carbon::parse('2025-04-12 12:00:00'),
-                'total_harga' => 60000,
-                'status_penjualan' => 'pesanan',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-        ];
-
-        DB::table('penjualan')->insert($penjualanData);
-
-        $penjualanDetailData = [
-            ['id_penjualan' => 'INV-20250412001', 'id_produk' => 1, 'nama_produk' => null, 'jumlah_produk' => 2, 'harga_jual' => 25000],
-            ['id_penjualan' => 'INV-20250412002', 'id_produk' => 2, 'nama_produk' => null, 'jumlah_produk' => 1, 'harga_jual' => 50000],
-            ['id_penjualan' => 'INV-20250412002', 'id_produk' => 3, 'nama_produk' => null, 'jumlah_produk' => 1, 'harga_jual' => 50000],
-            ['id_penjualan' => 'INV-20250412003', 'id_produk' => 4, 'nama_produk' => null, 'jumlah_produk' => 3, 'harga_jual' => 25000],
-            ['id_penjualan' => 'INV-20250412004', 'id_produk' => 1, 'nama_produk' => null, 'jumlah_produk' => 1, 'harga_jual' => 50000],
-            ['id_penjualan' => 'INV-20250412004', 'id_produk' => null, 'nama_produk' => 'produk tambah manual', 'jumlah_produk' => 1, 'harga_jual' => 10000]
-        ];
-
-        DB::table('penjualan_detail')->insert($penjualanDetailData);
-
-        $pembayaranData = [
-            [
-                'id_pembayaran' => 1,
-                'tanggal_pembayaran' => Carbon::parse('2025-04-12 09:30:00'),
-                'total_bayar' => 50000,
-                'keterangan' => 'lunas langsung',
-                'id_metode_pembayaran' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id_pembayaran' => 2,
-                'tanggal_pembayaran' => Carbon::parse('2025-04-12 10:30:00'),
-                'total_bayar' => 50000,
-                'keterangan' => 'Bayar sebagian',
-                'id_metode_pembayaran' => 2,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'id_pembayaran' => 3,
-                'tanggal_pembayaran' => Carbon::parse('2025-04-12 11:15:00'),
                 'total_bayar' => 75000,
-                'keterangan' => 'lunas',
-                'id_metode_pembayaran' => 3,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-            // Penjualan ke-4 tidak dibayar (status pesanan)
-        ];
-
-        DB::table('pembayaran')->insert($pembayaranData);
-
-        $pembayaranPenjualanData = [
-            [
-                'id_pembayaran' => 1,
-                'id_penjualan' => 'INV-20250412001',
+                'tanggal_penjualan' => Carbon::parse('2025-04-12 11:00:00'),
+                'is_pesanan' => true,
+                'jenis_pembayaran' => 'transfer',
+                'metode_transfer' => 'E-money',
+                'jenis_transfer' => 'OVO',
+                'diskon' => 0,
+                'details' => [
+                    ['id_produk' => 4, 'jumlah_produk' => 3, 'harga_jual' => 25000]
+                ]
             ],
             [
-                'id_pembayaran' => 2,
-                'id_penjualan' => 'INV-20250412002',
-            ],
-            [
-                'id_pembayaran' => 3,
-                'id_penjualan' => 'INV-20250412003',
+                'id_pelanggan' => 4,
+                'total_harga' => 60000,
+                'tanggal_penjualan' => Carbon::parse('2025-04-12 12:00:00'),
+                'is_pesanan' => true,
+                'jenis_pembayaran' => 'utang',
+                'diskon' => 0,
+                'details' => [
+                    ['id_produk' => 1, 'jumlah_produk' => 1, 'harga_jual' => 50000],
+                    ['nama_produk' => 'produk tambah manual', 'jumlah_produk' => 1, 'harga_jual' => 10000]
+                ]
             ]
         ];
 
-        DB::table('pembayaran_penjualan')->insert($pembayaranPenjualanData);
+        // Generate IDs sequentially to avoid duplicates
+        $idPemilik = Kasir::find(1)->id_pemilik; // Assuming first kasir represents the pemilik
+        $tanggal = Carbon::parse('2025-04-12')->format('Ymd');
+        
+        foreach ($transactions as $index => $data) {
+            $this->createTransaction(
+                $data,
+                'INV-' . $idPemilik . $tanggal . str_pad($index + 1, 3, '0', STR_PAD_LEFT)
+            );
+        }
+    }
+
+    protected function createTransaction($data, $idPenjualan)
+    {
+        DB::transaction(function () use ($data, $idPenjualan) {
+            // Determine status
+            $status = $data['is_pesanan'] 
+                ? 'pesanan' 
+                : (($data['total_bayar'] ?? 0) >= $data['total_harga'] ? 'lunas' : 'belum lunas');
+
+            // Create penjualan
+            $penjualan = Penjualan::create([
+                'id_penjualan' => $idPenjualan,
+                'id_kasir' => 1,
+                'id_pelanggan' => $data['id_pelanggan'],
+                'total_harga' => $data['total_harga'],
+                'tanggal_penjualan' => $data['tanggal_penjualan'],
+                'status_penjualan' => $status,
+                'diskon' => $data['diskon'] ?? 0,
+                'created_at' => $data['tanggal_penjualan'],
+                'updated_at' => $data['tanggal_penjualan']
+            ]);
+
+            // Create details
+            foreach ($data['details'] as $detail) {
+                PenjualanDetail::create(array_merge(
+                    ['id_penjualan' => $idPenjualan],
+                    $detail
+                ));
+
+                if (isset($detail['id_produk'])) {
+                    DB::table('stok')->insert([
+                        'id_produk' => $detail['id_produk'],
+                        'jumlah_stok' => $detail['jumlah_produk'],
+                        'jenis_stok' => 'Out',
+                        'jenis_transaksi' => $idPenjualan,
+                        'tanggal_stok' => $data['tanggal_penjualan'],
+                        'keterangan' => 'Penjualan Produk',
+                        'created_at' => $data['tanggal_penjualan'],
+                        'updated_at' => $data['tanggal_penjualan']
+                    ]);
+                }
+            }
+
+            // Create payment if not utang
+            if (strtolower($data['jenis_pembayaran'] ?? '') != 'utang' && isset($data['total_bayar'])) {
+                $metodePembayaran = $this->getMetodePembayaran($data);
+                
+                $pembayaran = Pembayaran::create([
+                    'tanggal_pembayaran' => $data['tanggal_penjualan'],
+                    'total_bayar' => $data['total_bayar'],
+                    'keterangan' => $status == 'lunas' ? 'Lunas' : 'Bayar Sebagian',
+                    'id_metode_pembayaran' => $metodePembayaran->id_metode_pembayaran,
+                    'created_at' => $data['tanggal_penjualan'],
+                    'updated_at' => $data['tanggal_penjualan']
+                ]);
+
+                PembayaranPenjualan::create([
+                    'id_penjualan' => $idPenjualan,
+                    'id_pembayaran' => $pembayaran->id_pembayaran,
+                    'created_at' => $data['tanggal_penjualan'],
+                    'updated_at' => $data['tanggal_penjualan']
+                ]);
+            }
+        });
+    }
+
+    protected function getMetodePembayaran($data)
+    {
+        if (strtolower($data['jenis_pembayaran']) == 'transfer') {
+            $tipeTransfer = TipeTransfer::where('metode_transfer', $data['metode_transfer'])
+                ->where('jenis_transfer', $data['jenis_transfer'])
+                ->first();
+            if (!$tipeTransfer) {
+                throw new \Exception("Tipe transfer tidak ditemukan: metode = {$data['metode_transfer']}, jenis = {$data['jenis_transfer']}");
+            }
+            
+            return MetodePembayaran::where('id_tipe_transfer', $tipeTransfer->id_tipe_transfer)
+                ->first();
+        }
+        
+        return MetodePembayaran::whereNull('id_tipe_transfer')->first();
     }
 }

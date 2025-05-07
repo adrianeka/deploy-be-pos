@@ -22,7 +22,6 @@ return new class extends Migration
             $table->dateTime('tanggal_penjualan');
             $table->unsignedBigInteger('total_harga')->default(0);
             $table->enum('status_penjualan', ['lunas', 'belum lunas', 'pesanan']);
-            $table->boolean('status_retur')->default(false);
             $table->unsignedBigInteger('diskon')->default(0);
             $table->timestamps();
         });

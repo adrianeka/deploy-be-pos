@@ -73,7 +73,6 @@ class Penjualan extends Model
             }
         );
     }
-
     protected function sisaPembayaran(): Attribute
     {
         return Attribute::make(

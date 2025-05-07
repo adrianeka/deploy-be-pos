@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('stok', function (Blueprint $table) {
-            $table->mediumIncrements('id_kasir');
+            $table->mediumIncrements('id_stok');
             $table->foreignId('id_produk')->references('id_produk')->on('produk')->onDelete('cascade');
             $table->bigInteger('jumlah_stok');
             $table->enum('jenis_stok', ['in', 'out'])->nullable();
