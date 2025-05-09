@@ -8,12 +8,13 @@ use App\Models\Pembayaran;
 use App\Models\PembayaranPenjualan;
 use App\Models\Penjualan;
 use App\Models\PenjualanDetail;
+use App\Models\Stok;
 use App\Models\TipeTransfer;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-
+use Faker\Factory as Faker;
 class PenjualanSeeder extends Seeder
 {
     public function run()
@@ -24,77 +25,72 @@ class PenjualanSeeder extends Seeder
         DB::table('penjualan')->truncate();
         Schema::enableForeignKeyConstraints();
 
-        // Create sample transactions
-        $transactions = [
-            [
-                'id_pelanggan' => 1,
-                'total_harga' => 50000,
-                'total_bayar' => 50000,
-                'tanggal_penjualan' => Carbon::parse('2025-04-12 09:00:00'),
-                'is_pesanan' => false,
-                'jenis_pembayaran' => 'tunai',
-                'diskon' => 0,
-                'details' => [
-                    ['id_produk' => 1, 'jumlah_produk' => 2, 'harga_jual' => 25000]
-                ]
-            ],
-            [
-                'id_pelanggan' => 2,
-                'total_harga' => 100000,
-                'total_bayar' => 50000,
-                'tanggal_penjualan' => Carbon::parse('2025-04-12 10:00:00'),
-                'is_pesanan' => false,
-                'jenis_pembayaran' => 'transfer',
-                'metode_transfer' => 'Bank',
-                'jenis_transfer' => 'Bank Rakyat Indonesia',
-                'diskon' => 0,
-                'details' => [
-                    ['id_produk' => 2, 'jumlah_produk' => 1, 'harga_jual' => 50000],
-                    ['id_produk' => 3, 'jumlah_produk' => 1, 'harga_jual' => 50000]
-                ]
-            ],
-            [
-                'id_pelanggan' => 3,
-                'total_harga' => 75000,
-                'total_bayar' => 75000,
-                'tanggal_penjualan' => Carbon::parse('2025-04-12 11:00:00'),
-                'is_pesanan' => true,
-                'jenis_pembayaran' => 'transfer',
-                'metode_transfer' => 'E-money',
-                'jenis_transfer' => 'OVO',
-                'diskon' => 0,
-                'details' => [
-                    ['id_produk' => 4, 'jumlah_produk' => 3, 'harga_jual' => 25000]
-                ]
-            ],
-            [
-                'id_pelanggan' => 4,
-                'total_harga' => 60000,
-                'tanggal_penjualan' => Carbon::parse('2025-04-12 12:00:00'),
-                'is_pesanan' => true,
-                'jenis_pembayaran' => 'utang',
-                'diskon' => 0,
-                'details' => [
-                    ['id_produk' => 1, 'jumlah_produk' => 1, 'harga_jual' => 50000],
-                    ['nama_produk' => 'produk tambah manual', 'jumlah_produk' => 1, 'harga_jual' => 10000]
-                ]
-            ]
-        ];
+        $faker = Faker::create();
 
-        // Generate IDs sequentially to avoid duplicates
-        $idPemilik = Kasir::find(1)->id_pemilik; // Assuming first kasir represents the pemilik
-        $tanggal = Carbon::parse('2025-04-12')->format('Ymd');
+        $idPemilik = Kasir::find(1)->id_pemilik ?? 1;
+        // $startDate = Carbon::create(2025, 1, 1);
+        // $endDate = Carbon::create(2025, 12, 31);
+
+        $startDate = Carbon::now()->subYear()->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
+
         
-        foreach ($transactions as $index => $data) {
-            $this->createTransaction(
-                $data,
-                'INV-' . $idPemilik . $tanggal . str_pad($index + 1, 3, '0', STR_PAD_LEFT)
-            );
+        $idProduk = [1, 2, 3, 4]; // sesuaikan dengan data produk yang ada
+        $pelangganIds = [1, 2, 3, 4, 5]; // id pelanggan dummy
+
+        $counter = 1;
+
+        while ($startDate->lte($endDate)) {
+            $jumlahTransaksi = rand(1, 5);
+            for ($i = 0; $i < $jumlahTransaksi; $i++) {
+                $tanggal = $startDate->copy()->setTime(rand(8, 18), rand(0, 59), 0);
+
+                $produk = $faker->numberBetween(1, 15);
+                $jumlah = rand(1, 3);
+                $harga = rand(10000, 50000);
+                $total = $jumlah * $harga;
+                $bayar = $faker->randomElement([$total, $total - rand(5000, 20000)]); // lunas / sebagian
+
+                $metode = $faker->randomElement(['tunai', 'transfer', 'utang']);
+                $transfer = ['metode_transfer' => null, 'jenis_transfer' => null];
+
+                if ($metode === 'transfer') {
+                    $transfer = $faker->randomElement([
+                        ['metode_transfer' => 'Bank', 'jenis_transfer' => 'Bank Rakyat Indonesia'],
+                        ['metode_transfer' => 'E-money', 'jenis_transfer' => 'OVO']
+                    ]);
+                }
+
+                $this->createTransaction([
+                    'id_pelanggan' => $faker->randomElement($pelangganIds),
+                    'total_harga' => $total,
+                    'total_bayar' => $metode === 'utang' ? null : $bayar,
+                    'tanggal_penjualan' => $tanggal,
+                    'is_pesanan' => $faker->boolean(10), // 10% pesanan
+                    'jenis_pembayaran' => $metode,
+                    'metode_transfer' => $transfer['metode_transfer'],
+                    'jenis_transfer' => $transfer['jenis_transfer'],
+                    'diskon' => 0,
+                    'details' => [
+                        ['id_produk' => $produk, 'jumlah_produk' => $jumlah, 'harga_jual' => $harga]
+                    ]
+                ], 'INV-' . $idPemilik . $tanggal->format('Ymd') . str_pad($counter++, 3, '0', STR_PAD_LEFT));
+            }
+
+            $startDate->addDay();
         }
     }
 
     protected function createTransaction($data, $idPenjualan)
     {
+        // Cek stok untuk semua produk terlebih dahulu
+        foreach ($data['details'] as $detail) {
+            $stokTersedia = Stok::getStokTersediaByProduk($detail['id_produk']);
+            if ($stokTersedia < $detail['jumlah_produk']) {
+                return; // Skip transaksi jika stok tidak cukup
+            }
+        }
+
         DB::transaction(function () use ($data, $idPenjualan) {
             // Determine status
             $status = $data['is_pesanan'] 
