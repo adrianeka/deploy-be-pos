@@ -21,7 +21,6 @@ class Stok extends Model
         'jenis_stok',
         'jenis_transaksi',
         'tanggal_stok',
-        'keterangan'
     ];
 
     public function produk(): BelongsTo

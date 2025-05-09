@@ -24,8 +24,9 @@ class Pelanggan extends Model
     //     return $this->belongsTo(Pemilik::class, 'id_pemilik');
     // }
 
-    public function penjualan(): BelongsTo
+
+    public function penjualan()
     {
-        return $this->belongsTo(Penjualan::class, 'id_penjualan');
+        return $this->hasMany(Penjualan::class, 'id_pelanggan');
     }
 }

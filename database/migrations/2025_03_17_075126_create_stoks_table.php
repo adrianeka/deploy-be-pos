@@ -17,7 +17,6 @@ return new class extends Migration
             $table->bigInteger('jumlah_stok');
             $table->enum('jenis_stok', ['In', 'Out'])->nullable();
             $table->string('jenis_transaksi')->nullable();
-            $table->text('keterangan')->nullable();
             $table->dateTime('tanggal_stok');
             $table->timestamps();
         });

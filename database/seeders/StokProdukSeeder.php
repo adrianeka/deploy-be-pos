@@ -21,11 +21,11 @@ class StokProdukSeeder extends Seeder
         foreach ($produkList as $produk) {
             // Menambahkan stok awal (jenis "In")
             $stokAwal = 0; // Stok awal 0
-            $this->addStok($produk, $stokAwal, null, null, 'Stok Awal', Carbon::now()->subDays(30));
+            $this->addStok($produk, $stokAwal, null, 'Stok Awal', Carbon::now()->subDays(30));
 
             // Menambahkan stok pembelian awal untuk memastikan ada stok
             $stokPembelianAwal = $faker->numberBetween(10, 100);
-            $this->addStok($produk, $stokPembelianAwal, 'In', 'Pembelian', 'Pembelian Produk', Carbon::now()->subDays(28));
+            $this->addStok($produk, $stokPembelianAwal, 'In', 'Pembelian', Carbon::now()->subDays(28));
 
             // Menambahkan riwayat stok
             $jumlahRiwayat = rand(2, 5); // Minimal 2 dan maksimal 5 riwayat stok
@@ -49,7 +49,6 @@ class StokProdukSeeder extends Seeder
                         $jenisStok = 'In';
                         $jumlahStok = $faker->numberBetween(5, 30);
                         $jenisTransaksi = 'Pembelian';
-                        $keterangan = 'Pembelian Produk';
                     } else {
                         // Jika ada stok, pastikan jumlah yang dikeluarkan tidak melebihi stok tersedia
                         $jumlahStok = $faker->numberBetween(1, min($stokTersedia, 20));
@@ -63,20 +62,13 @@ class StokProdukSeeder extends Seeder
                     // 50% kemungkinan transaksi Pembelian, 50% Manual untuk stok In
                     $jenisTransaksiOptions = ['Manual', 'Pembelian'];
                     $jenisTransaksi = $faker->randomElement($jenisTransaksiOptions);
-
-                    // Jika transaksi Pembelian, maka keterangan otomatis "Pembelian Produk"
-                    if ($jenisTransaksi === 'Pembelian') {
-                        $keterangan = 'Pembelian Produk';
-                    } else {
-                        $keterangan = $this->generateKeterangan('In');
-                    }
                 }
 
                 // Generate tanggal acak antara stok awal dan sekarang
                 $tanggalStok = Carbon::now()
                     ->subDays(rand(1, 27))
                     ->setTime(rand(0, 23), rand(0, 59), rand(0, 59));
-                $this->addStok($produk, $jumlahStok, $jenisStok, $jenisTransaksi, $keterangan, $tanggalStok);
+                $this->addStok($produk, $jumlahStok, $jenisStok, $jenisTransaksi, $tanggalStok);
             }
         }
     }
@@ -92,7 +84,7 @@ class StokProdukSeeder extends Seeder
      * @param  Carbon  $tanggalStok
      * @return void
      */
-    private function addStok($produk, $jumlahStok, $jenisStok, $jenisTransaksi, $keterangan, $tanggalStok = null)
+    private function addStok($produk, $jumlahStok, $jenisStok, $jenisTransaksi, $tanggalStok = null)
     {
         // Simpan jumlah stok selalu sebagai nilai positif
         Stok::create([
@@ -100,7 +92,6 @@ class StokProdukSeeder extends Seeder
             'jumlah_stok'     => $jumlahStok, // Selalu positif
             'jenis_stok'      => $jenisStok,
             'jenis_transaksi' => $jenisTransaksi,
-            'keterangan'      => $keterangan,
             'tanggal_stok'    => $tanggalStok ?? Carbon::now(),
             'created_at'      => now(),
             'updated_at'      => now(),
@@ -113,13 +104,4 @@ class StokProdukSeeder extends Seeder
      * @param  string  $jenisStok
      * @return string
      */
-    private function generateKeterangan($jenisStok)
-    {
-        $keteranganList = [
-            'In' => ['Stok baru masuk', 'Pembelian baru'],
-            'Out' => ['Stok kadaluarsa', 'Diminta oleh saudara', 'Produk rusak dan dibuang', 'Retur produk'],
-        ];
-        // Pilih elemen acak dari keteranganList berdasarkan jenisStok
-        return $keteranganList[$jenisStok][array_rand($keteranganList[$jenisStok])];
-    }
 }

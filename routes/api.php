@@ -15,6 +15,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::post('/pembelian', [PembelianController::class, 'store']);
     // Pelanggan
     Route::apiResource('pelanggan', PelangganController::class);
+    Route::get('/pelanggan/penjualan/{id}', [PelangganController::class, 'getPenjualan']);
     // List Menu
     Route::apiResource('/menu', ProdukController::class);
     Route::get('/kategori', [ProdukController::class, 'getAllKategori']);
@@ -25,4 +26,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ambil-barang/{id}', [PenjualanController::class, 'barangSudahDiambil']);
     Route::get('/metode-pembayaran', [PenjualanController::class, 'getAllMetodePembayaran']);
     Route::get('/level-harga', [PenjualanController::class, 'getLevelHargas']);
+    Route::post('/penjualan/retur/{id}', [PenjualanController::class, 'returProdukBulk']);
 });

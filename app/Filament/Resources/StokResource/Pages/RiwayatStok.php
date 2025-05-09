@@ -30,7 +30,7 @@ class RiwayatStok extends ManageRelatedRecords
             ->query(
                 Stok::query()
                     ->where('id_produk', $id_produk)
-                    ->where('keterangan', '!=', 'Stok Awal') // Menghilangkan data dengan keterangan "Stok Awal"
+                    ->where('jenis_transaksi', '!=', 'Stok Awal') // Menghilangkan data dengan keterangan "Stok Awal"
             )
             ->defaultSort('tanggal_stok', 'desc')
             ->columns([
@@ -56,10 +56,6 @@ class RiwayatStok extends ManageRelatedRecords
                     ->sortable(),
                 TextColumn::make('jenis_transaksi')
                     ->label('Jenis Transaksi')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('keterangan')
-                    ->label('Keterangan')
                     ->searchable()
                     ->sortable(),
             ])

@@ -91,4 +91,30 @@ class PelangganController extends Controller
             return response()->json(['success' => false, 'message' => 'Gagal menghapus pelanggan'], 500);
         }
     }
+    public function getPenjualan($id){
+        try{
+            $pelanggan = Pelanggan::with([
+                'penjualan.kasir',
+            ])->findOrFail($id);
+
+            $data = $pelanggan->penjualan->map(function ($penjualan) {
+                return [
+                    'waktu_penjualan' => $penjualan->tanggal_penjualan,
+                    'nomor_transaksi' => $penjualan->id_penjualan,
+                    'nama_kasir' => $penjualan->kasir?->nama ?? '-',
+                    'status_penjualan' => $penjualan->status_penjualan,
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Penjualan berhasil didapatkan',
+                'data' => $data
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['success' => false, 'message' => 'Pelanggan tidak ditemukan'], 404);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal mendapakatkan penjualan dari pelanggan ini'], 500);
+        }
+    }
 }

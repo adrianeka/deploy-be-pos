@@ -34,8 +34,6 @@ class PenjualanSeeder extends Seeder
         $startDate = Carbon::now()->subYear()->startOfDay();
         $endDate = Carbon::now()->endOfDay();
 
-        
-        $idProduk = [1, 2, 3, 4]; // sesuaikan dengan data produk yang ada
         $pelangganIds = [1, 2, 3, 4, 5]; // id pelanggan dummy
 
         $counter = 1;
@@ -78,6 +76,19 @@ class PenjualanSeeder extends Seeder
             }
 
             $startDate->addDay();
+        }
+        $produkIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+        foreach ($produkIds as $idProduk) {
+            $jumlahRestok = rand(50, 100); // stok baru
+            DB::table('stok')->insert([
+                'id_produk' => $idProduk,
+                'jumlah_stok' => $jumlahRestok,
+                'jenis_stok' => 'In',
+                'jenis_transaksi' => 'Manual',
+                'tanggal_stok' => now(),
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
         }
     }
 
@@ -124,7 +135,6 @@ class PenjualanSeeder extends Seeder
                         'jenis_stok' => 'Out',
                         'jenis_transaksi' => $idPenjualan,
                         'tanggal_stok' => $data['tanggal_penjualan'],
-                        'keterangan' => 'Penjualan Produk',
                         'created_at' => $data['tanggal_penjualan'],
                         'updated_at' => $data['tanggal_penjualan']
                     ]);
