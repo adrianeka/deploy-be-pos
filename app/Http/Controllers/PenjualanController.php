@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kasir;
+use App\Models\LevelHarga;
 use Illuminate\Http\Request;
 use App\Models\Penjualan;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +46,7 @@ class PenjualanController extends Controller
             if ($status = $request->query('status')) {
                 $penjualanQuery->where('status_penjualan', $status);
             }
-
+            
             if ($idKasir = $request->query('id_kasir')) {
                 $kasir = Kasir::findOrFail($idKasir);
                 $penjualanQuery->whereIn('id_kasir', 
@@ -153,7 +154,7 @@ class PenjualanController extends Controller
                 'id_pelanggan' => 'nullable|integer',
                 'total_harga' => 'required|numeric|min:0',
                 'total_bayar' => 'required_if:jenis_pembayaran,tunai,transfer|numeric|min:0',
-                'tanggal_penjualan' => 'required|date',
+                // 'tanggal_penjualan' => 'required|date',
                 'is_pesanan' => 'required|boolean',
                 'jenis_pembayaran' => 'required|in:tunai,transfer,kasbon',
                 'metode_transfer' => 'required_if:jenis_pembayaran,transfer',
@@ -166,6 +167,7 @@ class PenjualanController extends Controller
 
             $kasir = Kasir::findOrFail($validated['id_kasir']);
             $idPemilik = $kasir->id_pemilik;
+            $tanggal_penjualan = Carbon::now();
 
             // Validate product details
             foreach ($request->details as $index => $detail) {
@@ -196,13 +198,13 @@ class PenjualanController extends Controller
                 'id_kasir' => $request->id_kasir,
                 'id_pelanggan' => $request->id_pelanggan,
                 'total_harga' => $request->total_harga,
-                'tanggal_penjualan' => $request->tanggal_penjualan,
+                'tanggal_penjualan' => $tanggal_penjualan,
                 'status_penjualan' => $status_penjualan,
                 'diskon' => $request->diskon
             ]);
 
             // Process details
-            $this->processPenjualanDetails($request->details, $penjualan, $request->tanggal_penjualan);
+            $this->processPenjualanDetails($request->details, $penjualan, $tanggal_penjualan);
 
             // Process payment if not kasbon
             if (strtolower($request->jenis_pembayaran) != 'kasbon') {
@@ -293,6 +295,28 @@ class PenjualanController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Gagal membayar penjualan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getLevelHargas(Request $request){
+        try{
+            $levelHargaQuery = LevelHarga::query();
+
+            if($idProduk = request('id_produk')) {
+                $levelHargaQuery->where('id_produk', $idProduk);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Level Harga berhasil didapatkan',
+                'data' => $levelHargaQuery->get()
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal mendapatkan level harga',
                 'error' => $e->getMessage()
             ], 500);
         }

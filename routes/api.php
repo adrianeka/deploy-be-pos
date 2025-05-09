@@ -24,4 +24,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/bayar-penjualan/{id}', [PenjualanController::class, 'bayarPenjualan']);
     Route::post('/ambil-barang/{id}', [PenjualanController::class, 'barangSudahDiambil']);
     Route::get('/metode-pembayaran', [PenjualanController::class, 'getAllMetodePembayaran']);
+    Route::get('/level-harga', [PenjualanController::class, 'getLevelHargas']);
 });
