@@ -100,6 +100,7 @@ class PenjualanController extends Controller
                 'status_penjualan' => $penjualan->status_penjualan,
                 'produk_terjual' => $penjualan->penjualanDetail->map(function ($detail) {
                     return [
+                        'id_produk' => $detail->produk?->id_produk ?? $detail->id_produk,
                         'nama_produk' => $detail->produk?->id_produk ? $detail->produk->nama_produk : $detail->nama_produk,
                         'jumlah' => $detail->jumlah_produk,
                         'satuan' => $detail->produk?->satuan?->nama_satuan ?? '-',
