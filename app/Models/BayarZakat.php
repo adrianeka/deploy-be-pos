@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ class BayarZakat extends Model
     protected $table = 'bayar_zakat';
     protected $primaryKey = 'id_bayar_zakat';
     protected $fillable = [
-        // 'id_metode_pembayaran',
+        'id_metode_pembayaran',
         'id_pemilik',
         'id_penerima_zakat',
         'modal_terjual',
@@ -29,5 +30,24 @@ class BayarZakat extends Model
     public function pemilik(): BelongsTo
     {
         return $this->belongsTo(Pemilik::class, 'id_pemilik', 'id_pemilik');
+    }
+
+    public function penjualan()
+    {
+        return $this->hasMany(Penjualan::class, 'id_bayar_zakat', 'id_bayar_zakat');
+    }
+
+    public function metode_pembayaran()
+    {
+        return $this->belongsTo(MetodePembayaran::class, 'id_metode_pembayaran');
+    }
+
+    protected function namaPenerima(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->penerima_zakat->nama_penerima;
+            }
+        );
     }
 }

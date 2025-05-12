@@ -51,6 +51,11 @@ class Penjualan extends Model
         );
     }
 
+    public function bayarZakat()
+    {
+        return $this->belongsTo(BayarZakat::class, 'id_bayar_zakat');
+    }
+
     protected function uangDiterima(): Attribute
     {
         return Attribute::make(
@@ -89,6 +94,26 @@ class Penjualan extends Model
                 }
 
                 return 0;
+            }
+        );
+    }
+
+    protected function modalTerjual(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->penjualanDetail->sum(function ($detail) {
+                    return optional($detail->produk)->harga_beli * $detail->jumlah_produk;
+                });
+            }
+        );
+    }
+
+    protected function zakat(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->modalTerjual * 0.025;
             }
         );
     }
