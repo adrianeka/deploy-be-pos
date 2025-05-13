@@ -210,7 +210,7 @@ class PenjualanController extends Controller
             // Process payment if not kasbon
             if (strtolower($request->jenis_pembayaran) != 'kasbon') {
                 $pembayaran = Pembayaran::create([
-                    'tanggal_pembayaran' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d'),
+                    'tanggal_pembayaran' => Carbon::now()->setTimezone('Asia/Jakarta')->format('Y-m-d'),
                     'total_bayar' => $request->total_bayar,
                     'keterangan' => $status_penjualan == 'lunas' ? 'Lunas' : 'Bayar Sebagian',
                     'id_metode_pembayaran' => $metodePembayaran->id_metode_pembayaran
@@ -269,7 +269,7 @@ class PenjualanController extends Controller
 
             $pembayaran = Pembayaran::create([
                 'id_penjualan' => $penjualan->id_penjualan,
-                'tanggal_pembayaran' => now()->setTimezone('Asia/Jakarta')->format('Y-m-d'),
+                'tanggal_pembayaran' => Carbon::now()->setTimezone('Asia/Jakarta')->format('Y-m-d'),
                 'total_bayar' => $request->total_bayar,
                 'keterangan' => 'Bayar Sebagian',
                 'id_metode_pembayaran' => $metodePembayaran->id_metode_pembayaran
@@ -388,23 +388,139 @@ class PenjualanController extends Controller
             }
         }
     }
-    public function returProdukBulk(Request $request, $id_penjualan)
+
+
+    public function returProduk(Request $request, $id_penjualan)
     {
         $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.id_produk' => 'required|integer|min:1',
-            'items.*.jumlah_retur' => 'required|integer|min:1',
+            'jumlah_retur' => 'required|integer|min:1',
         ]);
+        
+        if (!isset($request['id_produk']) && !isset($request['nama_produk'])) {
+            return response()->json([
+                'success' => false,
+                'message' => "Data produk harus diisi salah satu: id_produk atau nama_produk."
+            ], 422);
+        }
 
         DB::beginTransaction();
 
         try {
             $penjualan = Penjualan::with('penjualanDetail')->findOrFail($id_penjualan);
 
-            foreach ($request->items as $item) {
+            if (isset($request->id_produk)) {
                 $detail = $penjualan->penjualanDetail()
-                    ->where('id_produk', $item['id_produk'])
+                    ->where('id_produk', $request->id_produk)
                     ->first();
+            } else {
+                $detail = $penjualan->penjualanDetail()
+                    ->where('nama_produk', $request->nama_produk)
+                    ->first();
+            }
+
+            if (!$detail) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Produk dengan ID ' . $request->id_produk . ' tidak ditemukan dalam penjualan.'
+                ], 404);
+            }
+
+            // if ($detail->status_retur) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Produk dengan ID ' . $request->id_produk . ' sudah diretur.'
+            //     ], 422);
+            // }
+
+            if ($request->jumlah_retur > $detail->jumlah_produk) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jumlah retur melebihi jumlah penjualan produk.'
+                ], 422);
+            }
+
+            // Tambah stok kembali
+            if (isset($request->id_produk)) {
+                Stok::create([
+                    'id_produk' => $detail->id_produk,
+                    'jumlah_stok' => $request->jumlah_retur,
+                    'jenis_stok' => 'In',
+                    'jenis_transaksi' => 'Return Produk ' . $id_penjualan,
+                    'tanggal_stok' => Carbon::now(),
+                ]);
+            }
+
+            // Update penjualan detail
+            $detail->status_retur = true;
+            $detail->jumlah_produk -= $request->jumlah_retur;
+            $detail->save();
+
+            if($detail->jumlah_produk == 0){
+                $totalBaru = 0;
+                $penjualan->total_harga = $totalBaru;
+                $penjualan->save();
+            }
+            // Recalculate total harga penjualan
+            $totalBaru = $penjualan->penjualanDetail()
+                ->selectRaw('SUM(jumlah_produk * harga_jual) as total')
+                ->value('total');
+
+            $penjualan->total_harga = $totalBaru;
+            if($penjualan->uangDiterima >= $penjualan->total_harga){
+                $penjualan->status_penjualan = 'Lunas';
+            }
+            $penjualan->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Retur produk berhasil diproses.'
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses retur produk',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function returProdukBulk(Request $request, $id_penjualan)
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.jumlah_retur' => 'required|integer|min:1',
+        ]);
+
+        // Validate product details
+        foreach ($request->items as $index) {
+            if (!isset($index['id_produk']) && !isset($index['nama_produk'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Data produk di index ke-{$index} harus diisi salah satu: id_produk atau nama_produk."
+                ], 422);
+            }
+        }
+        
+        DB::beginTransaction();
+
+        try {
+            $penjualan = Penjualan::with('penjualanDetail')->findOrFail($id_penjualan);
+
+            foreach ($request->items as $item) {
+                if (isset($item['id_produk'])) {
+                    $detail = $penjualan->penjualanDetail()
+                        ->where('id_produk', $item['id_produk'])
+                        ->first();
+                } else {
+                    $detail = $penjualan->penjualanDetail()
+                        ->where('nama_produk', $item['nama_produk'])
+                        ->first();
+                }
 
                 if (!$detail) {
                     DB::rollBack();
@@ -422,22 +538,23 @@ class PenjualanController extends Controller
                     ], 422);
                 }
 
-                if ($item['jumlah_retur'] > ($detail->jumlah_produk - $detail->jumlah_retur)) {
+                if ($item['jumlah_retur'] > $detail->jumlah_produk) {
                     DB::rollBack();
                     return response()->json([
                         'success' => false,
-                        'message' => 'Jumlah retur melebihi sisa produk untuk produk ID ' . $item['id_produk']
+                        'message' => 'Jumlah retur melebihi jumlah penjualan produk untuk produk ID ' . $item['id_produk']
                     ], 422);
                 }
 
-                // Tambah stok kembali
-                Stok::create([
-                    'id_produk' => $detail->id_produk,
-                    'jumlah_stok' => $item['jumlah_retur'],
-                    'jenis_stok' => 'In',
-                    'jenis_transaksi' => 'Return Produk ' . $id_penjualan,
-                    'tanggal_stok' => Carbon::now(),
-                ]);
+                if (isset($item['id_produk'])) {
+                    Stok::create([
+                        'id_produk' => $detail->id_produk,
+                        'jumlah_stok' => $item['jumlah_retur'],
+                        'jenis_stok' => 'In',
+                        'jenis_transaksi' => 'Return Produk ' . $id_penjualan,
+                        'tanggal_stok' => Carbon::now(),
+                    ]);
+                }
 
                 // Update penjualan detail
                 $detail->status_retur = true;
@@ -445,12 +562,21 @@ class PenjualanController extends Controller
                 $detail->save();
             }
 
+            if($detail->jumlah_produk == 0){
+                $totalBaru = 0;
+                $penjualan->total_harga = $totalBaru;
+                $penjualan->save();
+            }
             // Recalculate total harga penjualan
             $totalBaru = $penjualan->penjualanDetail()
                 ->selectRaw('SUM(jumlah_produk * harga_jual) as total')
                 ->value('total');
 
             $penjualan->total_harga = $totalBaru;
+            $penjualan->total_harga = $totalBaru;
+            if($penjualan->uangDiterima >= $penjualan->total_harga){
+                $penjualan->status_penjualan = 'Lunas';
+            }
             $penjualan->save();
 
             DB::commit();
