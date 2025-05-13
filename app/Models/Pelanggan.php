@@ -24,6 +24,10 @@ class Pelanggan extends Model
     //     return $this->belongsTo(Pemilik::class, 'id_pemilik');
     // }
 
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('d-m-Y H:i');
+    }
 
     public function penjualan()
     {

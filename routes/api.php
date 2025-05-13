@@ -26,5 +26,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ambil-barang/{id}', [PenjualanController::class, 'barangSudahDiambil']);
     Route::get('/metode-pembayaran', [PenjualanController::class, 'getAllMetodePembayaran']);
     Route::get('/level-harga', [PenjualanController::class, 'getLevelHargas']);
-    Route::post('/penjualan/retur/{id}', [PenjualanController::class, 'returProdukBulk']);
+    Route::post('/penjualan/retur-bulk/{id}', [PenjualanController::class, 'returProdukBulk']);
+    Route::post('/penjualan/retur/{id}', [PenjualanController::class, 'returProduk']);
 });
