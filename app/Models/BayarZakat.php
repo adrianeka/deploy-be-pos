@@ -42,11 +42,4 @@ class BayarZakat extends Model
     {
         return $this->belongsTo(TipeTransfer::class, 'id_tipe_transfer', 'id_tipe_transfer');
     }
-
-    protected function namaPenerima(): Attribute
-    {
-        return Attribute::make(
-            get: fn() => $this->penerimaZakat?->nama_penerima
-        );
-    }
 }

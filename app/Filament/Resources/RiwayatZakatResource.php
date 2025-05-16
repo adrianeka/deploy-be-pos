@@ -5,11 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\RiwayatZakatResource\Pages;
 use App\Filament\Resources\RiwayatZakatResource\RelationManagers\PenjualanRelationManager;
 use App\Models\BayarZakat;
-use Filament\Forms;
 use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\Grid;
-use Filament\Infolists\Components\Group;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
@@ -18,7 +15,6 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
 
 class RiwayatZakatResource extends Resource
@@ -28,7 +24,6 @@ class RiwayatZakatResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-document-duplicate';
     protected static ?string $label = 'Riwayat Zakat';
     protected static ?string $pluralLabel = 'Riwayat Zakat';
-    protected static ?string $recordTitleAttribute = 'id_penerimaZakat';
     protected static ?string $navigationLabel = 'Riwayat Zakat';
     protected static ?string $navigationGroup = 'Zakat';
     protected static ?int $navigationSort = 6;
@@ -51,7 +46,7 @@ class RiwayatZakatResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('namaPenerima')
+                TextColumn::make('penerimaZakat.nama_penerima')
                     ->label('Nama Penerima')
                     ->searchable()
                     ->sortable(),

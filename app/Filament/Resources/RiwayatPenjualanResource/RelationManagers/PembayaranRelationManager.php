@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\RiwayatPenjualanResource\RelationManagers;
 
-use Filament\Forms;
-use App\Models\MetodePembayaran;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;

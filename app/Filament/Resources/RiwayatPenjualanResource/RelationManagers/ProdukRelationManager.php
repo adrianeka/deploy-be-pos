@@ -26,10 +26,16 @@ class ProdukRelationManager extends RelationManager
         return $table
             ->heading("Data Produk")
             ->columns([
-                Tables\Columns\TextColumn::make('produk.nama_produk')->label('Nama Produk'),
-                Tables\Columns\TextColumn::make('jumlah_produk')->label('Jumlah Produk'),
-                Tables\Columns\TextColumn::make('harga_jual')->label('Harga Jual Produk')
+                Tables\Columns\TextColumn::make('produk.nama_produk')
+                    ->label('Nama Produk'),
+
+                Tables\Columns\TextColumn::make('jumlah_produk')
+                    ->label('Jumlah Produk'),
+
+                Tables\Columns\TextColumn::make('harga_jual')
+                    ->label('Harga Jual Produk')
                     ->formatStateUsing(fn($state) => $state ? 'Rp. ' . number_format($state, 0, ',', '.') : '-'),
+
                 Tables\Columns\TextColumn::make('total_harga_item')
                     ->label('Total Harga Produk')
                     ->getStateUsing(function ($record) {

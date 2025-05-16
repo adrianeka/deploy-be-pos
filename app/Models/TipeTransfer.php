@@ -23,4 +23,11 @@ class TipeTransfer extends Model
     {
         return $this->belongsTo(Pembayaran::class, 'id_tipe_transfer');
     }
+
+    public static function getOpsiByMetodeTransfer(string $metode): array
+    {
+        return static::where('metode_transfer', $metode)
+            ->pluck('jenis_transfer', 'id_tipe_transfer')
+            ->toArray();
+    }
 }

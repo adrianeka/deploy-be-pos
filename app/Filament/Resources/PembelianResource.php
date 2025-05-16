@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PembelianResource\Pages;
 use App\Models\Pembelian;
+use App\Models\TipeTransfer;
 use Filament\Facades\Filament;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -18,9 +19,7 @@ use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Infolists\Components\Grid;
-use Filament\Infolists\Components\Group;
 use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\Split;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Builder;
@@ -45,22 +44,6 @@ class PembelianResource extends Resource
     protected static array $tipePembayaranOptions = [
         'bank' => 'Bank',
         'e-money' => 'E-Money',
-    ];
-
-    protected static array $opsiBank = [
-        'bca' => 'BCA',
-        'bni' => 'BNI',
-        'bri' => 'BRI',
-        'mandiri' => 'Mandiri',
-        'permata' => 'Permata',
-    ];
-
-    protected static array $opsiEmoney = [
-        'gopay' => 'GoPay',
-        'ovo' => 'OVO',
-        'dana' => 'Dana',
-        'linkaja' => 'LinkAja',
-        'shopeepay' => 'ShopeePay',
     ];
 
     public static function form(Form $form): Form
@@ -345,6 +328,12 @@ class PembelianResource extends Resource
             Components\Select::make('metode_pembayaran')
                 ->label('Metode Pembayaran')
                 ->options(self::$metodePembayaranOptions)
+                ->afterStateUpdated(function ($state, $set) {
+                    if ($state === 'tunai') {
+                        $set('id_tipe_transfer', null);
+                        $set('jenis_transfer', null);
+                    }
+                })
                 ->required()
                 ->reactive(),
 
@@ -361,25 +350,20 @@ class PembelianResource extends Resource
                 ->reactive()
                 ->visible(fn($get) => $get('metode_pembayaran') === 'transfer'),
 
-            Components\Select::make('bank')
-                ->label('Bank')
-                ->options(self::$opsiBank)
+            Components\Select::make('id_tipe_transfer')
+                ->label('Jenis Transfer')
+                ->options(function ($get) {
+                    $tipe = $get('tipe_pembayaran'); // 'bank' atau 'e-money'
+                    return $tipe ? TipeTransfer::getOpsiByMetodeTransfer($tipe) : [];
+                })
                 ->required()
                 ->visible(
                     fn($get) =>
                     $get('metode_pembayaran') === 'transfer' &&
-                        $get('tipe_pembayaran') === 'bank'
-                ),
-
-            Components\Select::make('e_money')
-                ->label('E-Money')
-                ->options(self::$opsiEmoney)
-                ->required()
-                ->visible(
-                    fn($get) =>
-                    $get('metode_pembayaran') === 'transfer' &&
-                        $get('tipe_pembayaran') === 'e-money'
-                ),
+                        in_array($get('tipe_pembayaran'), ['bank', 'e-money'])
+                )
+                ->searchable()
+                ->reactive(),
         ];
     }
 
