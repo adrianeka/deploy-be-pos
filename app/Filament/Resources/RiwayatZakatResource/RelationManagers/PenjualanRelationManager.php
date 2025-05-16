@@ -35,16 +35,16 @@ class PenjualanRelationManager extends RelationManager
                     ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
                 Tables\Columns\TextColumn::make('zakat')
                     ->label('Zakat (2.5%)')
-                    ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),                
-                Tables\Columns\TextColumn::make('tanggal_penjualan')
+                    ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
+                Tables\Columns\TextColumn::make('created_at')
                     ->label('Tanggal')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
             ])
             ->actions([
                 Action::make('View')
                     ->icon('heroicon-o-eye')
-                    ->url(fn ($record) => route('filament.admin.resources.riwayat-penjualans.view', ['record' => $record->id_penjualan]))
-                    // ->openUrlInNewTab(), // atau hapus kalo mau di tab yg sama
+                    ->url(fn($record) => route('filament.admin.resources.riwayat-penjualans.view', ['record' => $record->id_penjualan]))
+                // ->openUrlInNewTab(), // atau hapus kalo mau di tab yg sama
             ]);
     }
 }

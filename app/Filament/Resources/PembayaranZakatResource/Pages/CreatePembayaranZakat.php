@@ -4,12 +4,10 @@ namespace App\Filament\Resources\PembayaranZakatResource\Pages;
 
 use App\Filament\Resources\PembayaranZakatResource;
 use App\Models\BayarZakat;
-use App\Models\TipeTransfer;
 use App\Models\PenerimaZakat;
 use App\Models\Penjualan;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
@@ -65,72 +63,93 @@ class CreatePembayaranZakat extends Page
     {
         return $form
             ->schema([
-                \Filament\Forms\Components\Hidden::make('recordIds')
-                    ->default($this->data['recordIds'] ?? []),
+                Components\Section::make('Form Kasir')
+                    ->schema([
+                        Components\Grid::make(2)
+                            ->schema([
+                                Components\Hidden::make('recordIds')
+                                    ->default($this->data['recordIds'] ?? []),
 
-                Select::make('id_penerima_zakat')
-                    ->label('Nama Penerima Zakat')
-                    ->options(PenerimaZakat::all()->pluck('nama_penerima', 'id_penerima_zakat'))
-                    ->required()
-                    ->searchable()
-                    ->live()
-                    ->afterStateUpdated(function ($state) {
-                        logger()->debug('Penerima zakat updated:', ['state' => $state]);
-                    }),
+                                Components\Select::make('id_penerima_zakat')
+                                    ->label('Nama Penerima Zakat')
+                                    ->options(PenerimaZakat::all()->pluck('nama_penerima', 'id_penerima_zakat'))
+                                    ->required()
+                                    ->searchable()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state) {
+                                        logger()->debug('Penerima zakat updated:', ['state' => $state]);
+                                    }),
 
-                Select::make("jenis_pembayaran")
-                    ->label('Jenis Pembayaran')
-                    ->options([
-                        'tunai' => 'Tunai',
-                        'transfer' => 'Transfer',
+                                Components\Select::make("jenis_pembayaran")
+                                    ->label('Metode Pembayaran')
+                                    ->options([
+                                        'tunai' => 'Tunai',
+                                        'transfer' => 'Transfer',
+                                    ])
+                                    ->afterStateUpdated(function ($state, $set) {
+                                        if ($state === 'tunai') {
+                                            $set('id_tipe_transfer', null);
+                                            $set('jenis_transfer', null);
+                                        }
+                                    })
+                                    ->required()
+                                    ->reactive(),
+
+                                Components\Select::make('metode_transfer')
+                                    ->label('Metode Transfer')
+                                    ->options([
+                                        'bank' => 'Bank',
+                                        'e-money' => 'E-Money',
+                                    ])
+                                    ->dehydrated(false)
+                                    ->visible(fn($get) => $get('jenis_pembayaran') === 'transfer')
+                                    ->reactive()
+                                    ->searchable(),
+
+                                Components\Select::make('id_tipe_transfer')
+                                    ->label('Jenis Transfer')
+                                    ->options(
+                                        fn($get) =>
+                                        \App\Models\TipeTransfer::query()
+                                            ->where('metode_transfer', $get('metode_transfer'))
+                                            ->pluck('jenis_transfer', 'id_tipe_transfer') // <- pakai ID sebagai key
+                                    )
+                                    ->visible(
+                                        fn($get) =>
+                                        $get('jenis_pembayaran') === 'transfer' &&
+                                            in_array($get('metode_transfer'), ['bank', 'e-money'])
+                                    )
+                                    ->searchable()
+                                    ->reactive(),
+
+                                Components\TextInput::make('modal_terjual')
+                                    ->label('Total Modal')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->default(0)
+                                    ->formatStateUsing(function ($state) {
+                                        $value = is_numeric($state) ? $state : 0;
+                                        return 'Rp ' . number_format($value, 0, ',', '.');
+                                    })
+                                    ->afterStateHydrated(function ($component, $state) {
+                                        $component->state('Rp ' . number_format(is_numeric($state) ? $state : 0, 0, ',', '.'));
+                                    }),
+
+                                Components\TextInput::make('nominal_zakat')
+                                    ->label('Total Zakat (2.5%)')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->default(0)
+                                    ->formatStateUsing(function ($state) {
+                                        $value = is_numeric($state) ? $state : 0;
+                                        return 'Rp ' . number_format($value, 0, ',', '.');
+                                    })
+                                    ->afterStateHydrated(function ($component, $state) {
+                                        $component->state('Rp ' . number_format(is_numeric($state) ? $state : 0, 0, ',', '.'));
+                                    }),
+                            ])
                     ])
-                    ->required(),
-                Select::make('id_tipe_transfer')
-                    ->label('Tipe Transfer')
-                    ->options(TipeTransfer::get()->mapWithKeys(function ($item) {
-                        if ($item->metode_transfer) {
-                            // logger()->info('TipeTransfer ID: ' . $item->id_tipe_transfer);
-                            $label = ucfirst($item->metode_transfer);
-                            $label .= ' - ' . $item->jenis_transfer;
-                        } else {
-                            $label = 'Tidak diketahui';
-                        }
-
-                        return [$item->id_tipe_transfer => $label];
-                    }))
-                    // ->required() 
-                    ->searchable()
-                    ->live()
-                    ->afterStateUpdated(function ($state) {
-                        logger()->debug('Metode pembayaran updated:', ['state' => $state]);
-                    }),
-
-                TextInput::make('modal_terjual')
-                    ->label('Total Modal')
-                    ->disabled()
-                    ->dehydrated()
-                    ->default(0)
-                    ->formatStateUsing(function ($state) {
-                        $value = is_numeric($state) ? $state : 0;
-                        return 'Rp ' . number_format($value, 0, ',', '.');
-                    })
-                    ->afterStateHydrated(function ($component, $state) {
-                        // Simpan nilai numerik tapi tampilkan yang sudah diformat
-                        $component->state('Rp ' . number_format(is_numeric($state) ? $state : 0, 0, ',', '.'));
-                    }),
-
-                TextInput::make('nominal_zakat')
-                    ->label('Total Zakat (2.5%)')
-                    ->disabled()
-                    ->dehydrated()
-                    ->default(0)
-                    ->formatStateUsing(function ($state) {
-                        $value = is_numeric($state) ? $state : 0;
-                        return 'Rp ' . number_format($value, 0, ',', '.');
-                    })
-                    ->afterStateHydrated(function ($component, $state) {
-                        $component->state('Rp ' . number_format(is_numeric($state) ? $state : 0, 0, ',', '.'));
-                    })
+                    ->collapsible(),
             ])
             ->statePath('data');
     }
@@ -141,8 +160,8 @@ class CreatePembayaranZakat extends Page
             $data = $this->form->getState();
             logger()->debug('Form data before validation:', $data);
 
-            // Validate required fields
-            if (empty($data['recordIds'])) {
+            // Validasi recordIds wajib ada dan tidak kosong
+            if (empty($data['recordIds']) || count($data['recordIds']) === 0) {
                 Notification::make()
                     ->title('Error')
                     ->body('Tidak ada transaksi yang dipilih')
@@ -151,17 +170,7 @@ class CreatePembayaranZakat extends Page
                 return;
             }
 
-            // Validate required fields
-            if (empty($data['recordIds'])) {
-                Notification::make()
-                    ->title('Error')
-                    ->body('Tidak ada transaksi yang dipilih')
-                    ->danger()
-                    ->send();
-                return;
-            }
-
-            // Recalculate totals if needed
+            // Hitung ulang modal_terjual dan nominal_zakat jika belum ada
             if (!isset($data['modal_terjual']) || !isset($data['nominal_zakat'])) {
                 $penjualans = Penjualan::with(['penjualanDetail.produk'])
                     ->whereIn('id_penjualan', $data['recordIds'])
@@ -176,35 +185,33 @@ class CreatePembayaranZakat extends Page
                 $data['nominal_zakat'] = $data['modal_terjual'] * 0.025;
             }
 
-            // Remove currency formatting before saving
+            // Hilangkan format "Rp " dan non-digit dari modal dan nominal zakat
             $data['modal_terjual'] = (float) preg_replace('/[^0-9]/', '', $data['modal_terjual']);
             $data['nominal_zakat'] = (float) preg_replace('/[^0-9]/', '', $data['nominal_zakat']);
 
-            // Create BayarZakat record
+            // Buat record BayarZakat
             $bayarZakat = BayarZakat::create([
-                'id_metode_pembayaran' => $data['id_metode_pembayaran'],
                 'id_pemilik' => Filament::auth()->id(),
                 'id_penerima_zakat' => $data['id_penerima_zakat'],
+                'jenis_pembayaran' => $data['jenis_pembayaran'], // tunai / transfer
+                'id_tipe_transfer' => $data['jenis_pembayaran'] === 'transfer' ? $data['id_tipe_transfer'] : null,
                 'modal_terjual' => $data['modal_terjual'],
                 'nominal_zakat' => $data['nominal_zakat'],
-                'tanggal_bayar' => now(),
             ]);
 
-            // Update Penjualan records
+            // Update Penjualan dengan id_bayar_zakat baru
             Penjualan::whereIn('id_penjualan', $data['recordIds'])
                 ->update(['id_bayar_zakat' => $bayarZakat->id_bayar_zakat]);
 
-            // Redirect with success message
+            // Notifikasi sukses
             Notification::make()
                 ->title('Berhasil')
                 ->body('Pembayaran zakat telah disimpan')
                 ->success()
                 ->send();
 
-            $this->redirect(
-                PembayaranZakatResource::getUrl('index'),
-                navigate: true
-            );
+            // Redirect ke halaman index resource
+            $this->redirect(PembayaranZakatResource::getUrl('index'), navigate: true);
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Error')

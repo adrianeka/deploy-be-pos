@@ -24,7 +24,6 @@ class ViewRiwayatZakat extends ViewRecord
     {
         return [
             \App\Filament\Resources\RiwayatZakatResource\RelationManagers\PenjualanRelationManager::class,
-            // \App\Filament\Resources\RiwayatZakatResource\RelationManagers\PembayaranRelationManager::class,
         ];
     }
 }

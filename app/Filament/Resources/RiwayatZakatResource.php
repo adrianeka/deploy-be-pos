@@ -28,7 +28,7 @@ class RiwayatZakatResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-document-duplicate';
     protected static ?string $label = 'Riwayat Zakat';
     protected static ?string $pluralLabel = 'Riwayat Zakat';
-    protected static ?string $recordTitleAttribute = 'id_penerima_zakat';
+    protected static ?string $recordTitleAttribute = 'id_penerimaZakat';
     protected static ?string $navigationLabel = 'Riwayat Zakat';
     protected static ?string $navigationGroup = 'Zakat';
     protected static ?int $navigationSort = 6;
@@ -40,27 +40,28 @@ class RiwayatZakatResource extends Resource
                 //
             ]);
     }
-    
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['penjualan']); // Eager load relationship
-    }
-
-    public static function canCreate(): bool
-    {
-        return false; // Ini akan menghilangkan tombol create
+            ->with(['penjualan']);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('namaPenerima')->label('Nama Penerima')->searchable()->sortable(),
+                TextColumn::make('namaPenerima')
+                    ->label('Nama Penerima')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('nominal_zakat')
                     ->label('Total Bayar')
                     ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
-                TextColumn::make('tanggal_bayar')->label('Tanggal')
+
+                TextColumn::make('created_at')
+                    ->label('Tanggal')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
                     ->sortable(),
             ])
@@ -73,7 +74,7 @@ class RiwayatZakatResource extends Resource
             ->bulkActions([
                 // 
             ])
-            ->defaultSort('tanggal_bayar', 'desc');
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function infolist(Infolist $infolist): Infolist
@@ -82,7 +83,7 @@ class RiwayatZakatResource extends Resource
             ->schema([
                 Section::make('Data Transaksi Penjualan')
                     ->schema([
-                        Grid::make(2) // 2 kolom per baris
+                        Grid::make(2)
                             ->schema([
                                 TextEntry::make('modal_terjual')
                                     ->label('Modal yang Terjual')
@@ -92,20 +93,22 @@ class RiwayatZakatResource extends Resource
                                     ->label('Total Bayar Zakat (2.5%)')
                                     ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
 
-                                TextEntry::make('tanggal_bayar')
+                                TextEntry::make('created_at')
                                     ->label('Tanggal Bayar')
                                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
 
-                                TextEntry::make('metode_pembayaran.jenis_pembayaran')
+                                TextEntry::make('jenis_pembayaran')
                                     ->label('Metode Pembayaran')
                                     ->formatStateUsing(fn($state) => Str::ucfirst($state)),
 
-                                TextEntry::make('metode_pembayaran.tipe_transfer.metode_transfer')
+                                TextEntry::make('tipeTransfer.metode_transfer')
                                     ->label('Metode Transfer')
+                                    ->visible(fn($record) => $record->jenis_pembayaran === 'transfer')
                                     ->formatStateUsing(fn($state) => $state ? Str::ucfirst($state) : '-'),
-                                
-                                TextEntry::make('metode_pembayaran.tipe_transfer.jenis_transfer')
+
+                                TextEntry::make('tipeTransfer.jenis_transfer')
                                     ->label('Jenis Transfer')
+                                    ->visible(fn($record) => $record->jenis_pembayaran === 'transfer')
                                     ->formatStateUsing(fn($state) => $state ? Str::ucfirst($state) : '-')
                             ]),
                     ])
@@ -114,23 +117,29 @@ class RiwayatZakatResource extends Resource
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('penerima_zakat.nama_penerima')
+                                TextEntry::make('penerimaZakat.nama_penerima')
                                     ->label('Nama')
                                     ->formatStateUsing(fn($state) => Str::ucfirst($state)),
-                                TextEntry::make('penerima_zakat.nama_bank')
+
+                                TextEntry::make('penerimaZakat.nama_bank')
                                     ->label('Nama Bank')
                                     ->formatStateUsing(fn($state) => Str::ucfirst($state)),
-                                TextEntry::make('penerima_zakat.no_telp')
+
+                                TextEntry::make('penerimaZakat.no_telp')
                                     ->label('Nomor Telepon'),
-                                TextEntry::make('penerima_zakat.alamat')
+
+                                TextEntry::make('penerimaZakat.alamat')
                                     ->label('Alamat Penerima Zakat')
                                     ->formatStateUsing(fn($state) => Str::ucfirst($state)),
-                                TextEntry::make('penerima_zakat.no_rekening')
+
+                                TextEntry::make('penerimaZakat.no_rekening')
                                     ->label('Nomor Rekening'),
-                                TextEntry::make('penerima_zakat.created_at')
+
+                                TextEntry::make('penerimaZakat.created_at')
                                     ->label('Dibuat Pada')
                                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
-                                TextEntry::make('penerima_zakat.rekening_atas_nama')
+
+                                TextEntry::make('penerimaZakat.rekening_atas_nama')
                                     ->label("Nama Pemilik Rekening")
                                     ->formatStateUsing(fn($state) => Str::ucfirst($state)),
                             ])

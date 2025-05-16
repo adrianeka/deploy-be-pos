@@ -70,7 +70,6 @@ class PembayaranZakatResource extends Resource
                 ->disabled()
                 ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state ?? 0, 0, ',', '.')),
         ]);
-        // return $form;
     }
 
 
