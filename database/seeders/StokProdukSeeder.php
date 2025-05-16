@@ -49,7 +49,6 @@ class StokProdukSeeder extends Seeder
                         $jenisStok = 'in';
                         $jumlahStok = $faker->numberBetween(5, 30);
                         $jenisTransaksi = 'Pembelian';
-                        $keterangan = 'Pembelian Produk';
                     } else {
                         $jumlahStok = $faker->numberBetween(1, min($stokTersedia, 20));
                         $jenisTransaksi = 'INV-' . now()->format('Ymd') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);

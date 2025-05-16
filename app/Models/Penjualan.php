@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\StatusTransaksiPenjualan;
 
+#[ObservedBy(PenjualanObserver::class)]
 class Penjualan extends Model
 {
     use HasFactory;
@@ -51,6 +52,11 @@ class Penjualan extends Model
             'id_penjualan', // Local key on Penjualan table...
             'id_pembayaran' // Local key on PembayaranPenjualan table...
         );
+    }
+
+    public function bayarZakat()
+    {
+        return $this->belongsTo(BayarZakat::class, 'id_bayar_zakat');
     }
 
     protected function uangDiterima(): Attribute

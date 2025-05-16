@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kasir;
+use App\Models\LevelHarga;
 use Illuminate\Http\Request;
 use App\Models\Penjualan;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +46,7 @@ class PenjualanController extends Controller
             if ($status = $request->query('status')) {
                 $penjualanQuery->where('status_penjualan', $status);
             }
-
+            
             if ($idKasir = $request->query('id_kasir')) {
                 $kasir = Kasir::findOrFail($idKasir);
                 $penjualanQuery->whereIn('id_kasir', 
@@ -99,11 +100,13 @@ class PenjualanController extends Controller
                 'status_penjualan' => $penjualan->status_penjualan,
                 'produk_terjual' => $penjualan->penjualanDetail->map(function ($detail) {
                     return [
+                        'id_produk' => $detail->produk?->id_produk ?? $detail->id_produk,
                         'nama_produk' => $detail->produk?->id_produk ? $detail->produk->nama_produk : $detail->nama_produk,
                         'jumlah' => $detail->jumlah_produk,
                         'satuan' => $detail->produk?->satuan?->nama_satuan ?? '-',
                         'harga_jual' => $detail->harga_jual ?? 0,
-                        'total' => ($detail->harga_jual ?? 0) * $detail->jumlah_produk
+                        'total' => ($detail->harga_jual ?? 0) * $detail->jumlah_produk,
+                        'status_retur' => $detail->status_retur
                     ];
                 }),
                 'pembayaran' => $penjualan->pembayaran->map(function ($pembayaran) {
@@ -153,7 +156,6 @@ class PenjualanController extends Controller
                 'id_pelanggan' => 'nullable|integer',
                 'total_harga' => 'required|numeric|min:0',
                 'total_bayar' => 'required_if:jenis_pembayaran,tunai,transfer|numeric|min:0',
-                'tanggal_penjualan' => 'required|date',
                 'is_pesanan' => 'required|boolean',
                 'jenis_pembayaran' => 'required|in:tunai,transfer,kasbon',
                 'metode_transfer' => 'required_if:jenis_pembayaran,transfer',
@@ -166,6 +168,7 @@ class PenjualanController extends Controller
 
             $kasir = Kasir::findOrFail($validated['id_kasir']);
             $idPemilik = $kasir->id_pemilik;
+            $tanggal_penjualan = Carbon::now();
 
             // Validate product details
             foreach ($request->details as $index => $detail) {
@@ -196,13 +199,13 @@ class PenjualanController extends Controller
                 'id_kasir' => $request->id_kasir,
                 'id_pelanggan' => $request->id_pelanggan,
                 'total_harga' => $request->total_harga,
-                'tanggal_penjualan' => $request->tanggal_penjualan,
+                'tanggal_penjualan' => $tanggal_penjualan,
                 'status_penjualan' => $status_penjualan,
                 'diskon' => $request->diskon
             ]);
 
             // Process details
-            $this->processPenjualanDetails($request->details, $penjualan, $request->tanggal_penjualan);
+            $this->processPenjualanDetails($request->details, $penjualan, $tanggal_penjualan);
 
             // Process payment if not kasbon
             if (strtolower($request->jenis_pembayaran) != 'kasbon') {
@@ -298,6 +301,28 @@ class PenjualanController extends Controller
         }
     }
 
+    public function getLevelHargas(Request $request){
+        try{
+            $levelHargaQuery = LevelHarga::query();
+
+            if($idProduk = request('id_produk')) {
+                $levelHargaQuery->where('id_produk', $idProduk);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Level Harga berhasil didapatkan',
+                'data' => $levelHargaQuery->get()
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Gagal mendapatkan level harga',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function getAllMetodePembayaran(Request $request){
         try {
             $metodePembayaranQuery = TipeTransfer::query();
@@ -359,9 +384,91 @@ class PenjualanController extends Controller
                     'jenis_stok' => 'Out',
                     'jenis_transaksi' => $penjualan->id_penjualan,
                     'tanggal_stok' => $tanggal,
-                    'keterangan' => 'Penjualan Produk'
                 ]);
             }
         }
     }
+    public function returProdukBulk(Request $request, $id_penjualan)
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.id_produk' => 'required|integer|min:1',
+            'items.*.jumlah_retur' => 'required|integer|min:1',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $penjualan = Penjualan::with('penjualanDetail')->findOrFail($id_penjualan);
+
+            foreach ($request->items as $item) {
+                $detail = $penjualan->penjualanDetail()
+                    ->where('id_produk', $item['id_produk'])
+                    ->first();
+
+                if (!$detail) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Produk dengan ID ' . $item['id_produk'] . ' tidak ditemukan dalam penjualan.'
+                    ], 404);
+                }
+
+                if ($detail->status_retur) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Produk dengan ID ' . $item['id_produk'] . ' sudah diretur.'
+                    ], 422);
+                }
+
+                if ($item['jumlah_retur'] > ($detail->jumlah_produk - $detail->jumlah_retur)) {
+                    DB::rollBack();
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Jumlah retur melebihi sisa produk untuk produk ID ' . $item['id_produk']
+                    ], 422);
+                }
+
+                // Tambah stok kembali
+                Stok::create([
+                    'id_produk' => $detail->id_produk,
+                    'jumlah_stok' => $item['jumlah_retur'],
+                    'jenis_stok' => 'In',
+                    'jenis_transaksi' => 'Return Produk ' . $id_penjualan,
+                    'tanggal_stok' => Carbon::now(),
+                ]);
+
+                // Update penjualan detail
+                $detail->status_retur = true;
+                $detail->jumlah_produk -= $item['jumlah_retur'];
+                $detail->save();
+            }
+
+            // Recalculate total harga penjualan
+            $totalBaru = $penjualan->penjualanDetail()
+                ->selectRaw('SUM(jumlah_produk * harga_jual) as total')
+                ->value('total');
+
+            $penjualan->total_harga = $totalBaru;
+            $penjualan->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Retur produk berhasil diproses secara bulk.',
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memproses retur produk secara bulk',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

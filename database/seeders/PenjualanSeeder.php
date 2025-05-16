@@ -6,7 +6,7 @@ use App\Models\LevelHarga;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-
+use Faker\Factory as Faker;
 class PenjualanSeeder extends Seeder
 {
     public function run()
@@ -15,6 +15,7 @@ class PenjualanSeeder extends Seeder
         DB::table('penjualan_detail')->truncate();
         DB::table('pembayaran_penjualan')->truncate();
         DB::table('penjualan')->truncate();
+        DB::table('stok')->where('jenis_stok', 'Out')->delete(); // Hapus stok keluar saja
         Schema::enableForeignKeyConstraints();
 
         // Create sample transactions

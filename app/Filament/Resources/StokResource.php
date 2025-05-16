@@ -63,10 +63,6 @@ class StokResource extends Resource
                                     ->numeric()
                                     ->required()
                                     ->minValue(1),
-                                TextInput::make('keterangan')
-                                    ->label('Keterangan')
-                                    ->required()
-                                    ->maxLength(255),
                             ]),
                     ])
                     ->collapsible(),
