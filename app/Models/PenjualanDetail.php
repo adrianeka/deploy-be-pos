@@ -22,4 +22,9 @@ class PenjualanDetail extends Model
     {
         return $this->belongsTo(Produk::class, 'id_produk');
     }
+
+    public function levelHarga()
+    {
+        return $this->belongsTo(LevelHarga::class, 'id_level_harga');
+    }
 }

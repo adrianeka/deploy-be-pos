@@ -41,6 +41,7 @@ class ProdukResource extends Resource
     protected static ?string $recordTitleAttribute = 'nama_produk';
     protected static ?string $navigationLabel = 'Produk';
     protected static ?string $pluralLabel = 'Produk';
+    protected static ?string $slug = 'inventaris/produk';
     protected static ?string $navigationGroup = 'Inventaris';
     protected static ?int $navigationSort = 4;
 

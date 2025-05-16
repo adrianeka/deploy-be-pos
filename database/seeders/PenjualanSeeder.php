@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\LevelHarga;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -69,11 +70,11 @@ class PenjualanSeeder extends Seeder
         DB::table('penjualan')->insert($penjualanData);
 
         $penjualanDetailData = [
-            ['id_penjualan' => 'INV-20250412001', 'id_produk' => 1, 'nama_produk' => null, 'jumlah_produk' => 2, 'harga_jual' => 25000],
-            ['id_penjualan' => 'INV-20250412002', 'id_produk' => 2, 'nama_produk' => null, 'jumlah_produk' => 1, 'harga_jual' => 50000],
-            ['id_penjualan' => 'INV-20250412002', 'id_produk' => 3, 'nama_produk' => null, 'jumlah_produk' => 1, 'harga_jual' => 50000],
-            ['id_penjualan' => 'INV-20250412003', 'id_produk' => 4, 'nama_produk' => null, 'jumlah_produk' => 3, 'harga_jual' => 25000],
-            ['id_penjualan' => 'INV-20250412004', 'id_produk' => 1, 'nama_produk' => null, 'jumlah_produk' => 1, 'harga_jual' => 50000],
+            ['id_penjualan' => 'INV-20250412001', 'id_produk' => 1, 'nama_produk' => null, 'jumlah_produk' => 2, 'harga_jual' => $this->getHargaJual(1, 'Standart')],
+            ['id_penjualan' => 'INV-20250412002', 'id_produk' => 2, 'nama_produk' => null, 'jumlah_produk' => 1, 'harga_jual' => $this->getHargaJual(2, 'Standart')],
+            ['id_penjualan' => 'INV-20250412002', 'id_produk' => 3, 'nama_produk' => null, 'jumlah_produk' => 1, 'harga_jual' => $this->getHargaJual(3, 'Standart')],
+            ['id_penjualan' => 'INV-20250412003', 'id_produk' => 4, 'nama_produk' => null, 'jumlah_produk' => 3, 'harga_jual' => $this->getHargaJual(4, 'Standart')],
+            ['id_penjualan' => 'INV-20250412004', 'id_produk' => 1, 'nama_produk' => null, 'jumlah_produk' => 1, 'harga_jual' => $this->getHargaJual(1, 'Standart')],
             ['id_penjualan' => 'INV-20250412004', 'id_produk' => null, 'nama_produk' => 'produk tambah manual', 'jumlah_produk' => 1, 'harga_jual' => 10000]
         ];
 
@@ -82,33 +83,36 @@ class PenjualanSeeder extends Seeder
         $pembayaranData = [
             [
                 'id_pembayaran' => 1,
+                'id_tipe_transfer' => null, // Tunai
+                'jenis_pembayaran' => 'tunai',
                 'tanggal_pembayaran' => Carbon::parse('2025-04-12 09:30:00'),
                 'total_bayar' => 50000,
                 'keterangan' => 'lunas langsung',
-                'id_metode_pembayaran' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'id_pembayaran' => 2,
+                'id_tipe_transfer' => 1, // Contoh BCA
+                'jenis_pembayaran' => 'transfer',
                 'tanggal_pembayaran' => Carbon::parse('2025-04-12 10:30:00'),
                 'total_bayar' => 50000,
                 'keterangan' => 'Bayar sebagian',
-                'id_metode_pembayaran' => 2,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'id_pembayaran' => 3,
+                'id_tipe_transfer' => 2, // Contoh Mandiri
+                'jenis_pembayaran' => 'transfer',
                 'tanggal_pembayaran' => Carbon::parse('2025-04-12 11:15:00'),
                 'total_bayar' => 75000,
                 'keterangan' => 'lunas',
-                'id_metode_pembayaran' => 3,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]
-            // Penjualan ke-4 tidak dibayar (status pesanan)
         ];
+
 
         DB::table('pembayaran')->insert($pembayaranData);
 
@@ -128,5 +132,14 @@ class PenjualanSeeder extends Seeder
         ];
 
         DB::table('pembayaran_penjualan')->insert($pembayaranPenjualanData);
+    }
+
+    private function getHargaJual($idProduk, $levelHarga)
+    {
+        $harga = LevelHarga::where('id_produk', $idProduk)
+            ->where('nama_level', $levelHarga)
+            ->value('harga_jual');
+
+        return $harga ?? 0; // Jika tidak ada harga, fallback ke 0
     }
 }

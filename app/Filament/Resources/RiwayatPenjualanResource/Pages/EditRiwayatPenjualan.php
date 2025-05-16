@@ -16,4 +16,10 @@ class EditRiwayatPenjualan extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $this->record->loadMissing('penjualanDetail.levelHarga', 'penjualanDetail.produk');
+        return $data;
+    }
 }

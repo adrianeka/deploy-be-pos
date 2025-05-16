@@ -12,16 +12,18 @@ class BayarZakat extends Model
 
     protected $table = 'bayar_zakat';
     protected $primaryKey = 'id_bayar_zakat';
+
     protected $fillable = [
-        // 'id_metode_pembayaran',
         'id_pemilik',
         'id_penerima_zakat',
+        'id_tipe_transfer',
+        'jenis_pembayaran',
         'modal_terjual',
         'nominal_zakat',
         'tanggal_bayar'
     ];
 
-    public function penerima_zakat(): BelongsTo
+    public function penerimaZakat(): BelongsTo
     {
         return $this->belongsTo(PenerimaZakat::class, 'id_penerima_zakat', 'id_penerima_zakat');
     }
@@ -29,5 +31,10 @@ class BayarZakat extends Model
     public function pemilik(): BelongsTo
     {
         return $this->belongsTo(Pemilik::class, 'id_pemilik', 'id_pemilik');
+    }
+
+    public function tipeTransfer(): BelongsTo
+    {
+        return $this->belongsTo(TipeTransfer::class, 'id_tipe_transfer', 'id_tipe_transfer');
     }
 }
