@@ -2,23 +2,21 @@
 
 namespace App\Filament\Resources\PembelianResource\RelationManagers;
 
-use App\Models\MetodePembayaran;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
 use Filament\Forms\Form;
-use Filament\Forms;
+use Carbon\Carbon;
 
 class PembayaranRelationManager extends RelationManager
 {
     protected static string $relationship = 'pembayaranPembelian';
-
     protected static ?string $title = 'Data Pembayaran';
 
     public static function modifyQueryUsing($query)
     {
-        return $query->with(['pembayaranPembelian', 'pembelian']);
+        return $query->with(['pembayaran.tipe_transfer']);
     }
 
     public function form(Form $form): Form
@@ -30,20 +28,18 @@ class PembayaranRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('pembayaran.metode_pembayaran.jenis_pembayaran')
-                    ->label('Metode Pembayaran')
+                Tables\Columns\TextColumn::make('pembayaran.jenis_pembayaran')
+                    ->label('Jenis Pembayaran')
                     ->formatStateUsing(fn($state) => $state ? Str::ucfirst($state) : '-'),
 
-                Tables\Columns\TextColumn::make('pembayaran.metode_pembayaran.tipe_transfer.metode_transfer')
-                    ->label('Tipe Transfer')
-                    ->getStateUsing(fn($record) => $record->pembayaran?->metode_pembayaran?->tipe_transfer?->metode_transfer)
-                    ->formatStateUsing(fn($state) => $state ? Str::ucfirst($state) : '-'),
+                Tables\Columns\TextColumn::make('pembayaran.tipeTransfer.metode_transfer')
+                    ->label('Metode Transfer')
+                    ->getStateUsing(fn($record) => $record->pembayaran?->tipeTransfer?->metode_transfer ?? '-')
+                    ->formatStateUsing(fn($state) => Str::ucfirst($state)),
 
-                Tables\Columns\TextColumn::make('pembayaran.metode_pembayaran.tipe_transfer.jenis_transfer')
+                Tables\Columns\TextColumn::make('pembayaran.tipeTransfer.jenis_transfer')
                     ->label('Jenis Transfer')
-                    ->getStateUsing(fn($record) => $record->pembayaran?->metode_pembayaran?->tipe_transfer?->jenis_transfer)
-                    ->formatStateUsing(fn($state) => $state ?: '-'),
-
+                    ->getStateUsing(fn($record) => $record->pembayaran?->tipeTransfer?->jenis_transfer ?? '-'),
 
                 Tables\Columns\TextColumn::make('pembayaran.total_bayar')
                     ->label('Total Bayar')
@@ -52,9 +48,9 @@ class PembayaranRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('pembayaran.keterangan')
                     ->label('Keterangan'),
 
-                Tables\Columns\TextColumn::make('pembayaran.tanggal_pembayaran')
+                Tables\Columns\TextColumn::make('pembayaran.created_at')
                     ->label('Tanggal')
-                    ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
             ]);
     }
 }

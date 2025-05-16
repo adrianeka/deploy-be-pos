@@ -20,7 +20,6 @@ class Stok extends Model
         'jumlah_stok',
         'jenis_stok',
         'jenis_transaksi',
-        'tanggal_stok',
         'keterangan'
     ];
 

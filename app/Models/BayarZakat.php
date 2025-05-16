@@ -20,7 +20,6 @@ class BayarZakat extends Model
         'jenis_pembayaran',
         'modal_terjual',
         'nominal_zakat',
-        'tanggal_bayar'
     ];
 
     public function penerimaZakat(): BelongsTo

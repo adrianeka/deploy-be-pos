@@ -16,7 +16,6 @@ return new class extends Migration
             $table->unsignedTinyInteger('id_tipe_transfer')->nullable(); // nullable untuk jenis Tunai    
             $table->foreign('id_tipe_transfer')->references('id_tipe_transfer')->on('tipe_transfer')->onDelete('cascade');
             $table->enum('jenis_pembayaran', ['tunai', 'transfer']);
-            $table->dateTime('tanggal_pembayaran');
             $table->bigInteger('total_bayar');
             $table->string('keterangan')->nullable();
             $table->timestamps();
