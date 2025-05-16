@@ -21,6 +21,10 @@ class PenjualanSeeder extends Seeder
         $transactions = [
             [
                 'id_pelanggan' => 1,
+<<<<<<< HEAD
+=======
+                'id_bayar_zakat' => null,
+>>>>>>> dev-adi
                 'total_harga' => 50000,
                 'total_bayar' => 50000,
                 'tanggal_penjualan' => Carbon::parse('2025-04-12 09:00:00'),
@@ -33,6 +37,10 @@ class PenjualanSeeder extends Seeder
             ],
             [
                 'id_pelanggan' => 2,
+<<<<<<< HEAD
+=======
+                'id_bayar_zakat' => null,
+>>>>>>> dev-adi
                 'total_harga' => 100000,
                 'total_bayar' => 50000,
                 'tanggal_penjualan' => Carbon::parse('2025-04-12 10:00:00'),
@@ -48,6 +56,10 @@ class PenjualanSeeder extends Seeder
             ],
             [
                 'id_pelanggan' => 3,
+<<<<<<< HEAD
+=======
+                'id_bayar_zakat' => null,
+>>>>>>> dev-adi
                 'total_harga' => 75000,
                 'total_bayar' => 75000,
                 'tanggal_penjualan' => Carbon::parse('2025-04-12 11:00:00'),
@@ -62,8 +74,12 @@ class PenjualanSeeder extends Seeder
             ],
             [
                 'id_pelanggan' => 4,
+<<<<<<< HEAD
                 'total_harga' => 60000,
                 'tanggal_penjualan' => Carbon::parse('2025-04-12 12:00:00'),
+=======
+                'id_bayar_zakat' => null,
+>>>>>>> dev-adi
                 'total_harga' => 60000,
                 'status_penjualan' => 'pesanan',
                 'created_at' => now(),
@@ -89,7 +105,6 @@ class PenjualanSeeder extends Seeder
                 'id_pembayaran' => 1,
                 'id_tipe_transfer' => null, // Tunai
                 'jenis_pembayaran' => 'tunai',
-                'tanggal_pembayaran' => Carbon::parse('2025-04-12 09:30:00'),
                 'total_bayar' => 50000,
                 'keterangan' => 'lunas langsung',
                 'created_at' => now(),
@@ -99,7 +114,6 @@ class PenjualanSeeder extends Seeder
                 'id_pembayaran' => 2,
                 'id_tipe_transfer' => 1, // Contoh BCA
                 'jenis_pembayaran' => 'transfer',
-                'tanggal_pembayaran' => Carbon::parse('2025-04-12 10:30:00'),
                 'total_bayar' => 50000,
                 'keterangan' => 'Bayar sebagian',
                 'created_at' => now(),
@@ -109,7 +123,6 @@ class PenjualanSeeder extends Seeder
                 'id_pembayaran' => 3,
                 'id_tipe_transfer' => 2, // Contoh Mandiri
                 'jenis_pembayaran' => 'transfer',
-                'tanggal_pembayaran' => Carbon::parse('2025-04-12 11:15:00'),
                 'total_bayar' => 75000,
                 'keterangan' => 'lunas',
                 'created_at' => now(),

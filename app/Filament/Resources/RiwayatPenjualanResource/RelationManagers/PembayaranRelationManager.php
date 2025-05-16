@@ -19,35 +19,12 @@ class PembayaranRelationManager extends RelationManager
     public function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\DateTimePicker::make('tanggal_pembayaran')
-                    ->label('Tanggal Pembayaran')
-                    ->default(now())
-                    ->required(),
-
-                Forms\Components\TextInput::make('total_bayar')
-                    ->label('Total Bayar')
-                    ->numeric()
-                    ->required()
-                    ->minValue(1),
-
-                Forms\Components\Select::make('id_metode_pembayaran')
-                    ->label('Metode Pembayaran')
-                    ->options(MetodePembayaran::all()->pluck('nama_metode', 'id_metode_pembayaran'))
-                    ->searchable()
-                    ->required(),
-
-                Forms\Components\Textarea::make('keterangan')
-                    ->label('Keterangan')
-                    ->maxLength(255),
-            ]);
+            ->schema([]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->heading('Data Pembayaran')
-            ->recordTitleAttribute('pembayaran.metode_pembayaran.jenis_pembayaran')
             ->columns([
                 Tables\Columns\TextColumn::make('pembayaran.metode_pembayaran.jenis_pembayaran')
                     ->label('Metode Pembayaran')
@@ -67,7 +44,7 @@ class PembayaranRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('pembayaran.keterangan')
                     ->label('Keterangan'),
 
-                Tables\Columns\TextColumn::make('pembayaran.tanggal_pembayaran')
+                Tables\Columns\TextColumn::make('pembayaran.created_at')
                     ->label('Tanggal')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
             ])

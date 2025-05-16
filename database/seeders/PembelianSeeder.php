@@ -74,7 +74,6 @@ class PembelianSeeder extends Seeder
                 'id_pembayaran' => 4,
                 'id_tipe_transfer' => null, // Tunai
                 'jenis_pembayaran' => 'tunai',
-                'tanggal_pembayaran' => $now,
                 'total_bayar' => 323000,
                 'keterangan' => 'Lunas tunai',
                 'created_at' => $now,
@@ -84,7 +83,6 @@ class PembelianSeeder extends Seeder
                 'id_pembayaran' => 5,
                 'id_tipe_transfer' => 1, // Misal: BCA
                 'jenis_pembayaran' => 'transfer',
-                'tanggal_pembayaran' => $now->copy()->addHour(),
                 'total_bayar' => 100000,
                 'keterangan' => 'Bayar sebagian via transfer',
                 'created_at' => $now,

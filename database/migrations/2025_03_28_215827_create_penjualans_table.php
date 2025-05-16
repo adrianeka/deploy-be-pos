@@ -19,7 +19,6 @@ return new class extends Migration
             $table->foreign('id_bayar_zakat')->references('id_bayar_zakat')->on('bayar_zakat')->onDelete('cascade');
             $table->unsignedTinyInteger('id_kasir');
             $table->foreign('id_kasir')->references('id_kasir')->on('kasir')->onDelete('cascade');
-            $table->dateTime('tanggal_penjualan');
             $table->unsignedBigInteger('total_harga')->default(0);
             $table->enum('status_penjualan', ['lunas', 'belum lunas', 'pesanan']);
             $table->unsignedBigInteger('diskon')->default(0);

@@ -11,7 +11,7 @@ class Pembayaran extends Model
 
     protected $table = 'pembayaran';
     protected $primaryKey = 'id_pembayaran';
-    protected $fillable = ['id_pembayaran', 'tanggal_pembayaran', 'total_bayar', 'keterangan', 'jenis_pembayaran', 'id_tipe_transfer'];
+    protected $fillable = ['id_pembayaran', 'total_bayar', 'keterangan', 'jenis_pembayaran', 'id_tipe_transfer'];
 
     public function tipeTransfer()
     {

@@ -18,7 +18,6 @@ return new class extends Migration
             $table->enum('jenis_stok', ['in', 'out'])->nullable();
             $table->string('jenis_transaksi')->nullable();
             $table->text('keterangan')->nullable();
-            $table->dateTime('tanggal_stok');
             $table->timestamps();
         });
     }

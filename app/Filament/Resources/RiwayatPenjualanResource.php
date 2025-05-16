@@ -98,7 +98,7 @@ class RiwayatPenjualanResource extends Resource
                 return Penjualan::with(['pelanggan', 'kasir'])
                     ->whereHas('pelanggan', fn($query) => $query->where('id_pemilik', Filament::auth()->id()));
             })
-            ->defaultSort('tanggal_penjualan', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('id_penjualan')
                     ->label('Nomor Invoice')
@@ -134,7 +134,7 @@ class RiwayatPenjualanResource extends Resource
                         Tables\Columns\Summarizers\Sum::make()
                             ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
                     ]),
-                Tables\Columns\TextColumn::make('tanggal_penjualan')
+                Tables\Columns\TextColumn::make('created_at')
                     ->label('Tanggal Penjualan')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
                     ->searchable()
