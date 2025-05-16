@@ -14,10 +14,7 @@ class PembayaranRelationManager extends RelationManager
 {
     protected static string $relationship = 'pembayaranPenjualan';
 
-    public static function getLabel(): string
-    {
-        return 'Data Pembayaran';
-    }
+    protected static ?string $title = 'Data Pembayaran';
 
     public function form(Form $form): Form
     {
