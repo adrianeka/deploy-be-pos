@@ -62,25 +62,25 @@ class PembayaranZakatResource extends Resource
                 ->label('Total Modal')
                 ->numeric()
                 ->disabled()
-                ->formatStateUsing(fn ($state) => 'Rp. ' . number_format($state ?? 0, 0, ',', '.')),
+                ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state ?? 0, 0, ',', '.')),
 
             TextInput::make('nominal_zakat')
                 ->label('Total Zakat (2.5%)')
                 ->numeric()
                 ->disabled()
-                ->formatStateUsing(fn ($state) => 'Rp. ' . number_format($state ?? 0, 0, ',', '.')),
+                ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state ?? 0, 0, ',', '.')),
         ]);
         // return $form;
     }
 
-  
+
 
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->whereNull('id_bayar_zakat')) // Only show unpaid
+            ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('id_bayar_zakat')) // Only show unpaid
             ->header(
-                fn ($livewire) => view('filament.tables.pembayaran-zakat-summary', [
+                fn($livewire) => view('filament.tables.pembayaran-zakat-summary', [
                     'selectedCount' => $livewire->selectedCount,
                     'totalModal' => $livewire->totalModal,
                     'totalZakat' => $livewire->totalZakat,
@@ -94,7 +94,7 @@ class PembayaranZakatResource extends Resource
                 TextColumn::make('zakat')
                     ->label('Zakat (2.5%)')
                     ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
-                TextColumn::make('tanggal_penjualan')->label('Tanggal')
+                TextColumn::make('created_at')->label('Tanggal')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
                     ->sortable(),
             ])
@@ -116,7 +116,7 @@ class PembayaranZakatResource extends Resource
             ->bulkActions([
                 BulkAction::make('bayar_zakat')
                     ->label('Bayar Zakat')
-                    ->action(fn (Collection $records) => redirect(
+                    ->action(fn(Collection $records) => redirect(
                         PembayaranZakatResource::getUrl('create', [
                             'recordIds' => $records->pluck('id_penjualan')->toArray(),
                         ])

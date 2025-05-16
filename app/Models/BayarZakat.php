@@ -33,8 +33,20 @@ class BayarZakat extends Model
         return $this->belongsTo(Pemilik::class, 'id_pemilik', 'id_pemilik');
     }
 
+    public function penjualan()
+    {
+        return $this->hasMany(Penjualan::class, 'id_bayar_zakat', 'id_bayar_zakat');
+    }
+
     public function tipeTransfer(): BelongsTo
     {
         return $this->belongsTo(TipeTransfer::class, 'id_tipe_transfer', 'id_tipe_transfer');
+    }
+
+    protected function namaPenerima(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->penerimaZakat?->nama_penerima
+        );
     }
 }

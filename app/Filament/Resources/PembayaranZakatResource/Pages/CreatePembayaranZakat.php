@@ -4,9 +4,10 @@ namespace App\Filament\Resources\PembayaranZakatResource\Pages;
 
 use App\Filament\Resources\PembayaranZakatResource;
 use App\Models\BayarZakat;
-use App\Models\MetodePembayaran;
+use App\Models\TipeTransfer;
 use App\Models\PenerimaZakat;
 use App\Models\Penjualan;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -24,7 +25,7 @@ class CreatePembayaranZakat extends Page
     {
         // Get record IDs from URL
         $recordIds = request()->query('recordIds', []);
-        
+
         // Store recordIds in component state
         $this->data['recordIds'] = $recordIds;
         $this->data['id_penerima_zakat'] = null;
@@ -35,14 +36,14 @@ class CreatePembayaranZakat extends Page
             $penjualans = Penjualan::with(['penjualanDetail.produk'])
                 ->whereIn('id_penjualan', $recordIds)
                 ->get();
-            
+
             // Calculate totals
-            $modalTerjual = $penjualans->sum(function($penjualan) {
-                return $penjualan->penjualanDetail->sum(function($detail) {
+            $modalTerjual = $penjualans->sum(function ($penjualan) {
+                return $penjualan->penjualanDetail->sum(function ($detail) {
                     return optional($detail->produk)->harga_beli * $detail->jumlah_produk;
                 });
             });
-            
+
             $nominalZakat = $modalTerjual * 0.025;
 
             // Store the values in component state
@@ -65,7 +66,7 @@ class CreatePembayaranZakat extends Page
         return $form
             ->schema([
                 \Filament\Forms\Components\Hidden::make('recordIds')
-                ->default($this->data['recordIds'] ?? []),
+                    ->default($this->data['recordIds'] ?? []),
 
                 Select::make('id_penerima_zakat')
                     ->label('Nama Penerima Zakat')
@@ -77,58 +78,69 @@ class CreatePembayaranZakat extends Page
                         logger()->debug('Penerima zakat updated:', ['state' => $state]);
                     }),
 
-                Select::make('id_metode_pembayaran')
-                    ->label('Metode Pembayaran')
-                    ->options(MetodePembayaran::with('tipe_transfer')->get()->mapWithKeys(function ($item) {
-                        $label = ucfirst($item->jenis_pembayaran);
-                        if ($item->tipe_transfer) {
-                            $label .= ' - ' . $item->tipe_transfer->jenis_transfer;
+                Select::make("jenis_pembayaran")
+                    ->label('Jenis Pembayaran')
+                    ->options([
+                        'tunai' => 'Tunai',
+                        'transfer' => 'Transfer',
+                    ])
+                    ->required(),
+                Select::make('id_tipe_transfer')
+                    ->label('Tipe Transfer')
+                    ->options(TipeTransfer::get()->mapWithKeys(function ($item) {
+                        if ($item->metode_transfer) {
+                            // logger()->info('TipeTransfer ID: ' . $item->id_tipe_transfer);
+                            $label = ucfirst($item->metode_transfer);
+                            $label .= ' - ' . $item->jenis_transfer;
+                        } else {
+                            $label = 'Tidak diketahui';
                         }
-                        return [$item->id_metode_pembayaran => $label];
+
+                        return [$item->id_tipe_transfer => $label];
                     }))
-                    ->required()
+                    // ->required() 
                     ->searchable()
                     ->live()
                     ->afterStateUpdated(function ($state) {
                         logger()->debug('Metode pembayaran updated:', ['state' => $state]);
                     }),
 
-                    TextInput::make('modal_terjual')
-                        ->label('Total Modal')
-                        ->disabled()
-                        ->dehydrated()
-                        ->default(0)
-                        ->formatStateUsing(function ($state) {
-                            $value = is_numeric($state) ? $state : 0;
-                            return 'Rp ' . number_format($value, 0, ',', '.');
-                        })
-                        ->afterStateHydrated(function ($component, $state) {
-                            // Simpan nilai numerik tapi tampilkan yang sudah diformat
-                            $component->state('Rp ' . number_format(is_numeric($state) ? $state : 0, 0, ',', '.'));
-                        }),
+                TextInput::make('modal_terjual')
+                    ->label('Total Modal')
+                    ->disabled()
+                    ->dehydrated()
+                    ->default(0)
+                    ->formatStateUsing(function ($state) {
+                        $value = is_numeric($state) ? $state : 0;
+                        return 'Rp ' . number_format($value, 0, ',', '.');
+                    })
+                    ->afterStateHydrated(function ($component, $state) {
+                        // Simpan nilai numerik tapi tampilkan yang sudah diformat
+                        $component->state('Rp ' . number_format(is_numeric($state) ? $state : 0, 0, ',', '.'));
+                    }),
 
-                    TextInput::make('nominal_zakat')
-                        ->label('Total Zakat (2.5%)')
-                        ->disabled()
-                        ->dehydrated()
-                        ->default(0)
-                        ->formatStateUsing(function ($state) {
-                            $value = is_numeric($state) ? $state : 0;
-                            return 'Rp ' . number_format($value, 0, ',', '.');
-                        })
-                        ->afterStateHydrated(function ($component, $state) {
-                            $component->state('Rp ' . number_format(is_numeric($state) ? $state : 0, 0, ',', '.'));
-                        })
+                TextInput::make('nominal_zakat')
+                    ->label('Total Zakat (2.5%)')
+                    ->disabled()
+                    ->dehydrated()
+                    ->default(0)
+                    ->formatStateUsing(function ($state) {
+                        $value = is_numeric($state) ? $state : 0;
+                        return 'Rp ' . number_format($value, 0, ',', '.');
+                    })
+                    ->afterStateHydrated(function ($component, $state) {
+                        $component->state('Rp ' . number_format(is_numeric($state) ? $state : 0, 0, ',', '.'));
+                    })
             ])
             ->statePath('data');
     }
 
     public function create()
-    {   
+    {
         try {
             $data = $this->form->getState();
             logger()->debug('Form data before validation:', $data);
-            
+
             // Validate required fields
             if (empty($data['recordIds'])) {
                 Notification::make()
@@ -138,7 +150,7 @@ class CreatePembayaranZakat extends Page
                     ->send();
                 return;
             }
-            
+
             // Validate required fields
             if (empty($data['recordIds'])) {
                 Notification::make()
@@ -154,13 +166,13 @@ class CreatePembayaranZakat extends Page
                 $penjualans = Penjualan::with(['penjualanDetail.produk'])
                     ->whereIn('id_penjualan', $data['recordIds'])
                     ->get();
-                
-                $data['modal_terjual'] = $penjualans->sum(function($penjualan) {
-                    return $penjualan->penjualanDetail->sum(function($detail) {
+
+                $data['modal_terjual'] = $penjualans->sum(function ($penjualan) {
+                    return $penjualan->penjualanDetail->sum(function ($detail) {
                         return optional($detail->produk)->harga_beli * $detail->jumlah_produk;
                     });
                 });
-                
+
                 $data['nominal_zakat'] = $data['modal_terjual'] * 0.025;
             }
 
@@ -171,7 +183,7 @@ class CreatePembayaranZakat extends Page
             // Create BayarZakat record
             $bayarZakat = BayarZakat::create([
                 'id_metode_pembayaran' => $data['id_metode_pembayaran'],
-                'id_pemilik' => auth()->id(),
+                'id_pemilik' => Filament::auth()->id(),
                 'id_penerima_zakat' => $data['id_penerima_zakat'],
                 'modal_terjual' => $data['modal_terjual'],
                 'nominal_zakat' => $data['nominal_zakat'],
@@ -193,7 +205,6 @@ class CreatePembayaranZakat extends Page
                 PembayaranZakatResource::getUrl('index'),
                 navigate: true
             );
-
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Error')

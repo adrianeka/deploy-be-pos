@@ -15,6 +15,6 @@ class Pembayaran extends Model
 
     public function tipeTransfer()
     {
-        return $this->belongsTo(TipeTransfer::class, 'id_tipe_transfer');
+        return $this->hasOne(TipeTransfer::class, 'id_tipe_transfer');
     }
 }

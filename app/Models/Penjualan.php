@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\StatusTransaksiPenjualan;
 
-#[ObservedBy(PenjualanObserver::class)]
 class Penjualan extends Model
 {
     use HasFactory;
@@ -47,10 +46,10 @@ class Penjualan extends Model
         return $this->hasManyThrough(
             Pembayaran::class,
             PembayaranPenjualan::class,
-            'id_penjualan', // Foreign key on PembayaranPenjualan table...
-            'id_pembayaran', // Foreign key on Pembayaran table...
-            'id_penjualan', // Local key on Penjualan table...
-            'id_pembayaran' // Local key on PembayaranPenjualan table...
+            'id_penjualan',
+            'id_pembayaran',
+            'id_penjualan',
+            'id_pembayaran'
         );
     }
 
@@ -107,5 +106,25 @@ class Penjualan extends Model
             $total += $detail->harga_jual * $detail->jumlah_produk;
         }
         return $total;
+    }
+
+    protected function modalTerjual(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->penjualanDetail->sum(function ($detail) {
+                    return optional($detail->produk)->harga_beli * $detail->jumlah_produk;
+                });
+            }
+        );
+    }
+
+    protected function zakat(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->modalTerjual * 0.025;
+            }
+        );
     }
 }

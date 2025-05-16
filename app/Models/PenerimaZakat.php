@@ -29,7 +29,7 @@ class PenerimaZakat extends Model
         return $this->belongsTo(Pemilik::class, 'id_pemilik', 'id_pemilik');
     }
 
-    public function bayar_zakat(): HasMany
+    public function bayarZakat(): HasMany
     {
         return $this->hasMany(BayarZakat::class, 'id_penerima_zakat', 'id_penerima_zakat');
     }

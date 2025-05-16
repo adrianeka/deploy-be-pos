@@ -21,6 +21,6 @@ class TipeTransfer extends Model
 
     public function pembayaran()
     {
-        return $this->hasMany(Pembayaran::class, 'id_tipe_transfer');
+        return $this->belongsTo(Pembayaran::class, 'id_tipe_transfer');
     }
 }

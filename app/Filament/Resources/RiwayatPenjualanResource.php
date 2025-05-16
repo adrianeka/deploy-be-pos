@@ -519,16 +519,16 @@ class RiwayatPenjualanResource extends Resource
     {
         return Repeater::make('pembayaranData')
             ->schema([
-                Forms\Components\Select::make('id_metode_pembayaran')
-                    ->label('Metode Pembayaran')
-                    ->options(function () {
-                        return \App\Models\MetodePembayaran::pluck('nama_metode', 'id_metode_pembayaran');
-                    })
-                    ->searchable()
-                    ->required()
-                    ->columnSpan([
-                        'md' => 5,
-                    ]),
+                // Forms\Components\Select::make('id_metode_pembayaran')
+                //     ->label('Metode Pembayaran')
+                //     ->options(function () {
+                //         return \App\Models\MetodePembayaran::pluck('nama_metode', 'id_metode_pembayaran');
+                //     })
+                //     ->searchable()
+                //     ->required()
+                //     ->columnSpan([
+                //         'md' => 5,
+                //     ]),
 
                 Forms\Components\TextInput::make('total_bayar')
                     ->label('Total Bayar')
