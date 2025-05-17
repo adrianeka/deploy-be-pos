@@ -32,9 +32,9 @@ class RiwayatTransaksi extends ManageRelatedRecords
                 Penjualan::query()
                     ->where('id_pelanggan', $id_pelanggan)
             )
-            ->defaultSort('tanggal_penjualan', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->columns([
-                TextColumn::make('tanggal_penjualan')
+                TextColumn::make('created_at')
                     ->label('Tanggal')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
                     ->searchable()
@@ -55,12 +55,6 @@ class RiwayatTransaksi extends ManageRelatedRecords
                     ->badge()
                     ->searchable()
                     ->sortable()
-                    ->formatStateUsing(fn(string $state): string => ucwords($state))
-                    ->color(fn(string $state): string => match ($state) {
-                        'lunas' => 'success',
-                        'belum lunas' => 'danger',
-                        'pesanan' => 'warning',
-                    }),
             ])
             ->filters([
                 SelectFilter::make('status_penjualan')

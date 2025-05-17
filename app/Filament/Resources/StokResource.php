@@ -68,7 +68,7 @@ class StokResource extends Resource
                     ->collapsible(),
 
                 Hidden::make('jenis_transaksi')->default('Manual'),
-                Hidden::make('tanggal_stok')->default(fn() => now()),
+                // Hidden::make('tanggal_stok')->default(fn() => now()),
                 Hidden::make('id_pemilik')->default(fn() => Filament::auth()->id()),
             ]);
     }

@@ -18,7 +18,6 @@ class PembelianSeeder extends Seeder
         DB::table('pembelian_detail')->truncate();
         DB::table('pembelian')->truncate();
         DB::table('pembayaran_pembelian')->truncate();
-        DB::table('pembayaran')->truncate();
 
         Schema::enableForeignKeyConstraints();
 
@@ -73,7 +72,6 @@ class PembelianSeeder extends Seeder
         // Insert pembayaran pembelian (1 tunai, 1 transfer)
         $pembayaranData = [
             [
-                'id_pembayaran' => 4,
                 'id_tipe_transfer' => null, // Tunai
                 'jenis_pembayaran' => 'tunai',
                 'total_bayar' => 323000,
@@ -82,7 +80,6 @@ class PembelianSeeder extends Seeder
                 'updated_at' => $now,
             ],
             [
-                'id_pembayaran' => 5,
                 'id_tipe_transfer' => 1, // Misal: BCA
                 'jenis_pembayaran' => 'transfer',
                 'total_bayar' => 100000,
@@ -92,18 +89,19 @@ class PembelianSeeder extends Seeder
             ],
         ];
 
-        DB::table('pembayaran')->insert($pembayaranData);
+        $idPembayaran1 = DB::table('pembayaran')->insertGetId($pembayaranData[0]);
+        $idPembayaran2 = DB::table('pembayaran')->insertGetId($pembayaranData[1]);
 
         // Pembayaran-pembelian relasi
         $pembayaranPembelianData = [
             [
-                'id_pembayaran' => 4,
+                'id_pembayaran' => $idPembayaran1,
                 'id_pembelian' => 1,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
             [
-                'id_pembayaran' => 5,
+                'id_pembayaran' => $idPembayaran2,
                 'id_pembelian' => 2,
                 'created_at' => $now,
                 'updated_at' => $now,

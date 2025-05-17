@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\StatusTransaksiPenjualan;
+use App\Observers\PenjualanObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
+#[ObservedBy(PenjualanObserver::class)]
 class Penjualan extends Model
 {
     use HasFactory;
@@ -15,12 +18,16 @@ class Penjualan extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     protected $primaryKey = 'id_penjualan';
-    protected $fillable = ['id_penjualan', 'id_kasir', 'id_pelanggan', 'id_bayar_zakat',  'total_harga', 'status_penjualan', 'status_retur', 'diskon'];
+    protected $fillable = ['id_penjualan', 'id_kasir', 'id_pelanggan', 'id_bayar_zakat',  'total_harga', 'status_penjualan', 'diskon'];
 
     protected $casts = [
         'status_penjualan' => StatusTransaksiPenjualan::class,
     ];
 
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('d-m-Y H:i');
+    }
     public function kasir()
     {
         return $this->belongsTo(Kasir::class, 'id_kasir');

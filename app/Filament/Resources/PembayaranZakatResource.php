@@ -66,7 +66,7 @@ class PembayaranZakatResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                Filter::make('tanggal_penjualan')
+                Filter::make('created_at')
                     ->form([
                         DatePicker::make('from')
                             ->label('Dari Tanggal'),
@@ -76,8 +76,8 @@ class PembayaranZakatResource extends Resource
                     ])
                     ->query(function ($query, array $data) {
                         return $query
-                            ->when($data['from'], fn($q) => $q->whereDate('tanggal_penjualan', '>=', $data['from']))
-                            ->when($data['until'], fn($q) => $q->whereDate('tanggal_penjualan', '<=', $data['until']));
+                            ->when($data['from'], fn($q) => $q->whereDate('created_at', '>=', $data['from']))
+                            ->when($data['until'], fn($q) => $q->whereDate('created_at', '<=', $data['until']));
                     }),
             ])
             ->actions([
