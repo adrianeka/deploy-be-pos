@@ -22,10 +22,7 @@ class DatabaseSeeder extends Seeder
         $this->call(LevelHargaSeeder::class);
         $this->call(StokProdukSeeder::class);
         $this->call(TipeTransferSeeder::class);
-        $this->call(MetodePembayaranSeeder::class);
         $this->call(PenjualanSeeder::class);
         $this->call(PembelianSeeder::class);
-        // $this->call(PembayaranSeeder::class);
-        // $this->call(BayarZakatSeeder::class);
     }
 }

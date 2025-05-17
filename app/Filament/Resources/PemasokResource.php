@@ -26,32 +26,14 @@ class PemasokResource extends Resource
 {
     protected static ?string $model = Pemasok::class;
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static ?string $label = 'Pemasok';
+    protected static ?string $recordTitleAttribute = 'nama_perusahaan';
+    protected static ?string $pluralLabel = 'Pemasok';
+    protected static ?string $navigationLabel = 'Pemasok';
+    protected static ?string $slug = 'data-master/pemasok';
+    protected static ?string $navigationGroup = 'Data Master';
     protected static ?int $navigationSort = 1;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
-    protected static ?string $navigationGroup = 'Data Master';
-
-    // Gunakan konstanta statis untuk cache label
-    protected const LABEL = 'Pemasok';
-    protected const PLURAL_LABEL = 'Pemasok';
-
-    // Override method untuk menggunakan cache
-    public static function getLabel(): string
-    {
-        return static::LABEL;
-    }
-
-    public static function getPluralLabel(): string
-    {
-        return static::PLURAL_LABEL;
-    }
-
-    public static function getNavigationLabel(): string
-    {
-        return static::PLURAL_LABEL;
-    }
-
-    // Tetap gunakan ini untuk kebutuhan lainnya
-    protected static ?string $recordTitleAttribute = 'nama_perusahaan';
 
     public static function form(Form $form): Form
     {
@@ -64,30 +46,22 @@ class PemasokResource extends Resource
                                 Components\TextInput::make('nama_perusahaan')
                                     ->label('Nama Perusahaan')
                                     ->required()
-                                    ->debounce(500)
-                                    ->lazy()
                                     ->maxLength(255),
-
                                 Components\TextInput::make('no_telp')
                                     ->label('Nomor Telepon')
                                     ->required()
-                                    ->regex('/^[0-9]+$/')
+                                    ->numeric()
                                     ->minLength(10)
-                                    ->maxLength(15)
-                                    ->debounce(500)
-                                    ->lazy(),
-
+                                    ->maxLength(15),
                                 Components\TextInput::make('alamat')
                                     ->label('Alamat')
                                     ->required()
-                                    ->maxLength(255)
-                                    ->columnSpanFull(),
-                            ]),
+                                    ->maxLength(255),
+                            ])
                     ])
                     ->collapsible(),
-
                 Components\Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()?->id())
+                    ->default(fn() => Filament::auth()->id())
                     ->dehydrated(true),
             ]);
     }
@@ -95,18 +69,16 @@ class PemasokResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(fn() => Pemasok::query()->where('id_pemilik', Filament::auth()?->id()))
+            ->query(fn() => Pemasok::query()->where('id_pemilik', Filament::auth()->user()->id))
             ->columns([
                 TextColumn::make('nama_perusahaan')
                     ->label('Nama Perusahaan')
                     ->searchable()
                     ->sortable(),
-
                 TextColumn::make('no_telp')
                     ->label('Nomor Telepon')
                     ->searchable()
                     ->sortable(),
-
                 TextColumn::make('alamat')
                     ->label('Alamat')
                     ->searchable()
@@ -119,8 +91,15 @@ class PemasokResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                DeleteBulkAction::make(),
+                DeleteBulkAction::make()
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
     }
 
     public static function infolist(Infolist $infolist): Infolist
@@ -135,19 +114,15 @@ class PemasokResource extends Resource
                                     Group::make([
                                         TextEntry::make('nama_perusahaan')
                                             ->label('Nama Perusahaan'),
-
                                         TextEntry::make('no_telp')
                                             ->label('Nomor Telepon'),
                                     ]),
                                     Group::make([
                                         TextEntry::make('alamat')
                                             ->label('Alamat'),
-
                                         TextEntry::make('created_at')
                                             ->label('Dibuat pada')
-                                            ->formatStateUsing(
-                                                fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')
-                                            ),
+                                            ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
                                     ]),
                                 ]),
                         ])->from('lg'),

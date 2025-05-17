@@ -5,10 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Observers\PenjualanObserver;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Enums\StatusTransaksiPenjualan;
 
-#[ObservedBy(PenjualanObserver::class)]
 class Penjualan extends Model
 {
     use HasFactory;
@@ -17,7 +15,11 @@ class Penjualan extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     protected $primaryKey = 'id_penjualan';
-    protected $fillable = ['id_penjualan', 'id_kasir', 'id_pelanggan', 'id_bayar_zakat', 'tanggal_penjualan', 'total_harga', 'status_penjualan', 'status_retur', 'diskon'];
+    protected $fillable = ['id_penjualan', 'id_kasir', 'id_pelanggan', 'id_bayar_zakat',  'total_harga', 'status_penjualan', 'status_retur', 'diskon'];
+
+    protected $casts = [
+        'status_penjualan' => StatusTransaksiPenjualan::class,
+    ];
 
     public function kasir()
     {
@@ -44,10 +46,10 @@ class Penjualan extends Model
         return $this->hasManyThrough(
             Pembayaran::class,
             PembayaranPenjualan::class,
-            'id_penjualan', // Foreign key on PembayaranPenjualan table...
-            'id_pembayaran', // Foreign key on Pembayaran table...
-            'id_penjualan', // Local key on Penjualan table...
-            'id_pembayaran' // Local key on PembayaranPenjualan table...
+            'id_penjualan',
+            'id_pembayaran',
+            'id_penjualan',
+            'id_pembayaran'
         );
     }
 
@@ -60,7 +62,6 @@ class Penjualan extends Model
     {
         return Attribute::make(
             get: function () {
-                // Mengambil total bayar hanya untuk id_penjualan yang sama
                 return $this->pembayaran->sum('total_bayar') ?? 0;
             }
         );
@@ -96,6 +97,15 @@ class Penjualan extends Model
                 return 0;
             }
         );
+    }
+
+    public function calculateTotal()
+    {
+        $total = 0;
+        foreach ($this->penjualanDetail as $detail) {
+            $total += $detail->harga_jual * $detail->jumlah_produk;
+        }
+        return $total;
     }
 
     protected function modalTerjual(): Attribute

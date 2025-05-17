@@ -50,12 +50,6 @@ class RiwayatTransaksi extends ManageRelatedRecords
                     ->badge()
                     ->searchable()
                     ->sortable()
-                    ->formatStateUsing(fn(string $state): string => ucwords($state))
-                    ->color(fn(string $state): string => match ($state) {
-                        'lunas' => 'success',
-                        'belum lunas' => 'danger',
-                        'pesanan' => 'warning',
-                    }),
             ])
             ->filters([
                 SelectFilter::make('status_penjualan')

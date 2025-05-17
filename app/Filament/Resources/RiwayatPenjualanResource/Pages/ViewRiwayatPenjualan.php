@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\RiwayatPenjualanResource\Pages;
 
 use App\Filament\Resources\RiwayatPenjualanResource;
+use App\Filament\Resources\RiwayatPenjualanResource\RelationManagers\PembayaranRelationManager;
+use App\Filament\Resources\RiwayatPenjualanResource\RelationManagers\ProdukRelationManager;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -23,8 +25,8 @@ class ViewRiwayatPenjualan extends ViewRecord
     public function getRelationManagers(): array
     {
         return [
-            \App\Filament\Resources\RiwayatPenjualanResource\RelationManagers\ProdukRelationManager::class,
-            \App\Filament\Resources\RiwayatPenjualanResource\RelationManagers\PembayaranRelationManager::class,
+            ProdukRelationManager::class,
+            PembayaranRelationManager::class,
         ];
     }
 }

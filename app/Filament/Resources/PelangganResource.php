@@ -30,6 +30,7 @@ class PelangganResource extends Resource
     protected static ?string $recordTitleAttribute = 'nama_pelanggan';
     protected static ?string $pluralLabel = 'Pelanggan';
     protected static ?string $navigationLabel = 'Pelanggan';
+    protected static ?string $slug = 'data-master/pelanggan';
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?int $navigationSort = 4;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;

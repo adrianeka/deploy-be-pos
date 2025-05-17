@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\RiwayatPenjualanResource\Pages;
 
 use App\Filament\Resources\RiwayatPenjualanResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +15,7 @@ class ListRiwayatPenjualans extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            //
+            // Actions\CreateAction::make(),
         ];
     }
 

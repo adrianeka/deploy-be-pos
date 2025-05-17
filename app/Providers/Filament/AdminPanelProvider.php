@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Models\Pemilik;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -10,15 +9,14 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
 use Filament\Widgets;
-use Illuminate\Container\Attributes\Auth;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Nuxtifyts\DashStackTheme\DashStackThemePlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -28,37 +26,14 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName(function () {
-                $sessionKey = 'brand_name';
-
-                // Cek apakah sudah tersimpan di session
-                if (session()->has($sessionKey)) {
-                    return session($sessionKey);
-                }
-
-                // Ambil user yang sedang login
-                $user = request()->user();
-
-                // Default kosong
-                $brand = '';
-
-                // Jika user adalah pemilik, ambil nama perusahaan
-                if ($user && $user->isPemilik()) {
-                    $pemilik = Pemilik::where('id_user', $user->getKey())->first();
-
-                    if ($pemilik && $pemilik->nama_perusahaan) {
-                        $brand = $pemilik->nama_perusahaan;
-                    }
-                }
-
-                // Simpan ke session
-                session([$sessionKey => $brand]);
-
-                return $brand;
-            })
+            ->brandName('Point of Sales')
             ->login()
+            ->registration()
             ->colors([
-                'primary' => Color::hex('#008a85'),
+                'primary' => '#008a85',
+            ])
+            ->plugins([
+                DashStackThemePlugin::make(),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

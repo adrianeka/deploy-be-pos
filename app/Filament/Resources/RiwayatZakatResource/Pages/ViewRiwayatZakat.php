@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\RiwayatZakatResource\Pages;
 
 use App\Filament\Resources\RiwayatZakatResource;
+use App\Filament\Resources\RiwayatZakatResource\RelationManagers\PenjualanRelationManager;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -15,7 +16,6 @@ class ViewRiwayatZakat extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
             Actions\DeleteAction::make(),
         ];
     }
@@ -23,8 +23,7 @@ class ViewRiwayatZakat extends ViewRecord
     public function getRelationManagers(): array
     {
         return [
-            \App\Filament\Resources\RiwayatZakatResource\RelationManagers\PenjualanRelationManager::class,
-            // \App\Filament\Resources\RiwayatZakatResource\RelationManagers\PembayaranRelationManager::class,
+            PenjualanRelationManager::class,
         ];
     }
 }

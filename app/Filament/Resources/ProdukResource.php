@@ -25,7 +25,6 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -41,6 +40,7 @@ class ProdukResource extends Resource
     protected static ?string $recordTitleAttribute = 'nama_produk';
     protected static ?string $navigationLabel = 'Produk';
     protected static ?string $pluralLabel = 'Produk';
+    protected static ?string $slug = 'inventaris/produk';
     protected static ?string $navigationGroup = 'Inventaris';
     protected static ?int $navigationSort = 4;
 

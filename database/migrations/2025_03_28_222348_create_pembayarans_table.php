@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('pembayaran', function (Blueprint $table) {
             $table->id('id_pembayaran');
-            $table->unsignedTinyInteger('id_metode_pembayaran');
-            $table->foreign('id_metode_pembayaran')->references('id_metode_pembayaran')->on('metode_pembayaran')->onDelete('cascade');
-            $table->dateTime('tanggal_pembayaran');
+            $table->unsignedTinyInteger('id_tipe_transfer')->nullable(); // nullable untuk jenis Tunai    
+            $table->foreign('id_tipe_transfer')->references('id_tipe_transfer')->on('tipe_transfer')->onDelete('cascade');
+            $table->enum('jenis_pembayaran', ['tunai', 'transfer']);
             $table->bigInteger('total_bayar');
             $table->string('keterangan')->nullable();
             $table->timestamps();
