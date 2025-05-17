@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Kasir;
-use App\Models\MetodePembayaran;
 use App\Models\Pembayaran;
 use App\Models\PembayaranPenjualan;
 use App\Models\Penjualan;
@@ -37,8 +36,7 @@ class PenjualanSeeder extends Seeder
                 'jumlah_stok' => 999999, // Stok sangat besar
                 'jenis_stok' => 'In',
                 'jenis_transaksi' => 'Manual',
-                'tanggal_stok' => now()->subYear(),
-                'created_at' => now(),
+                'created_at' => now()->subYear(),
                 'updated_at' => now()
             ]);
         }
@@ -48,9 +46,16 @@ class PenjualanSeeder extends Seeder
         $startDate = Carbon::now()->subYear()->startOfDay();
         $endDate = Carbon::now()->endOfDay();
         $pelangganIds = [1, 2, 3, 4, 5];
-        $counter = 1;
+        $currentDay = null;
+        $dailyCounter = 1;
 
         while ($startDate->lte($endDate)) {
+            // Reset counter if it's a new day
+            if ($currentDay != $startDate->format('Ymd')) {
+                $currentDay = $startDate->format('Ymd');
+                $dailyCounter = 1;
+            }
+
             $jumlahTransaksi = rand(1, 5);
             for ($i = 0; $i < $jumlahTransaksi; $i++) {
                 $tanggal = $startDate->copy()->setTime(rand(8, 18), rand(0, 59), 0);
@@ -67,7 +72,7 @@ class PenjualanSeeder extends Seeder
 
                 if ($metode === 'transfer') {
                     $transfer = $faker->randomElement([
-                        ['metode_transfer' => 'Bank', 'jenis_transfer' => 'Bank Rakyat Indonesia'],
+                        ['metode_transfer' => 'Bank', 'jenis_transfer' => 'BRI'],
                         ['metode_transfer' => 'E-money', 'jenis_transfer' => 'OVO']
                     ]);
                 }
@@ -85,7 +90,7 @@ class PenjualanSeeder extends Seeder
                     'details' => [
                         ['id_produk' => $produk->id_produk, 'jumlah_produk' => $jumlah, 'harga_jual' => $harga]
                     ]
-                ], 'INV-' . $idPemilik . $tanggal->format('Ymd') . str_pad($counter++, 3, '0', STR_PAD_LEFT));
+                ], 'INV-' . $idPemilik . $tanggal->format('Ymd') . str_pad($dailyCounter++, 3, '0', STR_PAD_LEFT));
             }
             $startDate->addDay();
         }
@@ -115,7 +120,6 @@ class PenjualanSeeder extends Seeder
                 'id_kasir' => 1,
                 'id_pelanggan' => $data['id_pelanggan'],
                 'total_harga' => $data['total_harga'],
-                'tanggal_penjualan' => $data['tanggal_penjualan'],
                 'status_penjualan' => $status,
                 'diskon' => $data['diskon'] ?? 0,
                 'created_at' => $data['tanggal_penjualan'],
@@ -135,7 +139,6 @@ class PenjualanSeeder extends Seeder
                         'jumlah_stok' => $detail['jumlah_produk'],
                         'jenis_stok' => 'Out',
                         'jenis_transaksi' => $idPenjualan,
-                        'tanggal_stok' => $data['tanggal_penjualan'],
                         'created_at' => $data['tanggal_penjualan'],
                         'updated_at' => $data['tanggal_penjualan']
                     ]);
@@ -147,10 +150,9 @@ class PenjualanSeeder extends Seeder
                 $metodePembayaran = $this->getMetodePembayaran($data);
                 
                 $pembayaran = Pembayaran::create([
-                    'tanggal_pembayaran' => $data['tanggal_penjualan'],
                     'total_bayar' => $data['total_bayar'],
                     'keterangan' => $status == 'lunas' ? 'Lunas' : 'Bayar Sebagian',
-                    'id_metode_pembayaran' => $metodePembayaran->id_metode_pembayaran,
+                    'jenis_pembayaran' => $data['jenis_pembayaran'],
                     'created_at' => $data['tanggal_penjualan'],
                     'updated_at' => $data['tanggal_penjualan']
                 ]);
@@ -195,11 +197,9 @@ class PenjualanSeeder extends Seeder
             if (!$tipeTransfer) {
                 throw new \Exception("Tipe transfer tidak ditemukan: metode = {$data['metode_transfer']}, jenis = {$data['jenis_transfer']}");
             }
-            
-            return MetodePembayaran::where('id_tipe_transfer', $tipeTransfer->id_tipe_transfer)
-                ->first();
+            return $tipeTransfer;
+        } else {
+            return null;
         }
-        
-        return MetodePembayaran::whereNull('id_tipe_transfer')->first();
     }
 }

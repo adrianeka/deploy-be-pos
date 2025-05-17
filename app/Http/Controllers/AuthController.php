@@ -12,6 +12,53 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function checkToken(Request $request): JsonResponse
+    {
+        try {
+            // Jika middleware auth:sanctum sudah melewatkan request ke sini,
+            // artinya token valid dan kita hanya perlu mengembalikan data user
+            
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token tidak valid',
+                    'valid' => false
+                ], 401);
+            }
+
+            // Jika user adalah kasir, tambahkan data kasir
+            $response = [
+                'success' => true,
+                'message' => 'Token valid',
+                'valid' => true,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role
+                ]
+            ];
+
+            if ($user->role === 'kasir') {
+                $kasir = Kasir::where('id_user', $user->id)->first();
+                if ($kasir) {
+                    $response['kasir'] = $kasir;
+                }
+            }
+
+            return response()->json($response);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memverifikasi token',
+                'error' => $e->getMessage(),
+                'valid' => false
+            ], 500);
+        }
+    }
     public function login(Request $request): JsonResponse
     {
         try {

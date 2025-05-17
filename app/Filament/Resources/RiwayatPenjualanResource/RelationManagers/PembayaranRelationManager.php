@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\RiwayatPenjualanResource\RelationManagers;
 
-use Filament\Forms;
-use App\Models\MetodePembayaran;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -14,43 +12,17 @@ class PembayaranRelationManager extends RelationManager
 {
     protected static string $relationship = 'pembayaranPenjualan';
 
-    public static function getLabel(): string
-    {
-        return 'Data Pembayaran';
-    }
+    protected static ?string $title = 'Data Pembayaran';
 
     public function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\DateTimePicker::make('tanggal_pembayaran')
-                    ->label('Tanggal Pembayaran')
-                    ->default(now())
-                    ->required(),
-
-                Forms\Components\TextInput::make('total_bayar')
-                    ->label('Total Bayar')
-                    ->numeric()
-                    ->required()
-                    ->minValue(1),
-
-                Forms\Components\Select::make('id_metode_pembayaran')
-                    ->label('Metode Pembayaran')
-                    ->options(MetodePembayaran::all()->pluck('nama_metode', 'id_metode_pembayaran'))
-                    ->searchable()
-                    ->required(),
-
-                Forms\Components\Textarea::make('keterangan')
-                    ->label('Keterangan')
-                    ->maxLength(255),
-            ]);
+            ->schema([]);
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->heading('Data Pembayaran')
-            ->recordTitleAttribute('pembayaran.metode_pembayaran.jenis_pembayaran')
             ->columns([
                 Tables\Columns\TextColumn::make('pembayaran.metode_pembayaran.jenis_pembayaran')
                     ->label('Metode Pembayaran')
@@ -70,7 +42,7 @@ class PembayaranRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('pembayaran.keterangan')
                     ->label('Keterangan'),
 
-                Tables\Columns\TextColumn::make('pembayaran.tanggal_pembayaran')
+                Tables\Columns\TextColumn::make('pembayaran.created_at')
                     ->label('Tanggal')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
             ])

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\RiwayatZakatResource\Pages;
 
 use App\Filament\Resources\RiwayatZakatResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateRiwayatZakat extends CreateRecord

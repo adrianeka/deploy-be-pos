@@ -32,9 +32,9 @@ class RiwayatStok extends ManageRelatedRecords
                     ->where('id_produk', $id_produk)
                     ->where('jenis_transaksi', '!=', 'Stok Awal') // Menghilangkan data dengan keterangan "Stok Awal"
             )
-            ->defaultSort('tanggal_stok', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->columns([
-                TextColumn::make('tanggal_stok')
+                TextColumn::make('created_at')
                     ->label('Tanggal')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
                     ->searchable()

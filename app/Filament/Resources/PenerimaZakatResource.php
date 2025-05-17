@@ -30,6 +30,7 @@ class PenerimaZakatResource extends Resource
     protected static ?string $pluralLabel = 'Penerima Zakat';
     protected static ?string $navigationLabel = 'Penerima Zakat';
     protected static ?string $navigationGroup = 'Data Master';
+    protected static ?string $slug = 'data-master/penerima-zakat';
     protected static ?string $recordTitleAttribute = 'nama_penerima';
     protected static ?int $navigationSort = 3;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;

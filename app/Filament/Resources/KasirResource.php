@@ -29,6 +29,7 @@ class KasirResource extends Resource
     protected static ?string $recordTitleAttribute = 'nama';
     protected static ?string $pluralLabel = 'Kasir';
     protected static ?string $navigationLabel = 'Kasir';
+    protected static ?string $slug = 'data-master/kasir';
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?int $navigationSort = 0;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;

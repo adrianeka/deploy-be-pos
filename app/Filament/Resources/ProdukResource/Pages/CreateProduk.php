@@ -35,7 +35,6 @@ class CreateProduk extends CreateRecord
             'jumlah_stok' => 0,
             'jenis_stok' => null,
             'jenis_transaksi' => null,
-            'tanggal_stok' => now(),
             'keterangan' => 'Stok Awal',
         ]);
     }

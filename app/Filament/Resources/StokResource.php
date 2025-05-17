@@ -33,6 +33,7 @@ class StokResource extends Resource
     protected static ?string $pluralLabel = 'Stok Produk';
     protected static ?string $recordTitleAttribute = 'nama_produk';
     protected static ?string $navigationLabel = 'Stok Produk';
+    protected static ?string $slug = 'inventaris/stok-produk';
     protected static ?string $navigationGroup = 'Inventaris';
     protected static ?int $navigationSort = 5;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
@@ -67,7 +68,7 @@ class StokResource extends Resource
                     ->collapsible(),
 
                 Hidden::make('jenis_transaksi')->default('Manual'),
-                Hidden::make('tanggal_stok')->default(fn() => now()),
+                // Hidden::make('tanggal_stok')->default(fn() => now()),
                 Hidden::make('id_pemilik')->default(fn() => Filament::auth()->id()),
             ]);
     }

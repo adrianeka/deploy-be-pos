@@ -19,8 +19,15 @@ class TipeTransfer extends Model
         'jenis_transfer',
     ];
 
-    public function metode_pembayarans()
+    public function pembayaran()
     {
-        return $this->hasMany(MetodePembayaran::class, 'id_tipe_transfer');
+        return $this->hasMany(Pembayaran::class, 'id_tipe_transfer');
+    }
+
+    public static function getOpsiByMetodeTransfer(string $metode): array
+    {
+        return static::where('metode_transfer', $metode)
+            ->pluck('jenis_transfer', 'id_tipe_transfer')
+            ->toArray();
     }
 }
