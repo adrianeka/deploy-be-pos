@@ -22,6 +22,9 @@ class ListRiwayatPenjualans extends ListRecords
     public function getTabs(): array
     {
         return [
+            'All' => Tab::make('All')
+                ->icon('heroicon-o-check-circle'),
+                
             'Lunas' => Tab::make('Lunas')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('penjualan.status_penjualan', 'lunas'))
                 ->icon('heroicon-o-check-circle'),

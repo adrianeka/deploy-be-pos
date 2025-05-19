@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\RiwayatPenjualanResource\Pages;
 use App\Models\Penjualan;
 use App\Enums\StatusTransaksiPenjualan;
+use App\Filament\Exports\PenjualanExporter;
 use App\Models\PenjualanDetail;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -23,7 +24,10 @@ use Filament\Tables;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Table;
 use App\Models\LevelHarga;
+use Filament\Actions\Exports\Enums\ExportFormat;
+use Filament\Actions\Exports\Models\Export;
 use Filament\Forms\Components\Repeater;
+use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
@@ -32,7 +36,7 @@ class RiwayatPenjualanResource extends Resource
     protected static ?string $model = Penjualan::class;
     protected static ?string $navigationIcon = 'heroicon-o-document-duplicate';
     protected static ?string $label = 'Riwayat Transaksi Penjualan';
-    protected static ?string $pluralLabel = 'Transaksi Pembelian';
+    protected static ?string $pluralLabel = 'Transaksi Penjualan';
     protected static ?string $navigationLabel = 'Riwayat Penjualan';
     protected static ?int $navigationSort = 2;
     public static function form(Form $form): Form
@@ -98,6 +102,18 @@ class RiwayatPenjualanResource extends Resource
                 return Penjualan::with(['pelanggan', 'kasir'])
                     ->whereHas('pelanggan', fn($query) => $query->where('id_pemilik', Filament::auth()->id()));
             })
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(PenjualanExporter::class)
+                    ->formats([
+                        ExportFormat::Xlsx,
+                    ])
+                    // ->columnMapping(false)
+                    ->fileName(function (Export $export): string {
+                        $date = now()->format('Ymd');
+                        return "LaporanPenjualan-{$date}-{$export->getKey()}.csv";
+                    })
+            ])
             ->defaultSort('created_at', 'desc')
             ->columns([
                 Tables\Columns\TextColumn::make('id_penjualan')
