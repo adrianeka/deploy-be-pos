@@ -99,7 +99,7 @@ class PelangganController extends Controller
 
             $data = $pelanggan->penjualan->map(function ($penjualan) {
                 return [
-                    'waktu_penjualan' => $penjualan->tanggal_penjualan,
+                    'waktu_penjualan' => $penjualan->created_at->format('Y-m-d H:i:s'),
                     'nomor_transaksi' => $penjualan->id_penjualan,
                     'nama_kasir' => $penjualan->kasir?->nama ?? '-',
                     'status_penjualan' => $penjualan->status_penjualan,
