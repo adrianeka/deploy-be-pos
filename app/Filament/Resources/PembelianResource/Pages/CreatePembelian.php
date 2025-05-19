@@ -5,21 +5,20 @@ namespace App\Filament\Resources\PembelianResource\Pages;
 use App\Filament\Resources\PembelianResource;
 use App\Models\Pembayaran;
 use App\Models\PembayaranPembelian;
-use Filament\Actions;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Wizard;
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Form;
-use Filament\Notifications\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\HasWizard;
+use Illuminate\Database\Eloquent\Model;
 
 class CreatePembelian extends CreateRecord
 {
     use HasWizard;
     protected static string $resource = PembelianResource::class;
-    protected ?int $pembayaranId = null;
+    protected ?int $IdPembayaran = null;
 
     public function form(Form $form): Form
     {
@@ -50,7 +49,6 @@ class CreatePembelian extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Ambil data pembayaran
         $pembayaranData = [
             'total_bayar' => $data['nominal'],
             'jenis_pembayaran' => $data['metode_pembayaran'],
@@ -62,7 +60,7 @@ class CreatePembelian extends CreateRecord
         $pembayaran = Pembayaran::create($pembayaranData);
 
         // Simpan ID pembayaran ke properti supaya bisa dipakai setelah pembelian disimpan
-        $this->pembayaranId = $pembayaran->id;
+        $this->IdPembayaran = $pembayaran->id;
 
         // Hapus field yang tidak ada di tabel pembelian (agar tidak error)
         unset($data['nominal'], $data['metode_pembayaran'], $data['tipe_pembayaran'], $data['id_tipe_transfer']);
@@ -70,12 +68,31 @@ class CreatePembelian extends CreateRecord
         return $data;
     }
 
-    protected function created(): void
+    protected function handleRecordCreation(array $data): Model
     {
-        PembayaranPembelian::create([
-            'id_pembelian' => $this->record->id_pembelian,
-            'id_pembayaran' => $this->pembayaranId,
-        ]);
+        // Simpan record pembelian
+        $record = static::getModel()::create($data); // pastikan model sudah punya fillable untuk semua field
+
+        // Simpan relasi ke tabel pivot
+        try {
+            PembayaranPembelian::create([
+                'id_pembelian' => $record->id,
+                'id_pembayaran' => $this->IdPembayaran,
+            ]);
+
+            Notification::make()
+                ->title('Relasi pembayaran berhasil disimpan')
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Gagal menyimpan relasi pembayaran')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+
+        return $record;
     }
 
     protected function getSteps(): array

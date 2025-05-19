@@ -214,6 +214,7 @@ class PembelianResource extends Resource
                 ->label('Nama Perusahaan Pemasok')
                 ->relationship('pemasok', 'nama_perusahaan')
                 ->searchable()
+                ->preload()
                 ->required()
                 ->createOptionForm([
                     Components\TextInput::make('nama_perusahaan')
@@ -254,6 +255,7 @@ class PembelianResource extends Resource
                     ->relationship('produk', 'nama_produk')
                     ->required()
                     ->reactive()
+                    ->preload()
                     ->distinct()
                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                     ->afterStateUpdated(function ($state, Forms\Set $set) {
