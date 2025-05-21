@@ -16,6 +16,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class RiwayatZakatResource extends Resource
 {
@@ -39,7 +40,8 @@ class RiwayatZakatResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['penjualan']);
+            ->with(['penjualan'])
+            ->where('id_pemilik', Auth::user()->id_pemilik); // Filter berdasarkan id_pemilik user login
     }
 
     public static function table(Table $table): Table

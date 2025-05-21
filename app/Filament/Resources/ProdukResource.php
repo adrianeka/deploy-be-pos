@@ -31,7 +31,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ActionGroup;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Forms\Components\TextInput\Mask;
 
 class ProdukResource extends Resource
 {
@@ -58,6 +60,7 @@ class ProdukResource extends Resource
                                     ->label('Nama Produk')
                                     ->required()
                                     ->maxLength(255),
+
                                 Select::make('id_kategori')
                                     ->relationship('kategori', 'nama_kategori', function ($query) {
                                         return $query->where(function ($query) {
@@ -83,11 +86,13 @@ class ProdukResource extends Resource
                                             ->maxLength(255),
                                     ])
                                     ->suffixAction(self::getHapusKategoriAction()),
+
                                 FileUpload::make('foto_produk')
                                     ->label('Foto Produk')
                                     ->directory('produk')
                                     ->lazy()
                                     ->image(),
+
                                 Select::make('id_satuan')
                                     ->relationship('satuan', 'nama_satuan', function ($query) {
                                         return $query->where(function ($query) {
@@ -114,26 +119,23 @@ class ProdukResource extends Resource
                                             ->disabled(fn() => self::isSatuanDefault(Satuan::find($state)?->nama_satuan)),
                                     ])
                                     ->suffixAction(self::getHapusSatuanAction()),
+
                                 TextInput::make('harga_beli')
                                     ->label('Harga Beli')
                                     ->prefix('Rp')
-                                    ->mask(
-                                        fn($mask) => $mask
-                                            ->money()
-                                            ->thousandsSeparator('.')
-                                            ->decimalSeparator(',')
-                                            ->precision(0)
-                                    )
                                     ->integer()
                                     ->required(),
+
                                 $isCreateOperation ? TextInput::make('harga_jual')
                                     ->label('Harga Jual (Standart)')
                                     ->integer()
                                     ->required() : null,
+
                                 TextInput::make('stok_minimum')
                                     ->label('Stok Minimum')
                                     ->integer()
                                     ->required(),
+
                                 Textarea::make('deskripsi')
                                     ->label('Deskripsi')
                                     ->nullable(),
@@ -159,6 +161,7 @@ class ProdukResource extends Resource
                             : 'https://ui-avatars.com/api/?name=' . urlencode(substr($record->nama_produk, 0, 2)) . '&size=100'
                     )
                     ->size(100),
+
                 TextColumn::make('nama_produk')
                     ->label('Nama Produk')
                     ->sortable()
@@ -321,9 +324,11 @@ class ProdukResource extends Resource
                                     Group::make([
                                         TextEntry::make('nama_produk')
                                             ->label('Nama Produk'),
+
                                         TextEntry::make('kategori.nama_kategori')
                                             ->label('Kategori')
                                             ->formatStateUsing(fn($state) => $state !== null ? $state : '-'),
+
                                         TextEntry::make('satuan.nama_satuan')
                                             ->label('Satuan'),
                                     ]),
@@ -331,10 +336,10 @@ class ProdukResource extends Resource
                                         TextEntry::make('harga_beli')
                                             ->label('Harga Beli')
                                             ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
+
                                         TextEntry::make('level_hargas.harga_jual')
                                             ->label('Harga Jual Standart')
                                             ->getStateUsing(function ($record) {
-                                                // Find the level_harga with nama_level = 'Standart'
                                                 $standartLevel = $record->level_hargas()
                                                     ->where('nama_level', 'Standart')
                                                     ->first();
@@ -342,6 +347,7 @@ class ProdukResource extends Resource
                                                 return $standartLevel ? $standartLevel->harga_jual : null;
                                             })
                                             ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
+
                                         TextEntry::make('stok_minimum')
                                             ->label('Stok Minimum'),
                                     ]),

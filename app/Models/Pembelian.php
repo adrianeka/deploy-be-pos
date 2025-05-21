@@ -42,36 +42,50 @@ class Pembelian extends Model
         );
     }
 
-    protected function uangBayar(): Attribute
+    protected function uangDiterima(): Attribute
     {
         return Attribute::make(
-            get: function () {
-                return $this->pembayaran->sum('total_bayar') ?? 0;
-            }
+            get: fn() => $this->pembayaran?->sum('total_bayar') ?? 0,
         );
     }
+
 
     protected function uangKembalian(): Attribute
     {
         return Attribute::make(
-            get: fn () => max($this->uang_bayar - $this->total_harga, 0)
+            get: function () {
+                $totalDiterima = $this->uang_diterima;
+                $totalHarga = $this->total_harga;
+
+                if ($totalDiterima > $totalHarga) {
+                    return $totalDiterima - $totalHarga;
+                }
+
+                return 0;
+            }
         );
     }
+
+    protected function sisaBayar(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->uang_diterima < $this->total_harga
+                ? $this->total_harga - $this->uang_diterima
+                : 0,
+        );
+    }
+
     protected function sisaPembayaran(): Attribute
     {
         return Attribute::make(
             get: function () {
-                // Konversi status ke string jika berupa enum
-                $status = $this->status_pembelian instanceof \App\Enums\StatusTransaksiPembelian
-                    ? $this->status_pembelian->value
-                    : $this->status_pembelian;
+                $totalHarga = $this->total_harga;
+                $totalDiterima = $this->uang_diterima;
 
-                if (in_array($status, [StatusTransaksiPembelian::BelumLunas->value, 
-                                    StatusTransaksiPembelian::Diproses->value])) {
-                    $sisa = $this->total_harga - $this->uang_bayar;
+                if (in_array($this->status_pembelian, ['belum lunas', 'diproses'])) {
+                    $sisa = $totalHarga - $totalDiterima;
                     return max($sisa, 0);
                 }
-                
                 return 0;
             }
         );
