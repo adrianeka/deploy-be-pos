@@ -2,9 +2,13 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\PembelianExporter;
 use App\Filament\Resources\PembelianResource\Pages;
+use App\Filament\Resources\PembelianResource\Widgets\PembelianOverview;
 use App\Models\Pembelian;
 use App\Models\TipeTransfer;
+use Filament\Actions\Exports\Enums\ExportFormat;
+use Filament\Actions\Exports\Models\Export;
 use Filament\Facades\Filament;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -21,6 +25,7 @@ use Filament\Infolists\Components\Grid;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
+use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
@@ -44,6 +49,13 @@ class PembelianResource extends Resource
         'bank' => 'Bank',
         'e-money' => 'E-Money',
     ];
+
+    public static function getWidgets(): array
+    {
+        return [
+            PembelianOverview::class,
+        ];
+    }
 
     public static function form(Form $form): Form
     {
@@ -97,6 +109,17 @@ class PembelianResource extends Resource
                         $query->where('id_pemilik', Filament::auth()->id());
                     });
             })
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(PembelianExporter::class)
+                    ->formats([
+                        ExportFormat::Xlsx,
+                    ])
+                    ->fileName(function (Export $export): string {
+                        $date = now()->format('Ymd');
+                        return "Laporan Pembelian-{$date}.csv";
+                    })
+            ])
             ->defaultSort('pembelian.created_at', 'tanggal_pembelian', 'desc')
             ->columns([
                 TextColumn::make('pemasok.nama_perusahaan')

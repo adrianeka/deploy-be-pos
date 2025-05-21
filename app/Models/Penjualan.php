@@ -93,14 +93,17 @@ class Penjualan extends Model
     {
         return Attribute::make(
             get: function () {
-                $totalHarga = $this->total_harga;
-                $totalDiterima = $this->uang_diterima;
+                // Konversi status ke string jika berupa enum
+                $status = $this->status_penjualan instanceof \App\Enums\StatusTransaksiPenjualan
+                    ? $this->status_penjualan->value
+                    : $this->status_penjualan;
 
-                if (in_array($this->status_penjualan, ['belum lunas', 'pesanan'])) {
-                    $sisa = $totalHarga - $totalDiterima;
+                if (in_array($status, [StatusTransaksiPenjualan::BelumLunas->value, 
+                                    StatusTransaksiPenjualan::Pesanan->value])) {
+                    $sisa = $this->total_harga - $this->uang_diterima;
                     return max($sisa, 0);
                 }
-
+                
                 return 0;
             }
         );

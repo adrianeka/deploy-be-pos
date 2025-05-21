@@ -2,9 +2,14 @@
 
 namespace App\Filament\Resources\StokResource\Pages;
 
+use App\Filament\Exports\StokDetailExporter;
 use App\Filament\Resources\StokResource;
+use App\Models\Produk;
 use App\Models\Stok;
+use Filament\Actions\Exports\Enums\ExportFormat;
+use Filament\Actions\Exports\Models\Export;
 use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -32,7 +37,22 @@ class RiwayatStok extends ManageRelatedRecords
                     ->where('id_produk', $id_produk)
                     ->where('jenis_transaksi', '!=', 'Stok Awal') // Menghilangkan data dengan keterangan "Stok Awal"
             )
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('created_at', 'desc')            
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(StokDetailExporter::class)
+                    ->formats([
+                        ExportFormat::Xlsx,
+                    ])
+                    ->fileName(function (Export $export): string {
+                        $date = now()->format('Ymd');
+                        $produk = $this->record->produk; // asumsinya relasi 'produk' sudah ada
+
+                        $namaProduk = ucwords(str($produk->nama_produk ?? 'produk')->slug(' '));
+                        // $namaProduk = Produk::find($this->record->$id_produk)->nama_produk;
+                        return "Laporan Stok Produk {$namaProduk}-{$date}.csv";
+                    })
+            ])
             ->columns([
                 TextColumn::make('created_at')
                     ->label('Tanggal')
@@ -72,7 +92,6 @@ class RiwayatStok extends ManageRelatedRecords
                     ]),
             ])
             ->actions([])
-            ->bulkActions([])
-            ->headerActions([]);
+            ->bulkActions([]);
     }
 }
