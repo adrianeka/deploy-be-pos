@@ -58,6 +58,10 @@ class RiwayatStok extends ManageRelatedRecords
                     ->label('Jenis Transaksi')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('keterangan')
+                    ->label('Keterangan')
+                    ->searchable()
+                    ->sortable(),
             ])
             ->filters([
                 SelectFilter::make('jenis_stok')

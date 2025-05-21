@@ -27,7 +27,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class StokResource extends Resource
 {
-    protected static ?string $model = Stok::class;
+    protected static ?string $model = Produk::class;
     protected static ?string $navigationIcon = 'heroicon-o-cube';
     protected static ?string $label = 'Stok Produk';
     protected static ?string $pluralLabel = 'Stok Produk';
@@ -41,6 +41,7 @@ class StokResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
+            ->model(Stok::class)
             ->schema([
                 Components\Section::make('Form Stok')
                     ->schema([
@@ -51,6 +52,7 @@ class StokResource extends Resource
                                     ->options(fn() => Produk::where('id_pemilik', Filament::auth()->id())->pluck('nama_produk', 'id_produk'))
                                     ->searchable()
                                     ->required(),
+
                                 Select::make('jenis_stok')
                                     ->label('Jenis Stok')
                                     ->options([
@@ -58,6 +60,7 @@ class StokResource extends Resource
                                         'Out' => 'Keluar (Out)',
                                     ])
                                     ->required(),
+
                                 TextInput::make('jumlah_stok')
                                     ->label('Jumlah Stok')
                                     ->numeric()
@@ -66,21 +69,20 @@ class StokResource extends Resource
                             ]),
                     ])
                     ->collapsible(),
+                Hidden::make('jenis_transaksi')
+                    ->default('Manual'),
 
-                Hidden::make('jenis_transaksi')->default('Manual'),
-                // Hidden::make('tanggal_stok')->default(fn() => now()),
-                Hidden::make('id_pemilik')->default(fn() => Filament::auth()->id()),
+                Hidden::make('id_pemilik')
+                    ->default(fn() => Filament::auth()->id()),
             ]);
     }
-
 
     public static function table(Table $table): Table
     {
         return $table
-            ->query(function () {
-                $produk = new Produk();
-                return $produk->getStokProdukByPemilik(Filament::auth()->id());
-            })
+            ->query(
+                Produk::query()->where('id_pemilik', Filament::auth()->id())
+            )
             ->columns([
                 TextColumn::make('nama_produk')
                     ->label('Nama Produk')
@@ -91,12 +93,6 @@ class StokResource extends Resource
                     ->getStateUsing(function ($record) {
                         return Stok::getStokTersediaByProduk($record->id_produk);
                     })
-                    ->searchable(query: function (Builder $query, string $search): Builder {
-                        return $query->whereHas('stok', function (Builder $query) use ($search) {
-                            $query->groupBy('id_produk')
-                                ->havingRaw('SUM(CASE WHEN jenis_stok = "In" THEN jumlah_stok ELSE -jumlah_stok END) LIKE ?', ["%{$search}%"]);
-                        });
-                    })
                     ->sortable(query: function (Builder $query, string $direction): Builder {
                         return $query->orderByRaw('(
                             SELECT SUM(CASE WHEN jenis_stok = "In" THEN jumlah_stok ELSE -jumlah_stok END) 
@@ -104,21 +100,10 @@ class StokResource extends Resource
                             WHERE stok.id_produk = produk.id_produk
                         ) ' . $direction);
                     }),
-                TextColumn::make('satuan')
+                TextColumn::make('satuan.nama_satuan')
                     ->label('Satuan')
-                    ->getStateUsing(function ($record) {
-                        $produk = Produk::with('satuan')->find($record->id_produk);
-                        return $produk->satuan->nama_satuan ?? '-';
-                    })
-                    ->searchable(query: function (Builder $query, string $search): Builder {
-                        return $query->whereHas('satuan', function (Builder $query) use ($search) {
-                            $query->where('nama_satuan', 'LIKE', "%{$search}%");
-                        });
-                    })
-                    ->sortable(query: function (Builder $query, string $direction): Builder {
-                        return $query->join('satuan', 'produk.id_satuan', '=', 'satuan.id_satuan')
-                            ->orderBy('satuan.nama_satuan', $direction);
-                    }),
+                    ->searchable()
+                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('id_satuan')
@@ -158,7 +143,7 @@ class StokResource extends Resource
                             Grid::make(3)
                                 ->schema([
                                     Group::make([
-                                        TextEntry::make('produk.nama_produk')
+                                        TextEntry::make('nama_produk')
                                             ->label('Nama Produk'),
                                     ]),
                                     Group::make([
@@ -169,7 +154,7 @@ class StokResource extends Resource
                                             }),
                                     ]),
                                     Group::make([
-                                        TextEntry::make('produk.satuan.nama_satuan')
+                                        TextEntry::make('satuan.nama_satuan')
                                             ->label('Satuan')
                                     ]),
                                 ]),
@@ -191,7 +176,7 @@ class StokResource extends Resource
     {
         return [
             'index' => Pages\ListStoks::route('/'),
-            'create' => Pages\CreateStok::route('/edit'),
+            'create' => Pages\CreateStok::route('/create'),
             'riwayat-stok' => Pages\RiwayatStok::route('/{record}/riwayat-stok'),
             'view' => Pages\ViewStok::route('/{record}'),
         ];
@@ -199,6 +184,6 @@ class StokResource extends Resource
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['produk.nama_produk'];
+        return ['nama_produk'];
     }
 }

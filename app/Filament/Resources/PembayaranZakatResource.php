@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PembayaranZakatResource\Pages;
 use App\Models\Penjualan;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
 use Filament\Pages\SubNavigationPosition;
@@ -39,7 +40,12 @@ class PembayaranZakatResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn(Builder $query) => $query->whereNull('id_bayar_zakat')) // Only show unpaid
+            ->modifyQueryUsing(function (Builder $query) {
+                $query->whereNull('id_bayar_zakat')
+                    ->whereHas('kasir', function ($q) {
+                        $q->where('id_pemilik', Filament::auth()->id());
+                    });
+            })
             ->header(
                 fn($livewire) => view('filament.tables.pembayaran-zakat-summary', [
                     'selectedCount' => $livewire->selectedCount,

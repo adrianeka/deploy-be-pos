@@ -17,7 +17,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Repeater;
 use Filament\Infolists\Components\Grid;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
@@ -178,15 +177,31 @@ class PembelianResource extends Resource
                                 TextEntry::make('pemasok.nama_perusahaan')
                                     ->label('Nama Perusahaan Pemasok'),
 
-                                TextEntry::make('pemasok.no_telp')
-                                    ->label('Nomor Telepon'),
+                                TextEntry::make('uang_diterima')
+                                    ->label('Total Yang Sudah Dibayar')
+                                    ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
 
                                 TextEntry::make('pemasok.alamat')
                                     ->label('Alamat'),
 
                                 TextEntry::make('total_harga')
                                     ->label('Total Harga')
-                                    ->formatStateUsing(fn($state) => $state ? 'Rp. ' . number_format($state, 0, ',', '.') : '-'),
+                                    ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state ?? 0, 0, ',', '.')),
+
+
+                                TextEntry::make('pemasok.no_telp')
+                                    ->label('Nomor Telepon'),
+
+                                TextEntry::make('uang_kembalian')
+                                    ->label('Uang Kembalian')
+                                    ->visible(fn($record) => $record->uang_kembalian > 0)
+                                    ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
+
+                                TextEntry::make('sisa_bayar')
+                                    ->label('Sisa Pembayaran')
+                                    ->visible(fn($record) => $record->sisa_bayar > 0)
+                                    ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
+
                             ])
                             ->columns(2)
                             ->columnSpan(2),
@@ -206,6 +221,7 @@ class PembelianResource extends Resource
                     ]),
             ]);
     }
+
 
     public static function getDetailsFormSchema(): array
     {
@@ -244,85 +260,104 @@ class PembelianResource extends Resource
         ];
     }
 
-    public static function getProdukRepeater(): Repeater
+
+    public static function getProdukRepeater(): Forms\Components\Component
     {
-        return Repeater::make('pembelianDetail')
-            ->relationship('pembelianDetail')
-            ->schema([
-                // Row 1
-                Forms\Components\Select::make('id_produk')
-                    ->label('Produk')
-                    ->relationship('produk', 'nama_produk')
-                    ->required()
-                    ->reactive()
-                    ->preload()
-                    ->distinct()
-                    ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                    ->afterStateUpdated(function ($state, Forms\Set $set) {
-                        $produk = \App\Models\Produk::find($state);
-                        if ($produk) {
-                            $set('harga_beli', $produk->harga_beli);
-                            $set('total_harga', $produk->harga_beli); // default jika jumlah belum diisi
-                        } else {
-                            $set('harga_beli', 0);
-                            $set('total_harga', 0);
-                        }
-                    })
-                    ->columnSpan(['md' => 4])
-                    ->searchable(),
+        return Forms\Components\Group::make([
+            Forms\Components\Repeater::make('pembelianDetail')
+                ->relationship('pembelianDetail')
 
-                // Row 2
-                Forms\Components\Grid::make()
-                    ->schema([
-                        Forms\Components\TextInput::make('jumlah_produk')
-                            ->label('Jumlah')
-                            ->numeric()
-                            ->default(1)
-                            ->required()
-                            ->reactive()
-                            ->disabled(fn(callable $get) => !$get('id_produk'))
-                            ->afterStateUpdated(function ($state, Forms\Set $set, callable $get) {
-                                $harga = $get('harga_beli') ?: 0;
-                                $jumlah = $state ?: 1;
-                                $set('total_harga', $harga * $jumlah);
-                            }),
+                ->schema([
+                    Forms\Components\Select::make('id_produk')
+                        ->label('Produk')
+                        ->relationship('produk', 'nama_produk')
+                        ->required()
+                        ->reactive()
+                        ->preload()
+                        ->distinct()
+                        ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                        ->afterStateUpdated(function ($state, Forms\Set $set) {
+                            $produk = \App\Models\Produk::find($state);
+                            if ($produk) {
+                                $set('harga_beli', $produk->harga_beli);
+                                $set('sub_total_harga', $produk->harga_beli);
+                            } else {
+                                $set('harga_beli', 0);
+                                $set('sub_total_harga', 0);
+                            }
+                        })
+                        ->columnSpan(['md' => 4])
+                        ->searchable(),
 
-                        Forms\Components\Placeholder::make('satuan_produk')
-                            ->label('Satuan')
-                            ->content(function (callable $get) {
-                                $produk = \App\Models\Produk::with('satuan')->find($get('id_produk'));
-                                return $produk?->satuan?->nama_satuan ?? '-';
-                            }),
-                    ])
-                    ->columns(2)
-                    ->columnSpan([
-                        'md' => 6,
-                    ]),
+                    Forms\Components\Grid::make()
+                        ->schema([
+                            Forms\Components\TextInput::make('jumlah_produk')
+                                ->label('Jumlah')
+                                ->numeric()
+                                ->default(1)
+                                ->required()
+                                ->reactive()
+                                ->afterStateUpdated(function ($state, Forms\Set $set, callable $get) {
+                                    $harga = $get('harga_beli') ?: 0;
+                                    $jumlah = $state ?: 1;
+                                    $set('sub_total_harga', $harga * $jumlah);
+                                })
+                                ->dehydrated()
+                                ->visible(fn(callable $get) => $get('id_produk')),
 
-                Forms\Components\Placeholder::make('harga_beli')
-                    ->label('Harga Beli')
-                    ->content(
-                        fn(callable $get) =>
-                        'Rp. ' . number_format($get('harga_beli') ?? 0, 0, ',', '.')
-                    )
-                    ->columnSpan(['md' => 3]),
+                            Forms\Components\Placeholder::make('satuan_produk')
+                                ->label('Satuan')
+                                ->content(function (callable $get) {
+                                    $produk = \App\Models\Produk::with('satuan')->find($get('id_produk'));
+                                    return $produk?->satuan?->nama_satuan ?? '-';
+                                })
+                                ->visible(fn(callable $get) => $get('id_produk')),
+                        ])
+                        ->columns(2)
+                        ->columnSpan(['md' => 6]),
 
-                Forms\Components\Placeholder::make('total_harga')
-                    ->label('Total Harga')
-                    ->content(
-                        fn(callable $get) =>
-                        'Rp. ' . number_format($get('total_harga') ?? 0, 0, ',', '.')
-                    )
-                    ->columnSpan(['md' => 3]),
-            ])
-            ->addActionLabel('Tambah Produk')
-            ->defaultItems(1)
-            ->hiddenLabel()
-            ->columns([
-                'md' => 10,
-            ])
-            ->required();
+                    Forms\Components\Placeholder::make('harga_beli_display')
+                        ->label('Harga Beli')
+                        ->content(fn(callable $get) => 'Rp. ' . number_format($get('harga_beli') ?? 0, 0, ',', '.'))
+                        ->visible(fn(callable $get) => $get('id_produk'))
+                        ->columnSpan(['md' => 3]),
+
+                    Forms\Components\Hidden::make('harga_beli')
+                        ->dehydrated()
+                        ->reactive(),
+
+                    Forms\Components\Placeholder::make('sub_total_harga_display')
+                        ->label('Sub Total Harga')
+                        ->content(fn(callable $get) => 'Rp. ' . number_format($get('sub_total_harga') ?? 0, 0, ',', '.'))
+                        ->visible(fn(callable $get) => $get('id_produk'))
+                        ->columnSpan(['md' => 3]),
+
+                    Forms\Components\Hidden::make('sub_total_harga')
+                        ->dehydrated()
+                        ->reactive(),
+                ])
+                ->dehydrated()
+                ->reactive()
+                ->addActionLabel('Tambah Produk')
+                ->defaultItems(1)
+                ->hiddenLabel()
+                ->columns([
+                    'md' => 10,
+                ])
+                ->required(),
+
+            Forms\Components\Placeholder::make('total_harga_display')
+                ->label('Total Harga')
+                ->content(function (callable $get) {
+                    $details = $get('pembelianDetail') ?? [];
+                    $total = collect($details)->sum(fn($item) => $item['sub_total_harga'] ?? 0);
+                    return 'Rp. ' . number_format($total, 0, ',', '.');
+                })
+                ->columnSpanFull(),
+        ])->columnSpanFull();
     }
+
+
 
     public static function getPembayaranFormSchema(): array
     {
@@ -341,6 +376,7 @@ class PembelianResource extends Resource
 
             Components\TextInput::make('nominal')
                 ->label('Nominal')
+                ->prefix('Rp. ')
                 ->numeric()
                 ->required()
                 ->visible(fn($get) => in_array($get('metode_pembayaran'), ['tunai', 'transfer'])),
@@ -368,6 +404,7 @@ class PembelianResource extends Resource
                 ->reactive(),
         ];
     }
+
 
     public static function getPages(): array
     {

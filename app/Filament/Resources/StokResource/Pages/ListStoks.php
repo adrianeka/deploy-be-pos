@@ -15,7 +15,7 @@ class ListStoks extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Edit Stok'),
+                ->label('Edit Stok')
         ];
     }
 }
