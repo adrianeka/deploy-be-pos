@@ -2,22 +2,24 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\DashboardOverview;
+use Filament\Facades\Filament;
 use Filament\Pages\Page;
 
-class LaporanPenjualan extends Page
+class Dashboard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static string $view = 'filament.pages.laporan-penjualan';
+    protected static string $view = 'filament.pages.dashboard';
 
     public static function canAccess(): bool
     {
-        return auth()->user()->role === 'pemilik';
+        return Filament::auth()->user()->role === 'pemilik';
     }
-
     protected function getHeaderWidgets(): array
     {
         return [
+            DashboardOverview::class
         ];
     }
 }

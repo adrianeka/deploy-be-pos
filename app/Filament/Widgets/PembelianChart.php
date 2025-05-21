@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Pembelian;
 use App\Models\Penjualan;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
@@ -13,9 +14,9 @@ use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
 use Illuminate\Support\Facades\Log;
 
-class PenjualanChart extends ChartWidget
+class PembelianChart extends ChartWidget
 {
-    protected static ?string $heading = 'Pendapatan vs Piutang';
+    protected static ?string $heading = 'Pengeluaran vs Utang';
     protected static ?string $pollingInterval = '10s';
     protected static ?string $maxHeight = '300px';
 
@@ -23,7 +24,7 @@ class PenjualanChart extends ChartWidget
     public ?string $filterPeriod = 'month';
     public ?string $startDate = null;
     public ?string $endDate = null;
-    public bool $showPiutang = true;
+    public bool $showUtang = true;
 
     public function mount(): void
     {
@@ -74,12 +75,12 @@ class PenjualanChart extends ChartWidget
                     })
                     ->label('Sampai Tanggal'),
 
-                Toggle::make('showPiutang')
+                Toggle::make('showUtang')
                     ->label('Tampilkan Piutang')
                     ->default(true)
                     ->reactive()
                     ->afterStateUpdated(function ($state) {
-                        $this->showPiutang = $state;
+                        $this->showUtang = $state;
                     }),
             ])
             ->columns(4);
@@ -141,13 +142,13 @@ class PenjualanChart extends ChartWidget
 
         $periodMethod = 'per' . ucfirst($this->filterPeriod);
 
-        $pendapatanTrend = Trend::model(Penjualan::class)
+        $pengeluaranTrend = Trend::model(Pembelian::class)
             ->between($startDate, $endDate)
             ->{$periodMethod}()
             ->count();
         
-        $dates = $pendapatanTrend;
-        $pendapatanData = collect($dates)->map(function ($item) use ($periodMethod) {
+        $dates = $pengeluaranTrend;
+        $pengeluaranData = collect($dates)->map(function ($item) use ($periodMethod) {
             if ($periodMethod == 'perDay') {
                 $startDate = Carbon::parse($item->date)->startOfDay();
                 $endDate = Carbon::parse($item->date)->endOfDay();
@@ -159,24 +160,24 @@ class PenjualanChart extends ChartWidget
                 $endDate = Carbon::parse($item->date)->endOfDay();
             }
 
-            $penjualans = Penjualan::whereBetween('created_at', [$startDate, $endDate])->get();   
-            $diterima = $penjualans->sum('uangDiterima');
-            $kembalian = $penjualans->sum('uangKembalian');
-            $totalPendapatan = $diterima - $kembalian;
+            $pembelians = Pembelian::whereBetween('created_at', [$startDate, $endDate])->get();   
+            $dibayar = $pembelians->sum('uangBayar');
+            $kembalian = $pembelians->sum('uangKembalian');
+            $totalPengeluaran = $dibayar - $kembalian;
             
-            return new TrendValue($item->date, $totalPendapatan, $totalPendapatan);
+            return new TrendValue($item->date, $totalPengeluaran, $totalPengeluaran);
         });
 
-        $piutangData = null;
-        if ($this->showPiutang) {
+        $utangData = null;
+        if ($this->showUtang) {
             $piutangTrend = Trend::query(
-                Penjualan::whereIn('status_penjualan', ['belum lunas', 'pesanan'])
+                Pembelian::whereIn('status_pembelian', ['belum lunas', 'pesanan'])
             )
                 ->between($startDate, $endDate)
                 ->{$periodMethod}();
                 
             $dates = $piutangTrend->count(); // Ambil tanggal saja
-            $piutangData = collect($dates)->map(function ($item) use ($periodMethod) {
+            $utangData = collect($dates)->map(function ($item) use ($periodMethod) {
                 if ($periodMethod == 'perDay') {
                     $startDate = Carbon::parse($item->date)->startOfDay();
                     $endDate = Carbon::parse($item->date)->endOfDay();
@@ -187,18 +188,18 @@ class PenjualanChart extends ChartWidget
                     $startDate = Carbon::parse($item->date)->subYear()->startOfDay();
                     $endDate = Carbon::parse($item->date)->endOfDay();
                 }
-            $penjualans = Penjualan::whereIn('status_penjualan', ['belum lunas', 'pesanan'])
+            $pembelians = Pembelian::whereIn('status_pembelian', ['belum lunas', 'pesanan'])
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->get();
                 
-            $totalPiutang = $penjualans->sum('sisaPembayaran');
+            $totalPiutang = $pembelians->sum('sisaPembayaran');
             return new TrendValue($item->date, $totalPiutang, $totalPiutang);
             });
         } else {
-            $piutangData = collect();
+            $utangData = collect();
         }
         // Format labels
-        $labels = $pendapatanData->map(function (TrendValue $value) {
+        $labels = $pengeluaranData->map(function (TrendValue $value) {
             $date = Carbon::parse($value->date);
             
             return match ($this->filterPeriod) {
@@ -212,8 +213,8 @@ class PenjualanChart extends ChartWidget
         // Format datasets
         $datasets = [
             [
-                'label' => 'Total Pendapatan',
-                'data' => $pendapatanData->map(fn (TrendValue $value) => $value->aggregate)->all(),
+                'label' => 'Total Pengeluaran',
+                'data' => $pengeluaranData->map(fn (TrendValue $value) => $value->aggregate)->all(),
                 'borderColor' => '#10B981',
                 'backgroundColor' => 'rgba(16, 185, 129, 0.2)',
                 'tension' => 0.4,
@@ -221,27 +222,27 @@ class PenjualanChart extends ChartWidget
             ]
         ];
 
-        if ($this->showPiutang) {
+        if ($this->showUtang) {
             $datasets[] = [
                 'label' => 'Total Piutang',
-                'data' => $piutangData->map(fn (TrendValue $value) => $value->aggregate)->all(),
+                'data' => $utangData->map(fn (TrendValue $value) => $value->aggregate)->all(),
                 'borderColor' => '#EF4444',
                 'backgroundColor' => 'rgba(239, 68, 68, 0.2)',
                 'tension' => 0.4,
                 'fill' => true,
             ];
         }
-        // $penjualans = Penjualan::get();
-        // $pendapatan = $penjualans->sum('uangDiterima');
-        // $kembalian = $penjualans->sum('uangKembalian');
-        // $piutang = $penjualans->sum('sisaPembayaran');
+        // $pembelians = Pembelian::get();
+        // $pengeluaran = $pembelians->sum('uangBayar');
+        // $kembalian = $pembelians->sum('uangKembalian');
+        // $piutang = $pembelians->sum('sisaPembayaran');
         // Log::info("=== COMPARE DARI DB LANGSUNG ===");
-        // Log::info("Pendapatan Langsung: Rp " . number_format($pendapatan - $kembalian, 0, ',', '.'));
-        // Log::info("Piutang Langsung: Rp " . number_format($piutang, 0, ',', '.'));
+        // Log::info("Pengeluaran Langsung: Rp " . number_format($pengeluaran - $kembalian, 0, ',', '.'));
+        // Log::info("Utang Langsung: Rp " . number_format($piutang, 0, ',', '.'));
 
         // Log::info("=== DARI TREND ===");
-        // Log::info("Total Pendapatan dari Trend: Rp " . number_format($pendapatanData->sum('aggregate'), 0, ',', '.'));
-        // Log::info("Total Piutang dari Trend: Rp " . number_format($piutangData->sum('aggregate'), 0, ',', '.'));
+        // Log::info("Total Pengeluaran dari Trend: Rp " . number_format($pengeluaranData->sum('aggregate'), 0, ',', '.'));
+        // Log::info("Total Utang dari Trend: Rp " . number_format($utangData->sum('aggregate'), 0, ',', '.'));
         // Log::info("datasets", $datasets);
         // Log::info("labels", $labels);
         return [

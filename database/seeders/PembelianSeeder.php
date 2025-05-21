@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Pembayaran;
-use App\Models\PembayaranPembelian;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -14,51 +12,40 @@ class PembelianSeeder extends Seeder
     public function run()
     {
         Schema::disableForeignKeyConstraints();
-
         DB::table('pembelian_detail')->truncate();
         DB::table('pembelian')->truncate();
         DB::table('pembayaran_pembelian')->truncate();
-
+        // DB::table('pembayaran')->truncate(); // Jangan truncate pembayaran
         Schema::enableForeignKeyConstraints();
 
-        $now = Carbon::now();
+        for ($i = 1; $i <= 10; $i++) {
+            $createdAt = Carbon::now()->subDays(rand(0, 30));
+            $updatedAt = Carbon::now()->subDays(rand(0, 30));
+            $idPemasok = ($i % 2) + 1;
+            $status = ($i % 2 == 0) ? 'Lunas' : 'Belum Lunas';
 
-        // Insert data pembelian
-        $pembelianData = [
-            [
-                'id_pembelian' => 1,
-                'id_pemasok' => 1,
+            $idPembelian = DB::table('pembelian')->insertGetId([
+                'id_pemasok' => $idPemasok,
                 'total_harga' => 0,
-                'status_pembelian' => 'Lunas',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'id_pembelian' => 2,
-                'id_pemasok' => 2,
-                'total_harga' => 0,
-                'status_pembelian' => 'Belum Lunas',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]
-        ];
+                'status_pembelian' => $status,
+                'created_at' => $createdAt,
+                'updated_at' => $updatedAt,
+            ]);
 
-        DB::table('pembelian')->insert($pembelianData);
+            // Tambah 2 produk ke pembelian
+            $detail = [];
+            for ($j = 1; $j <= 2; $j++) {
+                $detail[] = [
+                    'id_pembelian' => $idPembelian,
+                    'id_produk' => $j,
+                    'jumlah_produk' => rand(1, 3),
+                    'created_at' => $createdAt,
+                    'updated_at' => $updatedAt,
+                ];
+            }
+            DB::table('pembelian_detail')->insert($detail);
 
-        // Insert detail pembelian
-        $pembelianDetailData = [
-            ['id_pembelian' => 1, 'id_produk' => 1, 'jumlah_produk' => 2, 'created_at' => $now, 'updated_at' => $now],
-            ['id_pembelian' => 1, 'id_produk' => 2, 'jumlah_produk' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['id_pembelian' => 2, 'id_produk' => 1, 'jumlah_produk' => 2, 'created_at' => $now, 'updated_at' => $now],
-            ['id_pembelian' => 2, 'id_produk' => 2, 'jumlah_produk' => 2, 'created_at' => $now, 'updated_at' => $now],
-        ];
-
-        DB::table('pembelian_detail')->insert($pembelianDetailData);
-
-        // Hitung ulang total harga pembelian
-        $pembelianIds = collect($pembelianData)->pluck('id_pembelian');
-
-        foreach ($pembelianIds as $idPembelian) {
+            // Hitung total harga pembelian
             $totalHarga = DB::table('pembelian_detail')
                 ->join('produk', 'pembelian_detail.id_produk', '=', 'produk.id_produk')
                 ->where('pembelian_detail.id_pembelian', $idPembelian)
@@ -67,47 +54,26 @@ class PembelianSeeder extends Seeder
             DB::table('pembelian')->where('id_pembelian', $idPembelian)->update([
                 'total_harga' => $totalHarga,
             ]);
+
+            // Tambahkan pembayaran baru
+            $jenisPembayaran = ($status === 'Lunas') ? 'tunai' : 'transfer';
+            $totalBayar = ($status === 'Lunas') ? $totalHarga * 1.2 : intval($totalHarga * 0.5);
+
+            $idPembayaran = DB::table('pembayaran')->insertGetId([
+                'id_tipe_transfer' => ($jenisPembayaran === 'transfer') ? 1 : null,
+                'jenis_pembayaran' => $jenisPembayaran,
+                'total_bayar' => $totalBayar,
+                'keterangan' => ($status === 'Lunas') ? 'Lunas tunai' : 'Bayar sebagian via transfer',
+                'created_at' => $createdAt,
+                'updated_at' => $updatedAt,
+            ]);
+
+            DB::table('pembayaran_pembelian')->insert([
+                'id_pembayaran' => $idPembayaran,
+                'id_pembelian' => $idPembelian,
+                'created_at' => $createdAt,
+                'updated_at' => $updatedAt,
+            ]);
         }
-
-        // Insert pembayaran pembelian (1 tunai, 1 transfer)
-        $pembayaranData = [
-            [
-                'id_tipe_transfer' => null, // Tunai
-                'jenis_pembayaran' => 'tunai',
-                'total_bayar' => 323000,
-                'keterangan' => 'Lunas tunai',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'id_tipe_transfer' => 1, // Misal: BCA
-                'jenis_pembayaran' => 'transfer',
-                'total_bayar' => 100000,
-                'keterangan' => 'Bayar sebagian via transfer',
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-        ];
-
-        $idPembayaran1 = DB::table('pembayaran')->insertGetId($pembayaranData[0]);
-        $idPembayaran2 = DB::table('pembayaran')->insertGetId($pembayaranData[1]);
-
-        // Pembayaran-pembelian relasi
-        $pembayaranPembelianData = [
-            [
-                'id_pembayaran' => $idPembayaran1,
-                'id_pembelian' => 1,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ],
-            [
-                'id_pembayaran' => $idPembayaran2,
-                'id_pembelian' => 2,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]
-        ];
-
-        DB::table('pembayaran_pembelian')->insert($pembayaranPembelianData);
     }
 }

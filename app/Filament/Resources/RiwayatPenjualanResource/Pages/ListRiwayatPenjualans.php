@@ -3,14 +3,26 @@
 namespace App\Filament\Resources\RiwayatPenjualanResource\Pages;
 
 use App\Filament\Resources\RiwayatPenjualanResource;
+use App\Filament\Resources\RiwayatPenjualanResource\Widgets\PenjualanOverview;
+use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListRiwayatPenjualans extends ListRecords
 {
+    use ExposesTableToWidgets;
+
     protected static string $resource = RiwayatPenjualanResource::class;
     protected static ?string $title = 'Daftar Riwayat Transaksi Penjualan';
+
+    
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            PenjualanOverview::class,
+        ];
+    }
 
     protected function getHeaderActions(): array
     {
@@ -22,7 +34,7 @@ class ListRiwayatPenjualans extends ListRecords
     public function getTabs(): array
     {
         return [
-            'All' => Tab::make('All')
+            'Semua' => Tab::make('Semua')
                 ->icon('heroicon-o-check-circle'),
                 
             'Lunas' => Tab::make('Lunas')

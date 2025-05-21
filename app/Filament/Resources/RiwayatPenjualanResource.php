@@ -6,6 +6,7 @@ use App\Filament\Resources\RiwayatPenjualanResource\Pages;
 use App\Models\Penjualan;
 use App\Enums\StatusTransaksiPenjualan;
 use App\Filament\Exports\PenjualanExporter;
+use App\Filament\Resources\RiwayatPenjualanResource\Widgets\PenjualanOverview;
 use App\Models\PenjualanDetail;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -39,6 +40,12 @@ class RiwayatPenjualanResource extends Resource
     protected static ?string $pluralLabel = 'Transaksi Penjualan';
     protected static ?string $navigationLabel = 'Riwayat Penjualan';
     protected static ?int $navigationSort = 2;
+    public static function getWidgets(): array
+    {
+        return [
+            PenjualanOverview::class,
+        ];
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -111,7 +118,7 @@ class RiwayatPenjualanResource extends Resource
                     // ->columnMapping(false)
                     ->fileName(function (Export $export): string {
                         $date = now()->format('Ymd');
-                        return "LaporanPenjualan-{$date}-{$export->getKey()}.csv";
+                        return "LaporanPenjualan-{$date}.csv";
                     })
             ])
             ->defaultSort('created_at', 'desc')
