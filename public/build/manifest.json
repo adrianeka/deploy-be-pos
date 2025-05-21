@@ -1,0 +1,18 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-BTS_JsfE.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-l0sNRNKZ.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "vendor/nuxtifyts/dash-stack-theme/resources/css/theme.css": {
+    "file": "assets/theme-qlPmwSUm.css",
+    "src": "vendor/nuxtifyts/dash-stack-theme/resources/css/theme.css",
+    "isEntry": true
+  }
+}
