@@ -113,13 +113,13 @@ class ReorderPointService
                 ->where('pembelian_detail.id_produk', $produkId)
                 ->whereMonth('pembelian.created_at', $lastMonth->month)
                 ->whereYear('pembelian.created_at', $lastMonth->year)
-                ->select('pembelian.created_at', 'pembelian.updated_at')
+                ->select('pembelian.created_at', 'pembelian.tanggal_kedatangan')
                 ->get();
 
             $leadTimes = [];
             foreach ($pembelianBulanLalu as $row) {
-                if ($row->created_at && $row->updated_at) {
-                    $leadTimes[] = Carbon::parse($row->created_at)->diffInDays(Carbon::parse($row->updated_at));
+                if ($row->created_at && $row->tanggal_kedatangan) {
+                    $leadTimes[] = Carbon::parse($row->created_at)->diffInDays(Carbon::parse($row->tanggal_kedatangan));
                 }
             }
             
@@ -140,11 +140,14 @@ class ReorderPointService
         try {
             // Inisialisasi tanggal dan variabel
             $now = Carbon::now()->setTimezone('Asia/Jakarta');
-            $lastDayThisMonth = Carbon::now()->endOfMonth()->setTimezone('Asia/Jakarta');
+            // $lastDayThisMonth = Carbon::now()->endOfMonth()->setTimezone('Asia/Jakarta');
+            $lastDayThisWeek = Carbon::now()->addWeek()->endOfDay()->setTimezone('Asia/Jakarta');
+            Log::info("NOW : $now");
+            Log::info("Last Day This Week : $lastDayThisWeek");
             $lastMonth = Carbon::now()->subMonth()->setTimezone('Asia/Jakarta');
             
             // Cek musiman (Ramadhan/Dzulhijjah)
-            $isMusiman = $this->isMusiman($now) || $this->isMusiman($lastDayThisMonth);
+            $isMusiman = $this->isMusiman($now) || $this->isMusiman($lastDayThisWeek);
             $updated = [];
             
             // Proses tiap produk
@@ -225,9 +228,9 @@ class ReorderPointService
                         'max' => $max,
                         'lastPeriodSales' => $lastPeriodSales,
                         'dailyDemand' => "$lastPeriodSales / $daysInPeriod",
-                        'RATA RATA' => $dailyDemand,
-                        'SS' => $safetyStock,
-                        'STOK MINIMUM' => $reorderPoint,
+                        'avg' => $dailyDemand,
+                        'safety stock' => "($max - $avg) * $leadTime = $safetyStock",
+                        'ROP' => "($dailyDemand * $leadTime) + $safetyStock = $reorderPoint",
                         'isMusiman' => $isMusiman,
                     ];
                     

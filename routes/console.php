@@ -11,6 +11,4 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Schedule::command('app:calculate-r-o-p')->monthlyOn(1, '01:00');
-// Schedule::command('app:calculate-r-o-p')->everyMinute();
-Schedule::command('app:calculate-r-o-p')->everyThreeMinutes();
+Schedule::command('app:calculate-r-o-p')->dailyAt('01:00');

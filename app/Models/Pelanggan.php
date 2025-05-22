@@ -19,10 +19,6 @@ class Pelanggan extends Model
         'alamat',
     ];
 
-    // public function produk(): BelongsTo
-    // {
-    //     return $this->belongsTo(Pemilik::class, 'id_pemilik');
-    // }
 
     protected function serializeDate(\DateTimeInterface $date)
     {

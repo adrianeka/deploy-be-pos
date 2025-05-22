@@ -14,7 +14,7 @@ class Pembelian extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     protected $primaryKey = 'id_pembelian';
-    protected $fillable = ['id_pembelian', 'id_pemasok', 'total_harga', 'status_pembelian'];
+    protected $fillable = ['id_pembelian', 'id_pemasok', 'total_harga', 'status_pembelian', 'tanggal_kedatangan'];
 
     public function pemasok()
     {
