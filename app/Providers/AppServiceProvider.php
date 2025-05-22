@@ -5,6 +5,16 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\App;
 use BezhanSalleh\FilamentLanguageSwitch\LanguageSwitch;
+use App\Models\PembayaranPembelian;
+use App\Models\Pembayaran;
+use App\Models\PembayaranPenjualan;
+use App\Models\BayarZakat;
+use App\Observers\BayarZakatObserver;
+use App\Observers\PembayaranPembelianObserver;
+use App\Observers\PembayaranObserver;
+use App\Observers\PembayaranPenjualanObserver;
+
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,10 +31,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        LanguageSwitch::configureUsing(function (LanguageSwitch $switch) {
-            $switch
-                ->locales(['id', 'en']);
-        });
+        // LanguageSwitch::configureUsing(function (LanguageSwitch $switch) {
+        //     $switch
+        //         ->locales(['id', 'en']);
+        // });
+
+        PembayaranPembelian::observe(PembayaranPembelianObserver::class);
+        PembayaranPenjualan::observe(PembayaranPenjualanObserver::class);
+        Pembayaran::observe(PembayaranObserver::class);
+        BayarZakat::observe(BayarZakatObserver::class);
 
         App::setLocale('id');
     }

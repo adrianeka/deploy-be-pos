@@ -14,6 +14,7 @@ use App\Models\Pembayaran;
 use App\Models\PembayaranPenjualan;
 use App\Models\TipeTransfer;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class PenjualanController extends Controller
 {
@@ -83,7 +84,7 @@ class PenjualanController extends Controller
         try {
             $penjualan = Penjualan::with([
                 'penjualanDetail.produk.satuan',
-                'kasir',
+                'kasir.pemilik',
                 'pelanggan',
                 'pembayaran' => function($query) {
                     $query->with(['tipeTransfer']);
@@ -119,7 +120,10 @@ class PenjualanController extends Controller
                         'total_bayar' => $pembayaran->total_bayar ?? 0,
                         'tanggal' => $pembayaran->created_at->format('Y-m-d H:i:s') ?? "-"
                     ];
-                })
+                }),
+                'nama_perusahaan' => $penjualan->kasir?->pemilik?->nama_perusahaan ?? '-',
+                'alamat_toko' => $penjualan->kasir?->pemilik?->alamat_toko ?? '-',
+                'jenis_usaha' => $penjualan->kasir?->pemilik?->jenis_usaha ?? '-',
             ];
 
             return response()->json([
@@ -282,11 +286,14 @@ class PenjualanController extends Controller
                 'id_pembayaran' => $pembayaran->id_pembayaran,
             ]);
 
+            // Refresh penjualan untuk update uang_diterima
+            $penjualan->refresh();
             if ($penjualan->uang_diterima >= $penjualan->total_harga && $penjualan->status_penjualan != StatusTransaksiPenjualan::Pesanan) {
                 $penjualan->status_penjualan = StatusTransaksiPenjualan::Lunas;
                 $penjualan->save();
             }
 
+            
             DB::commit();
 
             return response()->json([
@@ -424,13 +431,6 @@ class PenjualanController extends Controller
                     'message' => 'Produk dengan ID ' . $request->id_produk . ' tidak ditemukan dalam penjualan.'
                 ], 404);
             }
-
-            // if ($detail->status_retur) {
-            //     return response()->json([
-            //         'success' => false,
-            //         'message' => 'Produk dengan ID ' . $request->id_produk . ' sudah diretur.'
-            //     ], 422);
-            // }
 
             if ($request->jumlah_retur > $detail->jumlah_produk) {
                 return response()->json([

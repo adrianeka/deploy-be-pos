@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('pembelian_detail', function (Blueprint $table) {
             $table->id('id_pembelian_detail');
-            $table->foreignId('id_pembelian')->references('id_pembelian')->on('pembelian')->onDelete('cascade');
+            $table->string('id_pembelian');
+            $table->foreign('id_pembelian')->references('id_pembelian')->on('pembelian')->onDelete('cascade');
             $table->foreignId('id_produk')->references('id_produk')->on('produk')->onDelete('cascade');
             $table->integer('jumlah_produk');
             $table->timestamps();

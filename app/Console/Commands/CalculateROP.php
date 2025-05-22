@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\ReorderPointService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class CalculateROP extends Command
 {
@@ -26,7 +27,18 @@ class CalculateROP extends Command
      */
     public function handle()
     {
-        (new ReorderPointService)->calculate();
-        $this->info('Perhitungan ROP selesai.');
+        try {
+            $result = (new \App\ReorderPointService)->calculate();
+            $bulanProses = now()->translatedFormat('F Y');
+            $jumlahProduk = isset($result['data']) ? count($result['data']) : 0;
+            $this->info("Perhitungan ROP selesai untuk bulan: $bulanProses");
+            $this->info("Jumlah produk yang diproses: $jumlahProduk");
+            Log::info("ROP dijalankan pada: " . now() . " | Bulan: $bulanProses | Jumlah produk: $jumlahProduk");
+        } catch (\Throwable $e) {
+            $this->error("Terjadi error: " . $e->getMessage());
+            Log::error("Error saat menjalankan ROP: " . $e->getMessage(), [
+                'exception' => $e,
+            ]);
+        }
     }
 }

@@ -7,6 +7,7 @@ use App\Filament\Resources\PembelianResource\Pages;
 use App\Filament\Resources\PembelianResource\Widgets\PembelianOverview;
 use App\Models\Pembelian;
 use App\Models\TipeTransfer;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Actions\Exports\Models\Export;
 use Filament\Facades\Filament;
@@ -16,7 +17,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components;
 use Filament\Pages\SubNavigationPosition;
-use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms;
@@ -28,7 +28,7 @@ use Filament\Infolists\Infolist;
 use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
-
+use Tuxones\JsMoneyField\Tables\Columns\JSMoneyColumn;
 
 class PembelianResource extends Resource
 {
@@ -37,6 +37,7 @@ class PembelianResource extends Resource
     protected static ?string $label = 'Transaksi Pembelian';
     protected static ?string $pluralLabel = 'Transaksi Pembelian';
     protected static ?string $navigationLabel = 'Pembelian Produk';
+    protected static ?string $slug = 'pembelian';
     protected static ?int $navigationSort = 1;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -47,7 +48,7 @@ class PembelianResource extends Resource
 
     protected static array $tipePembayaranOptions = [
         'bank' => 'Bank',
-        'e-money' => 'E-Money',
+        'e-wallet' => 'E-wallet',
     ];
 
     public static function getWidgets(): array
@@ -82,21 +83,23 @@ class PembelianResource extends Resource
                             ->schema([
                                 static::getProdukRepeater(),
                             ]),
+
+                        Components\Section::make('Data Pembayaran')
+                            ->collapsible()
+                            ->headerActions([
+                                Action::make('reset')
+                                    ->modalHeading('Apakah Anda yakin?')
+                                    ->modalDescription('Semua pembayaran yang sudah ada akan dihapus')
+                                    ->requiresConfirmation()
+                                    ->requiresConfirmation()
+                                    ->color('danger')
+                                    ->action(fn(Forms\Set $set) => $set('pembayaran', [])),
+                            ])
+                            ->schema([
+                                static::getPembayaranRepeater(),
+                            ]),
                     ])
                     ->columnSpan(['lg' => fn(?Pembelian $record) => $record === null ? 3 : 2]),
-
-                Forms\Components\Section::make()
-                    ->schema([
-                        Forms\Components\Placeholder::make('created_at')
-                            ->label('Dibuat pada')
-                            ->content(fn(Pembelian $record): ?string => $record->created_at?->diffForHumans()),
-
-                        Forms\Components\Placeholder::make('updated_at')
-                            ->label('Terakhir diubah pada')
-                            ->content(fn(Pembelian $record): ?string => $record->updated_at?->diffForHumans()),
-                    ])
-                    ->columnSpan(['lg' => 1])
-                    ->hidden(fn(?Pembelian $record) => $record === null),
             ]);
     }
 
@@ -120,13 +123,18 @@ class PembelianResource extends Resource
                         return "Laporan Pembelian-{$date}.csv";
                     })
             ])
-            ->defaultSort('pembelian.created_at', 'tanggal_pembelian', 'desc')
+            ->defaultSort('pembelian.created_at', 'desc')
             ->columns([
+                TextColumn::make('id_pembelian')
+                    ->label('Nomor Invoice')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('pemasok.nama_perusahaan')
                     ->label('Nama Perusahaan')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('total_harga')
+                JSMoneyColumn::make('total_harga')
                     ->label('Total Harga')
                     ->formatStateUsing(fn($state) => $state ? 'Rp. ' . number_format($state, 0, ',', '.') : '-')
                     ->searchable()
@@ -179,7 +187,7 @@ class PembelianResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                DeleteBulkAction::make()
+                Tables\Actions\DeleteBulkAction::make()
             ])
             ->groups([
                 Tables\Grouping\Group::make('created_at')
@@ -198,22 +206,21 @@ class PembelianResource extends Resource
                         Section::make('Data Transaksi')
                             ->schema([
                                 TextEntry::make('pemasok.nama_perusahaan')
-                                    ->label('Nama Perusahaan Pemasok'),
+                                    ->label('Nama Perusahaan'),
 
                                 TextEntry::make('uang_diterima')
                                     ->label('Total Yang Sudah Dibayar')
                                     ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
 
-                                TextEntry::make('pemasok.alamat')
-                                    ->label('Alamat'),
+                                TextEntry::make('id_pembelian')
+                                    ->label('Nomor Invoice'),
 
                                 TextEntry::make('total_harga')
                                     ->label('Total Harga')
                                     ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state ?? 0, 0, ',', '.')),
 
-
-                                TextEntry::make('pemasok.no_telp')
-                                    ->label('Nomor Telepon'),
+                                TextEntry::make('pemasok.alamat')
+                                    ->label('Alamat Perusahaan'),
 
                                 TextEntry::make('uang_kembalian')
                                     ->label('Uang Kembalian')
@@ -249,9 +256,36 @@ class PembelianResource extends Resource
     public static function getDetailsFormSchema(): array
     {
         return [
+            Components\TextInput::make('id_pembelian')
+                ->label('Nomor Invoice')
+                ->default(function (?Model $record) {
+                    if ($record) {
+                        return $record->id_pembelian;
+                    }
+
+                    $tanggal = Carbon::now()->format('Ymd');
+                    $kodeToko = Filament::auth()->user()?->id ?? 0;
+
+                    $latestId = \App\Models\Pembelian::whereDate('created_at', now())
+                        ->where('id_pembelian', 'like', "INV-{$kodeToko}{$tanggal}%")
+                        ->orderByDesc('id_pembelian')
+                        ->value('id_pembelian');
+
+                    $lastNumber = $latestId ? (int)substr($latestId, -3) : 0;
+                    $urutan = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+
+                    return "INV-{$kodeToko}{$tanggal}{$urutan}";
+                })
+                ->disabled()
+                ->dehydrated(true),
+
             Components\Select::make('id_pemasok')
                 ->label('Nama Perusahaan Pemasok')
-                ->relationship('pemasok', 'nama_perusahaan')
+                ->relationship(
+                    'pemasok',
+                    'nama_perusahaan',
+                    fn ($query) => $query->where('id_pemilik', Filament::auth()->id())
+                )
                 ->searchable()
                 ->preload()
                 ->required()
@@ -260,12 +294,14 @@ class PembelianResource extends Resource
                         ->label('Nama Perusahaan')
                         ->required()
                         ->maxLength(255),
+
                     Components\TextInput::make('no_telp')
                         ->label('Nomor Telepon')
                         ->required()
                         ->numeric()
                         ->minLength(10)
                         ->maxLength(15),
+
                     Components\TextInput::make('alamat')
                         ->label('Alamat')
                         ->required()
@@ -277,12 +313,11 @@ class PembelianResource extends Resource
                 ])
                 ->createOptionAction(function (Action $action) {
                     return $action
-                        ->modalHeading('Tambah Pelanggan')
+                        ->modalHeading('Tambah Pemasok')
                         ->modalWidth('lg');
                 }),
         ];
     }
-
 
     public static function getProdukRepeater(): Forms\Components\Component
     {
@@ -293,7 +328,11 @@ class PembelianResource extends Resource
                 ->schema([
                     Forms\Components\Select::make('id_produk')
                         ->label('Produk')
-                        ->relationship('produk', 'nama_produk')
+                        ->relationship(
+                            'produk', 
+                            'nama_produk',
+                            fn ($query) => $query->where('id_pemilik', Filament::auth()->id())
+                        )
                         ->required()
                         ->reactive()
                         ->preload()
@@ -317,6 +356,7 @@ class PembelianResource extends Resource
                             Forms\Components\TextInput::make('jumlah_produk')
                                 ->label('Jumlah')
                                 ->numeric()
+                                ->minValue(1)
                                 ->default(1)
                                 ->required()
                                 ->reactive()
@@ -347,7 +387,13 @@ class PembelianResource extends Resource
 
                     Forms\Components\Hidden::make('harga_beli')
                         ->dehydrated()
-                        ->reactive(),
+                        ->reactive()
+                        ->afterStateHydrated(function (Forms\Set $set, callable $get) {
+                            if (!$get('harga_beli')) {
+                                $produk = \App\Models\Produk::find($get('id_produk'));
+                                $set('harga_beli', $produk?->harga_beli ?? 0);
+                            }
+                        }),
 
                     Forms\Components\Placeholder::make('sub_total_harga_display')
                         ->label('Sub Total Harga')
@@ -357,7 +403,12 @@ class PembelianResource extends Resource
 
                     Forms\Components\Hidden::make('sub_total_harga')
                         ->dehydrated()
-                        ->reactive(),
+                        ->reactive()
+                        ->afterStateHydrated(function (Forms\Set $set, callable $get) {
+                            $harga = $get('harga_beli') ?? 0;
+                            $jumlah = $get('jumlah_produk') ?? 1;
+                            $set('sub_total_harga', $harga * $jumlah);
+                        }),
                 ])
                 ->dehydrated()
                 ->reactive()
@@ -379,8 +430,6 @@ class PembelianResource extends Resource
                 ->columnSpanFull(),
         ])->columnSpanFull();
     }
-
-
 
     public static function getPembayaranFormSchema(): array
     {
@@ -414,26 +463,229 @@ class PembelianResource extends Resource
             Components\Select::make('id_tipe_transfer')
                 ->label('Jenis Transfer')
                 ->options(function ($get) {
-                    $tipe = $get('tipe_pembayaran'); // 'bank' atau 'e-money'
+                    $tipe = $get('tipe_pembayaran');
                     return $tipe ? TipeTransfer::getOpsiByMetodeTransfer($tipe) : [];
                 })
                 ->required()
                 ->visible(
                     fn($get) =>
                     $get('metode_pembayaran') === 'transfer' &&
-                        in_array($get('tipe_pembayaran'), ['bank', 'e-money'])
+                        in_array($get('tipe_pembayaran'), ['bank', 'e-wallet'])
                 )
                 ->searchable()
                 ->reactive(),
         ];
     }
 
+    public static function getPembayaranRepeater(): Forms\Components\Component
+    {
+        return Forms\Components\Group::make([
+            Forms\Components\Repeater::make('pembayaranPembelian')
+                ->relationship('pembayaranPembelian')
+                ->schema([
+                    Forms\Components\Hidden::make('id_pembayaran')
+                        ->afterStateHydrated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
+                            if (!$state) {
+                                return;
+                            }
+
+                            $pembayaran = \App\Models\Pembayaran::find($state);
+                            if ($pembayaran) {
+                                $set('total_bayar', $pembayaran->total_bayar);
+                                $set('jenis_pembayaran', $pembayaran->jenis_pembayaran);
+                                $set('id_tipe_transfer', $pembayaran->id_tipe_transfer);
+                                $set('keterangan', $pembayaran->keterangan);
+
+                                if ($pembayaran->id_tipe_transfer) {
+                                    $tipeTransfer = \App\Models\TipeTransfer::find($pembayaran->id_tipe_transfer);
+                                    if ($tipeTransfer) {
+                                        $set('tipe_pembayaran', $tipeTransfer->metode_transfer);
+                                    }
+                                }
+                            }
+                        }),
+
+                    Forms\Components\Select::make('jenis_pembayaran')
+                        ->label('Metode Pembayaran')
+                        ->options(self::$metodePembayaranOptions)
+                        ->afterStateUpdated(function ($state, Forms\Set $set) {
+                            if ($state === 'tunai') {
+                                $set('id_tipe_transfer', null);
+                                $set('tipe_pembayaran', null);
+                            }
+                        })
+                        ->required()
+                        ->reactive()
+                        ->columnSpan(['md' => 3])
+                        ->live(),
+
+                    Forms\Components\TextInput::make('total_bayar')
+                        ->label('Nominal')
+                        ->prefix('Rp. ')
+                        ->numeric()
+                        ->required()
+                        ->columnSpan(['md' => 3])
+                        ->visible(fn(callable $get) => in_array($get('jenis_pembayaran'), ['tunai', 'transfer']))
+                        ->live()
+                        ->afterStateUpdated(fn() => null),
+
+                    Forms\Components\Select::make('tipe_pembayaran')
+                        ->label('Tipe Pembayaran')
+                        ->options(self::$tipePembayaranOptions)
+                        ->required()
+                        ->reactive()
+                        ->columnSpan(['md' => 2])
+                        ->visible(fn(callable $get) => $get('jenis_pembayaran') === 'transfer')
+                        ->live(),
+
+                    Forms\Components\Select::make('id_tipe_transfer')
+                        ->label('Jenis Transfer')
+                        ->options(function (callable $get) {
+                            $tipe = $get('tipe_pembayaran');
+                            return $tipe ? TipeTransfer::getOpsiByMetodeTransfer($tipe) : [];
+                        })
+                        ->required()
+                        ->visible(
+                            fn(callable $get) =>
+                            $get('jenis_pembayaran') === 'transfer' &&
+                                in_array($get('tipe_pembayaran'), ['bank', 'e-wallet'])
+                        )
+                        ->searchable()
+                        ->reactive()
+                        ->columnSpan(['md' => 2]),
+                ])
+                ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
+                    $pembayaran = \App\Models\Pembayaran::create([
+                        'total_bayar' => $data['total_bayar'],
+                        'jenis_pembayaran' => $data['jenis_pembayaran'],
+                        'id_tipe_transfer' => $data['id_tipe_transfer'] ?? null,
+                        'keterangan' => $data['keterangan'] ?? null,
+                    ]);
+
+                    return [
+                        'id_pembayaran' => $pembayaran->id_pembayaran,
+                    ];
+                })
+                ->dehydrated()
+                ->reactive()
+                ->addActionLabel('Tambah Pembayaran')
+                ->defaultItems(1)
+                ->hiddenLabel()
+                ->columns([
+                    'md' => 10,
+                ])
+                ->live(true),
+
+            Forms\Components\Placeholder::make('total_pembayaran_display')
+                ->label('Total Pembayaran')
+                ->content(function (Forms\Get $get, ?Pembelian $record) {
+                    if ($record) {
+                        return 'Rp. ' . number_format($record->uang_diterima, 0, ',', '.');
+                    }
+
+                    $pembayaranItems = $get('pembayaranPembelian') ?? [];
+                    $total = 0;
+
+                    foreach ($pembayaranItems as $item) {
+                        $total += $item['total_bayar'] ?? 0;
+                    }
+
+                    return 'Rp. ' . number_format($total, 0, ',', '.');
+                })
+                ->columnSpanFull(),
+
+            Forms\Components\Placeholder::make('status_pembayaran')
+                ->label(function (Forms\Get $get) {
+                    $pembayaranItems = $get('pembayaranPembelian') ?? [];
+                    $totalPembayaran = 0;
+
+                    foreach ($pembayaranItems as $item) {
+                        $totalPembayaran += $item['total_bayar'] ?? 0;
+                    }
+
+                    $pembelianDetail = $get('pembelianDetail') ?? [];
+                    $totalPembelian = 0;
+
+                    foreach ($pembelianDetail as $item) {
+                        $totalPembelian += $item['sub_total_harga'] ?? 0;
+                    }
+
+                    return $totalPembayaran > $totalPembelian ? 'Uang Kembalian' : 'Sisa Pembayaran';
+                })
+                ->content(function (Forms\Get $get, ?Pembelian $record) {
+                    $pembayaranItems = $get('pembayaranPembelian') ?? [];
+                    $totalPembayaran = 0;
+
+                    foreach ($pembayaranItems as $item) {
+                        $totalPembayaran += $item['total_bayar'] ?? 0;
+                    }
+
+                    $pembelianDetail = $get('pembelianDetail') ?? [];
+                    $totalPembelian = 0;
+
+                    foreach ($pembelianDetail as $item) {
+                        $totalPembelian += $item['sub_total_harga'] ?? 0;
+                    }
+
+                    if ($totalPembayaran > $totalPembelian) {
+                        $kembalian = $totalPembayaran - $totalPembelian;
+                        return 'Rp. ' . number_format($kembalian, 0, ',', '.');
+                    } else {
+                        $sisa = $totalPembelian - $totalPembayaran;
+                        return 'Rp. ' . number_format($sisa, 0, ',', '.');
+                    }
+                })
+                ->columnSpanFull(),
+
+            Forms\Components\Hidden::make('total_harga')
+                ->reactive()
+                ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                    $pembelianDetail = $get('pembelianDetail') ?? [];
+                    $totalHarga = 0;
+
+                    foreach ($pembelianDetail as $item) {
+                        $totalHarga += $item['sub_total_harga'] ?? 0;
+                    }
+
+                    $set('total_harga', $totalHarga);
+                })
+                ->dehydrated(true),
+
+            Forms\Components\Hidden::make('status_pembelian')
+                ->reactive()
+                ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                    $pembayaranItems = $get('pembayaranPembelian') ?? [];
+                    $totalPembayaran = 0;
+
+                    foreach ($pembayaranItems as $item) {
+                        $totalPembayaran += $item['total_bayar'] ?? 0;
+                    }
+
+                    $pembelianDetail = $get('pembelianDetail') ?? [];
+                    $totalPembelian = 0;
+
+                    foreach ($pembelianDetail as $item) {
+                        $totalPembelian += $item['sub_total_harga'] ?? 0;
+                    }
+
+                    if ($totalPembayaran >= $totalPembelian) {
+                        $set('status_pembelian', 'lunas');
+                    } else {
+                        $set('status_pembelian', 'belum lunas');
+                    }
+                })
+                ->dehydrated(true),
+        ])->columnSpanFull()
+            ->reactive()
+            ->live();
+    }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListPembelians::route('/'),
             'create' => Pages\CreatePembelian::route('/create'),
+            'edit' => Pages\EditPembelian::route('/{record}/edit'),
             'view' => Pages\ViewTransaksiPembelian::route('/{record}'),
         ];
     }

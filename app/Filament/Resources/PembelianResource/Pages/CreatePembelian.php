@@ -6,6 +6,8 @@ use App\Filament\Resources\PembelianResource;
 use App\Models\Pembayaran;
 use App\Models\PembayaranPembelian;
 use App\Models\Pembelian;
+use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Wizard;
 use Filament\Forms\Components\Wizard\Step;
@@ -42,6 +44,7 @@ class CreatePembelian extends CreateRecord
                 ->sum(fn($item) => $item['sub_total_harga'] ?? 0);
 
             $pembelian = Pembelian::create([
+                'id_pembelian' => $data['id_pembelian'],
                 'id_pemasok' => $data['id_pemasok'],
                 'total_harga' => $total,
                 'status_pembelian' => 'diproses',

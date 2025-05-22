@@ -87,6 +87,17 @@ class StokResource extends Resource
             ->query(
                 Produk::query()->where('id_pemilik', Filament::auth()->id())
             )
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(StokExporter::class)
+                    ->formats([
+                        ExportFormat::Xlsx,
+                    ])
+                    ->fileName(function (Export $export): string {
+                        $date = now()->format('Ymd');
+                        return "Laporan Stok Produk Tersedia-{$date}";
+                    })
+            ])
             ->columns([
                 TextColumn::make('nama_produk')
                     ->label('Nama Produk')

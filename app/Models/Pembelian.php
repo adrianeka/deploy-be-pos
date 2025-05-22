@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\StatusTransaksiPembelian;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,8 +11,10 @@ class Pembelian extends Model
     use HasFactory;
 
     protected $table = 'pembelian';
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $primaryKey = 'id_pembelian';
-    protected $fillable = ['id_pemasok', 'total_harga', 'status_pembelian'];
+    protected $fillable = ['id_pembelian', 'id_pemasok', 'total_harga', 'status_pembelian', 'tanggal_kedatangan'];
 
     public function pemasok()
     {
@@ -72,22 +73,6 @@ class Pembelian extends Model
             get: fn() => $this->uang_diterima < $this->total_harga
                 ? $this->total_harga - $this->uang_diterima
                 : 0,
-        );
-    }
-
-    protected function sisaPembayaran(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                $totalHarga = $this->total_harga;
-                $totalDiterima = $this->uang_diterima;
-
-                if (in_array($this->status_pembelian, ['belum lunas', 'diproses'])) {
-                    $sisa = $totalHarga - $totalDiterima;
-                    return max($sisa, 0);
-                }
-                return 0;
-            }
         );
     }
 }

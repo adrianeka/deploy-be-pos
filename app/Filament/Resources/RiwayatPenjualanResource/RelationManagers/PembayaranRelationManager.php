@@ -24,16 +24,18 @@ class PembayaranRelationManager extends RelationManager
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('pembayaran.metode_pembayaran.jenis_pembayaran')
+                Tables\Columns\TextColumn::make('pembayaran.jenis_pembayaran')
                     ->label('Metode Pembayaran')
                     ->formatStateUsing(fn($state) => Str::ucfirst($state)),
 
-                Tables\Columns\TextColumn::make('pembayaran.metode_pembayaran.tipe_transfer.metode_transfer')
-                    ->label('Tipe Transfer')
+                Tables\Columns\TextColumn::make('pembayaran.tipeTransfer.metode_transfer')
+                    ->label('Metode Transfer')
+                    ->getStateUsing(fn($record) => $record->pembayaran?->tipeTransfer?->metode_transfer ?? '-')
                     ->formatStateUsing(fn($state) => Str::ucfirst($state)),
 
-                Tables\Columns\TextColumn::make('pembayaran.metode_pembayaran.tipe_transfer.jenis_transfer')
-                    ->label('Jenis Transfer'),
+                Tables\Columns\TextColumn::make('pembayaran.tipeTransfer.jenis_transfer')
+                    ->label('Jenis Transfer')
+                    ->getStateUsing(fn($record) => $record->pembayaran?->tipeTransfer?->jenis_transfer ?? '-'),
 
                 Tables\Columns\TextColumn::make('pembayaran.total_bayar')
                     ->label('Total Bayar')

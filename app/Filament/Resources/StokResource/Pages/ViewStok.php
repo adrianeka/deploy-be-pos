@@ -9,7 +9,7 @@ use Filament\Actions\Action;
 class ViewStok extends ViewRecord
 {
     protected static string $resource = StokResource::class;
-    protected static ?string $title = 'Detail Stok Produk';
+    protected static ?string $title = 'Stok Produk';
 
     protected function getHeaderActions(): array
     {

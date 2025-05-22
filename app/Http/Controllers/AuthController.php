@@ -15,12 +15,18 @@ class AuthController extends Controller
     public function checkToken(Request $request): JsonResponse
     {
         try {
-            // Jika middleware auth:sanctum sudah melewatkan request ke sini,
-            // artinya token valid dan kita hanya perlu mengembalikan data user
-            
-            $user = $request->user();
-            
-            if (!$user) {
+            $token = $request->bearerToken();
+            if (!$token) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token tidak ditemukan',
+                    'valid' => false
+                ], 401);
+            }
+
+            // Cek token di tabel personal_access_tokens
+            $tokenModel = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+            if (!$tokenModel) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Token tidak valid',
@@ -28,7 +34,8 @@ class AuthController extends Controller
                 ], 401);
             }
 
-            // Jika user adalah kasir, tambahkan data kasir
+            $user = $tokenModel->tokenable;
+
             $response = [
                 'success' => true,
                 'message' => 'Token valid',
@@ -42,7 +49,7 @@ class AuthController extends Controller
             ];
 
             if ($user->role === 'kasir') {
-                $kasir = Kasir::where('id_user', $user->id)->first();
+                $kasir = \App\Models\Kasir::where('id_user', $user->id)->first();
                 if ($kasir) {
                     $response['kasir'] = $kasir;
                 }

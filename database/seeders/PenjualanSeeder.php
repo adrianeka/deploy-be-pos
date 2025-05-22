@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Kasir;
+use App\Models\LevelHarga;
 use App\Models\Pembayaran;
 use App\Models\PembayaranPenjualan;
 use App\Models\Penjualan;
@@ -15,6 +16,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Faker\Factory as Faker;
+
 class PenjualanSeeder extends Seeder
 {
     public function run()
@@ -29,7 +31,7 @@ class PenjualanSeeder extends Seeder
         $faker = Faker::create();
 
         // 1. Buat stok unlimited sementara
-        $produks = Produk::all();
+        $produks = Produk::with('level_hargas')->get();
         foreach ($produks as $produk) {
             DB::table('stok')->insert([
                 'id_produk' => $produk->id_produk,
@@ -49,6 +51,9 @@ class PenjualanSeeder extends Seeder
         $currentDay = null;
         $dailyCounter = 1;
 
+        // Level harga yang tersedia (untuk pemilihan acak)
+        $levelNames = ['Standart'];
+
         while ($startDate->lte($endDate)) {
             // Reset counter if it's a new day
             if ($currentDay != $startDate->format('Ymd')) {
@@ -60,10 +65,38 @@ class PenjualanSeeder extends Seeder
             for ($i = 0; $i < $jumlahTransaksi; $i++) {
                 $tanggal = $startDate->copy()->setTime(rand(8, 18), rand(0, 59), 0);
 
+                // Get random product
                 $produk = $produks->random();
                 $jumlah = rand(1, 3);
-                $harga = $produk->harga_beli * 1.2;
-                $harga = round($harga / 1000) * 1000;
+
+                // Get a random level price or standart by default
+                $levelName = $faker->randomElement($levelNames);
+
+                // Find the level price record
+                $levelHarga = $produk->level_hargas()
+                    ->whereRaw('LOWER(nama_level) = ?', [strtolower($levelName)])
+                    ->first();
+
+                // If level price not found, use standart or calculate from harga_beli
+                if (!$levelHarga) {
+                    $levelHarga = $produk->level_hargas()
+                        ->whereRaw('LOWER(nama_level) = ?', ['standart'])
+                        ->first();
+
+                    // If still not found, calculate a price
+                    if (!$levelHarga) {
+                        $harga = $produk->harga_beli * 1.2;
+                        $harga = round($harga / 1000) * 1000;
+                        $idLevelHarga = null;
+                    } else {
+                        $harga = $levelHarga->harga_jual;
+                        $idLevelHarga = $levelHarga->id_level_harga;
+                    }
+                } else {
+                    $harga = $levelHarga->harga_jual;
+                    $idLevelHarga = $levelHarga->id_level_harga;
+                }
+
                 $total = $jumlah * $harga;
                 $bayar = $faker->randomElement([$total, $total - rand(5000, 20000)]);
 
@@ -73,7 +106,7 @@ class PenjualanSeeder extends Seeder
                 if ($metode === 'transfer') {
                     $transfer = $faker->randomElement([
                         ['metode_transfer' => 'Bank', 'jenis_transfer' => 'BRI'],
-                        ['metode_transfer' => 'E-money', 'jenis_transfer' => 'OVO']
+                        ['metode_transfer' => 'E-wallet', 'jenis_transfer' => 'OVO']
                     ]);
                 }
 
@@ -88,7 +121,11 @@ class PenjualanSeeder extends Seeder
                     'jenis_transfer' => $transfer['jenis_transfer'],
                     'diskon' => 0,
                     'details' => [
-                        ['id_produk' => $produk->id_produk, 'jumlah_produk' => $jumlah, 'harga_jual' => $harga]
+                        [
+                            'id_produk' => $produk->id_produk,
+                            'jumlah_produk' => $jumlah,
+                            'harga_jual' => $harga
+                        ]
                     ]
                 ], 'INV-' . $idPemilik . $tanggal->format('Ymd') . str_pad($dailyCounter++, 3, '0', STR_PAD_LEFT));
             }
@@ -101,17 +138,10 @@ class PenjualanSeeder extends Seeder
 
     protected function createTransaction($data, $idPenjualan)
     {
-        // // Cek stok untuk semua produk terlebih dahulu
-        // foreach ($data['details'] as $detail) {
-        //     $stokTersedia = Stok::getStokTersediaByProduk($detail['id_produk']);
-        //     if ($stokTersedia < $detail['jumlah_produk']) {
-        //         return; // Skip transaksi jika stok tidak cukup
-        //     }
-        // }
         DB::transaction(function () use ($data, $idPenjualan) {
             // Determine status
-            $status = $data['is_pesanan'] 
-                ? 'pesanan' 
+            $status = $data['is_pesanan']
+                ? 'pesanan'
                 : (($data['total_bayar'] ?? 0) >= $data['total_harga'] ? 'lunas' : 'belum lunas');
 
             // Create penjualan
@@ -128,10 +158,14 @@ class PenjualanSeeder extends Seeder
 
             // Create details
             foreach ($data['details'] as $detail) {
-                PenjualanDetail::create(array_merge(
-                    ['id_penjualan' => $idPenjualan],
-                    $detail
-                ));
+                // Create penjualan detail (without id_level_harga as it doesn't exist in table)
+                PenjualanDetail::create([
+                    'id_penjualan' => $idPenjualan,
+                    'id_produk' => $detail['id_produk'],
+                    'jumlah_produk' => $detail['jumlah_produk'],
+                    'harga_jual' => $detail['harga_jual'],
+                    'status_retur' => 0
+                ]);
 
                 if (isset($detail['id_produk'])) {
                     DB::table('stok')->insert([
@@ -147,12 +181,14 @@ class PenjualanSeeder extends Seeder
 
             // Create payment if not utang
             if (strtolower($data['jenis_pembayaran'] ?? '') != 'utang' && isset($data['total_bayar'])) {
-                $metodePembayaran = $this->getMetodePembayaran($data);
+                $tipeTransfer = $this->getMetodePembayaran($data);
                 
                 $pembayaran = Pembayaran::create([
                     'total_bayar' => $data['total_bayar'],
                     'keterangan' => $status == 'lunas' ? 'Lunas' : 'Bayar Sebagian',
+                    'id_tipe_transfer' => $tipeTransfer->id_tipe_transfer ?? null,
                     'jenis_pembayaran' => $data['jenis_pembayaran'],
+                    'id_tipe_transfer' => $tipeTransfer ? $tipeTransfer->id_tipe_transfer : null,
                     'created_at' => $data['tanggal_penjualan'],
                     'updated_at' => $data['tanggal_penjualan']
                 ]);
@@ -180,7 +216,7 @@ class PenjualanSeeder extends Seeder
         // 2. Update stok masuk dengan nilai yang realistis
         foreach ($stokKeluar as $produkId => $keluar) {
             $stokMasuk = $keluar->total_keluar + rand(20, 50); // Stok masuk = stok keluar + buffer
-            
+
             DB::table('stok')
                 ->where('id_produk', $produkId)
                 ->where('jenis_stok', 'In')

@@ -71,7 +71,7 @@ class TipeTransferSeeder extends Seeder
             'BRIZZI (BRI)',
             'TapCash (BNI)',
             'Flazz (BCA)',
-            'e-Money (Mandiri)',
+            'E-wallet (Mandiri)',
             'JakCard (Bank DKI)',
         ];
 
@@ -88,7 +88,7 @@ class TipeTransferSeeder extends Seeder
 
         foreach ($eMonies as $eMoney) {
             $data[] = [
-                'metode_transfer' => 'e-money',
+                'metode_transfer' => 'e-wallet',
                 'jenis_transfer' => $eMoney,
                 'created_at' => now(),
                 'updated_at' => now(),

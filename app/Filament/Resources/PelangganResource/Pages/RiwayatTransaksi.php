@@ -66,9 +66,9 @@ class RiwayatTransaksi extends ManageRelatedRecords
                     ]),
             ])
             ->actions([
-                Action::make('view')
-                    ->url(fn() => '#', shouldOpenInNewTab: false)
-                    ->icon('heroicon-o-eye'),
+                Action::make('Lihat')
+                    ->icon('heroicon-o-eye')
+                    ->url(fn($record) => route('filament.admin.resources.riwayat-penjualan.view', ['record' => $record->id_penjualan]))
             ])
             ->bulkActions([])
             ->headerActions([]);

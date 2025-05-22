@@ -41,19 +41,27 @@ class RiwayatZakatResource extends Resource
     {
         return parent::getEloquentQuery()
             ->with(['penjualan'])
-            ->where('id_pemilik', Auth::user()->id_pemilik); // Filter berdasarkan id_pemilik user login
+            ->whereHas('penerimaZakat', function (Builder $query) {
+                $query->where('id_pemilik', Auth::user()->id);
+            });
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
+                TextColumn::make('id_bayar_zakat')
+                    ->label('Id Bayar Zakat')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('penerimaZakat.nama_penerima')
                     ->label('Nama Penerima')
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('nominal_zakat')
+                TextColumn::make('pembayaran.total_bayar')
                     ->label('Total Bayar')
                     ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
 
@@ -74,6 +82,7 @@ class RiwayatZakatResource extends Resource
             ->defaultSort('created_at', 'desc');
     }
 
+
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -86,7 +95,7 @@ class RiwayatZakatResource extends Resource
                                     ->label('Modal yang Terjual')
                                     ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
 
-                                TextEntry::make('nominal_zakat')
+                                TextEntry::make('pembayaran.total_bayar')
                                     ->label('Total Bayar Zakat (2.5%)')
                                     ->formatStateUsing(fn($state) => 'Rp. ' . number_format($state, 0, ',', '.')),
 
@@ -94,16 +103,16 @@ class RiwayatZakatResource extends Resource
                                     ->label('Tanggal Bayar')
                                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
 
-                                TextEntry::make('jenis_pembayaran')
+                                TextEntry::make('pembayaran.jenis_pembayaran')
                                     ->label('Metode Pembayaran')
                                     ->formatStateUsing(fn($state) => Str::ucfirst($state)),
 
-                                TextEntry::make('tipeTransfer.metode_transfer')
+                                TextEntry::make('pembayaran.tipeTransfer.metode_transfer')
                                     ->label('Metode Transfer')
                                     ->visible(fn($record) => $record->jenis_pembayaran === 'transfer')
                                     ->formatStateUsing(fn($state) => $state ? Str::ucfirst($state) : '-'),
 
-                                TextEntry::make('tipeTransfer.jenis_transfer')
+                                TextEntry::make('pembayaran.tipeTransfer.jenis_transfer')
                                     ->label('Jenis Transfer')
                                     ->visible(fn($record) => $record->jenis_pembayaran === 'transfer')
                                     ->formatStateUsing(fn($state) => $state ? Str::ucfirst($state) : '-')

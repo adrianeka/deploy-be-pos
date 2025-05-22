@@ -12,11 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('pembelian', function (Blueprint $table) {
-            $table->id('id_pembelian');
+            $table->string('id_pembelian')->primary();
             $table->unsignedTinyInteger('id_pemasok');
             $table->foreign('id_pemasok')->references('id_pemasok')->on('pemasok')->onDelete('cascade');
             $table->bigInteger('total_harga')->default(0);
             $table->enum('status_pembelian', ['diproses', 'lunas', 'belum lunas']);
+            $table->date('tanggal_kedatangan')->nullable();
             $table->timestamps();
         });
     }

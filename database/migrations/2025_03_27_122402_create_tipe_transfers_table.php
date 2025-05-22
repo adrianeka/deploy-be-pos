@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tipe_transfer', function (Blueprint $table) {
             $table->tinyIncrements('id_tipe_transfer');
-            $table->enum('metode_transfer', ['bank', 'e-money']);
+            $table->enum('metode_transfer', ['bank', 'e-wallet']);
             $table->string('jenis_transfer');
             $table->timestamps();
         });
