@@ -16,7 +16,8 @@ class BayarZakatObserver
         $pembayaran = $bayarZakat->pembayaran;
 
         ArusKeuangan::create([
-            'id_pemilik' => Filament::auth()->user()?->id,
+            // 'id_pemilik' => Filament::auth()->user()?->id,
+            'id_pemilik' => 1,
             'id_sumber' => $pembayaran->id_pembayaran,
             'keterangan' => 'Pembayaran Zakat ' . $bayarZakat->id_zakat,
             'jenis_transaksi' => 'kredit',
