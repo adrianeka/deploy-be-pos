@@ -280,8 +280,12 @@ class PembelianResource extends Resource
                 ->dehydrated(true),
 
             Components\Select::make('id_pemasok')
-                ->label('Nama Perusahaan')
-                ->relationship('pemasok', 'nama_perusahaan')
+                ->label('Nama Perusahaan Pemasok')
+                ->relationship(
+                    'pemasok',
+                    'nama_perusahaan',
+                    fn ($query) => $query->where('id_pemilik', Filament::auth()->id())
+                )
                 ->searchable()
                 ->preload()
                 ->required()
@@ -309,7 +313,7 @@ class PembelianResource extends Resource
                 ])
                 ->createOptionAction(function (Action $action) {
                     return $action
-                        ->modalHeading('Tambah Pelanggan')
+                        ->modalHeading('Tambah Pemasok')
                         ->modalWidth('lg');
                 }),
         ];
@@ -324,7 +328,11 @@ class PembelianResource extends Resource
                 ->schema([
                     Forms\Components\Select::make('id_produk')
                         ->label('Produk')
-                        ->relationship('produk', 'nama_produk')
+                        ->relationship(
+                            'produk', 
+                            'nama_produk',
+                            fn ($query) => $query->where('id_pemilik', Filament::auth()->id())
+                        )
                         ->required()
                         ->reactive()
                         ->preload()

@@ -12,13 +12,15 @@
         "filament/filament": "^3.3",
         "filament/notifications": "^3.3",
         "flowframe/laravel-trend": "^0.4.0",
+        "khaled.alshamaa/ar-php": "^7.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.20",
         "laravel/tinker": "^2.10.1",
         "nuxtifyts/dash-stack-theme": "^1.2",
         "php-open-source-saver/jwt-auth": "^2.8",
-        "tuxones/filament-js-money-field": "^0.1.6"
+        "tuxones/filament-js-money-field": "^0.1.6",
+        "pusher/pusher-php-server": "^7.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

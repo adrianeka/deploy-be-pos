@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Pembelian;
 use App\Models\Penjualan;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
@@ -160,9 +161,13 @@ class PembelianChart extends ChartWidget
                 $endDate = Carbon::parse($item->date)->endOfDay();
             }
 
-            $pembelians = Pembelian::whereBetween('created_at', [$startDate, $endDate])->get();   
-            $dibayar = $pembelians->sum('uangBayar');
-            $kembalian = $pembelians->sum('uangKembalian');
+            $pembelians = Pembelian::whereHas('pemasok', function ($query) {
+                    $query->where('id_pemilik', Filament::auth()->id());
+                })
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();   
+            $dibayar = $pembelians->sum('uang_diterima');
+            $kembalian = $pembelians->sum('uang_kembalian');
             $totalPengeluaran = $dibayar - $kembalian;
             
             return new TrendValue($item->date, $totalPengeluaran, $totalPengeluaran);
@@ -189,10 +194,13 @@ class PembelianChart extends ChartWidget
                     $endDate = Carbon::parse($item->date)->endOfDay();
                 }
             $pembelians = Pembelian::whereIn('status_pembelian', ['belum lunas', 'pesanan'])
+                ->whereHas('pemasok', function ($query) {
+                    $query->where('id_pemilik', Filament::auth()->id());
+                })
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->get();
                 
-            $totalPiutang = $pembelians->sum('sisaPembayaran');
+            $totalPiutang = $pembelians->sum('sisa_bayar');
             return new TrendValue($item->date, $totalPiutang, $totalPiutang);
             });
         } else {
@@ -232,19 +240,6 @@ class PembelianChart extends ChartWidget
                 'fill' => true,
             ];
         }
-        // $pembelians = Pembelian::get();
-        // $pengeluaran = $pembelians->sum('uangBayar');
-        // $kembalian = $pembelians->sum('uangKembalian');
-        // $piutang = $pembelians->sum('sisaPembayaran');
-        // Log::info("=== COMPARE DARI DB LANGSUNG ===");
-        // Log::info("Pengeluaran Langsung: Rp " . number_format($pengeluaran - $kembalian, 0, ',', '.'));
-        // Log::info("Utang Langsung: Rp " . number_format($piutang, 0, ',', '.'));
-
-        // Log::info("=== DARI TREND ===");
-        // Log::info("Total Pengeluaran dari Trend: Rp " . number_format($pengeluaranData->sum('aggregate'), 0, ',', '.'));
-        // Log::info("Total Utang dari Trend: Rp " . number_format($utangData->sum('aggregate'), 0, ',', '.'));
-        // Log::info("datasets", $datasets);
-        // Log::info("labels", $labels);
         return [
             'datasets' => $datasets,
             'labels' => $labels,

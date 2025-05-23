@@ -182,12 +182,13 @@ class PenjualanSeeder extends Seeder
             // Create payment if not utang
             if (strtolower($data['jenis_pembayaran'] ?? '') != 'utang' && isset($data['total_bayar'])) {
                 $tipeTransfer = $this->getMetodePembayaran($data);
-
+                
                 $pembayaran = Pembayaran::create([
                     'total_bayar' => $data['total_bayar'],
                     'keterangan' => $status == 'lunas' ? 'Lunas' : 'Bayar Sebagian',
                     'id_tipe_transfer' => $tipeTransfer->id_tipe_transfer ?? null,
                     'jenis_pembayaran' => $data['jenis_pembayaran'],
+                    'id_tipe_transfer' => $tipeTransfer ? $tipeTransfer->id_tipe_transfer : null,
                     'created_at' => $data['tanggal_penjualan'],
                     'updated_at' => $data['tanggal_penjualan']
                 ]);

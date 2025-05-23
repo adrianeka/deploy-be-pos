@@ -75,20 +75,4 @@ class Pembelian extends Model
                 : 0,
         );
     }
-
-    protected function sisaPembayaran(): Attribute
-    {
-        return Attribute::make(
-            get: function () {
-                $totalHarga = $this->total_harga;
-                $totalDiterima = $this->uang_diterima;
-
-                if (in_array($this->status_pembelian, ['belum lunas', 'diproses'])) {
-                    $sisa = $totalHarga - $totalDiterima;
-                    return max($sisa, 0);
-                }
-                return 0;
-            }
-        );
-    }
 }

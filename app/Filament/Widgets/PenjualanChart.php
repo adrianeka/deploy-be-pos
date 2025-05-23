@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\Penjualan;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
@@ -159,7 +160,11 @@ class PenjualanChart extends ChartWidget
                 $endDate = Carbon::parse($item->date)->endOfDay();
             }
 
-            $penjualans = Penjualan::whereBetween('created_at', [$startDate, $endDate])->get();   
+            $penjualans = Penjualan::whereHas('kasir', function ($query) {
+                    $query->where('id_pemilik', Filament::auth()->id());
+                })
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->get();   
             $diterima = $penjualans->sum('uangDiterima');
             $kembalian = $penjualans->sum('uangKembalian');
             $totalPendapatan = $diterima - $kembalian;
@@ -188,6 +193,9 @@ class PenjualanChart extends ChartWidget
                     $endDate = Carbon::parse($item->date)->endOfDay();
                 }
             $penjualans = Penjualan::whereIn('status_penjualan', ['belum lunas', 'pesanan'])
+                ->whereHas('kasir', function ($query) {
+                    $query->where('id_pemilik', Filament::auth()->id());
+                })
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->get();
                 
@@ -231,19 +239,6 @@ class PenjualanChart extends ChartWidget
                 'fill' => true,
             ];
         }
-        // $penjualans = Penjualan::get();
-        // $pendapatan = $penjualans->sum('uangDiterima');
-        // $kembalian = $penjualans->sum('uangKembalian');
-        // $piutang = $penjualans->sum('sisaPembayaran');
-        // Log::info("=== COMPARE DARI DB LANGSUNG ===");
-        // Log::info("Pendapatan Langsung: Rp " . number_format($pendapatan - $kembalian, 0, ',', '.'));
-        // Log::info("Piutang Langsung: Rp " . number_format($piutang, 0, ',', '.'));
-
-        // Log::info("=== DARI TREND ===");
-        // Log::info("Total Pendapatan dari Trend: Rp " . number_format($pendapatanData->sum('aggregate'), 0, ',', '.'));
-        // Log::info("Total Piutang dari Trend: Rp " . number_format($piutangData->sum('aggregate'), 0, ',', '.'));
-        // Log::info("datasets", $datasets);
-        // Log::info("labels", $labels);
         return [
             'datasets' => $datasets,
             'labels' => $labels,

@@ -279,7 +279,11 @@ class RiwayatPenjualanResource extends Resource
                 ->disabled(),
 
             Forms\Components\Select::make('id_pelanggan')
-                ->relationship('pelanggan', 'nama_pelanggan')
+                ->relationship(
+                    'pelanggan', 
+                    'nama_pelanggan',
+                    fn ($query) => $query->where('id_pemilik', Filament::auth()->id())
+                )
                 ->searchable()
                 ->required()
                 ->createOptionForm([
