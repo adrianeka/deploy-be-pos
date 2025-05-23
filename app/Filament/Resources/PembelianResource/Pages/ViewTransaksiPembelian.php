@@ -23,7 +23,6 @@ class ViewTransaksiPembelian extends ViewRecord
     public function getHeaderActions(): array
     {
         $status = $this->record->status_pembelian;
-
         $actions = [];
 
         if ($status === 'diproses') {
@@ -35,29 +34,23 @@ class ViewTransaksiPembelian extends ViewRecord
                     try {
                         $pembelian = $this->record;
 
-                        // Check if purchase exists and has valid status
                         if (!$pembelian) {
                             throw new \Exception('Data pembelian tidak ditemukan.');
                         }
 
-                        // Validate purchase details exist
                         if ($pembelian->pembelianDetail->isEmpty()) {
                             throw new \Exception('Detail pembelian tidak ditemukan.');
                         }
 
-                        // Process each product in purchase details
                         foreach ($pembelian->pembelianDetail as $detail) {
-                            // Validate product exists
                             if (!$detail->id_produk) {
                                 throw new \Exception('ID produk tidak valid pada detail pembelian.');
                             }
 
-                            // Validate quantity
                             if ($detail->jumlah_produk <= 0) {
                                 throw new \Exception('Jumlah produk tidak valid untuk produk ID: ' . $detail->id_produk);
                             }
 
-                            // Create stock entry
                             Stok::create([
                                 'id_produk' => $detail->id_produk,
                                 'jumlah_stok' => $detail->jumlah_produk,
@@ -67,10 +60,8 @@ class ViewTransaksiPembelian extends ViewRecord
                             ]);
                         }
 
-                        // Update purchase status to completed
                         $status = $pembelian->uang_diterima >= $pembelian->total_harga ? 'lunas' : 'belum lunas';
 
-                        // Update status pembelian
                         $pembelian->update([
                             'status_pembelian' => $status,
                         ]);
@@ -119,18 +110,15 @@ class ViewTransaksiPembelian extends ViewRecord
                     try {
                         $pembelian = $this->record;
 
-                        // Validasi input
                         if (!isset($data['nominal']) || $data['nominal'] <= 0) {
                             throw new \Exception('Nominal pembayaran harus lebih dari 0.');
                         }
 
-                        // Pastikan data pembayaran tersedia
                         $metode = $data['metode_pembayaran'] ?? 'tunai';
                         $tipe = ($metode === 'transfer') ? ($data['tipe_pembayaran'] ?? null) : null;
                         $idTipe = ($metode === 'transfer') ? ($data['id_tipe_transfer'] ?? null) : null;
                         $keterangan = $data['keterangan'] ?? 'Pembayaran untuk pembelian #' . $pembelian->id_pembelian;
 
-                        // Step 1: Buat pembayaran
                         $pembayaran = Pembayaran::create([
                             'total_bayar' => $data['nominal'],
                             'jenis_pembayaran' => $metode,
@@ -139,17 +127,13 @@ class ViewTransaksiPembelian extends ViewRecord
                             'keterangan' => $keterangan,
                         ]);
 
-                        // Step 2: Kaitkan ke pembelian
                         PembayaranPembelian::create([
                             'id_pembelian' => $pembelian->id_pembelian,
                             'id_pembayaran' => $pembayaran->id_pembayaran,
                         ]);
 
-                        // Step 3: Update status pembelian
-                        // Update purchase status to completed
                         $status = $pembelian->uang_diterima >= $pembelian->total_harga ? 'lunas' : 'belum lunas';
 
-                        // Update status pembelian
                         $pembelian->update([
                             'status_pembelian' => $status,
                         ]);
@@ -174,7 +158,6 @@ class ViewTransaksiPembelian extends ViewRecord
                             ->send();
                     }
                 })
-
                 ->color('danger')
                 ->modalHeading('Pembayaran Pembelian')
                 ->modalDescription('Masukkan detail pembayaran untuk pembelian ini.');

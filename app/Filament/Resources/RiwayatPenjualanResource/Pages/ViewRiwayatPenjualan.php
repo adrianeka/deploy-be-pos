@@ -11,8 +11,8 @@ use Filament\Resources\Pages\ViewRecord;
 class ViewRiwayatPenjualan extends ViewRecord
 {
     protected static string $resource = RiwayatPenjualanResource::class;
-    protected static ?string $navigationLabel = 'Detail Riwayat Penjualan';
-    protected static ?string $title = 'Detail Riwayat Penjualan';
+    protected static ?string $navigationLabel = 'Detail Transaksi Penjualan';
+    protected static ?string $title = 'Detail Transaksi Penjualan';
 
     protected function getHeaderActions(): array
     {

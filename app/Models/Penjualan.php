@@ -45,7 +45,7 @@ class Penjualan extends Model
 
     public function pembayaranPenjualan()
     {
-        return $this->hasOne(PembayaranPenjualan::class, 'id_penjualan', 'id_penjualan');
+        return $this->hasMany(PembayaranPenjualan::class, 'id_penjualan', 'id_penjualan');
     }
 
     public function pembayaran()
@@ -98,12 +98,14 @@ class Penjualan extends Model
                     ? $this->status_penjualan->value
                     : $this->status_penjualan;
 
-                if (in_array($status, [StatusTransaksiPenjualan::BelumLunas->value, 
-                                    StatusTransaksiPenjualan::Pesanan->value])) {
+                if (in_array($status, [
+                    StatusTransaksiPenjualan::BelumLunas->value,
+                    StatusTransaksiPenjualan::Pesanan->value
+                ])) {
                     $sisa = $this->total_harga - $this->uang_diterima;
                     return max($sisa, 0);
                 }
-                
+
                 return 0;
             }
         );

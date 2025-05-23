@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\StatusTransaksiPembelian;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,8 +11,10 @@ class Pembelian extends Model
     use HasFactory;
 
     protected $table = 'pembelian';
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $primaryKey = 'id_pembelian';
-    protected $fillable = ['id_pemasok', 'total_harga', 'status_pembelian'];
+    protected $fillable = ['id_pembelian', 'id_pemasok', 'total_harga', 'status_pembelian'];
 
     public function pemasok()
     {

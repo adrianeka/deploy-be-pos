@@ -8,7 +8,6 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
-use Illuminate\Database\Eloquent\Builder;
 
 class PenjualanRelationManager extends RelationManager
 {
@@ -41,10 +40,9 @@ class PenjualanRelationManager extends RelationManager
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i')),
             ])
             ->actions([
-                Action::make('View')
+                Action::make('Lihat')
                     ->icon('heroicon-o-eye')
-                    ->url(fn($record) => route('filament.admin.resources.riwayat-penjualans.view', ['record' => $record->id_penjualan]))
-                // ->openUrlInNewTab(), // atau hapus kalo mau di tab yg sama
+                    ->url(fn($record) => route('filament.admin.resources.riwayat-penjualan.view', ['record' => $record->id_penjualan]))
             ]);
     }
 }

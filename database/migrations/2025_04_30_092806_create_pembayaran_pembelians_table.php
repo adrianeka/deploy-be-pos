@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('pembayaran_pembelian', function (Blueprint $table) {
             $table->id('id_pembayaran_pembelian');
-            $table->foreignId('id_pembelian')->references('id_pembelian')->on('pembelian')->onDelete('cascade');
+            $table->string('id_pembelian');
+            $table->foreign('id_pembelian')->references('id_pembelian')->on('pembelian')->onDelete('cascade');
             $table->foreignId('id_pembayaran')->references('id_pembayaran')->on('pembayaran')->onDelete('cascade');
             $table->timestamps();
         });

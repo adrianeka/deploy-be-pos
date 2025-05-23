@@ -14,9 +14,9 @@ class ListRiwayatPenjualans extends ListRecords
     use ExposesTableToWidgets;
 
     protected static string $resource = RiwayatPenjualanResource::class;
-    protected static ?string $title = 'Daftar Riwayat Transaksi Penjualan';
+    protected static ?string $title = 'Daftar Transaksi Penjualan';
 
-    
+
     protected function getHeaderWidgets(): array
     {
         return [
@@ -35,8 +35,8 @@ class ListRiwayatPenjualans extends ListRecords
     {
         return [
             'Semua' => Tab::make('Semua')
-                ->icon('heroicon-o-check-circle'),
-                
+                ->icon('heroicon-o-bars-3-bottom-left'),
+
             'Lunas' => Tab::make('Lunas')
                 ->modifyQueryUsing(fn(Builder $query) => $query->where('penjualan.status_penjualan', 'lunas'))
                 ->icon('heroicon-o-check-circle'),

@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RiwayatPenjualanResource\Pages;
 use App\Models\Penjualan;
-use App\Enums\StatusTransaksiPenjualan;
 use App\Filament\Exports\PenjualanExporter;
 use App\Filament\Resources\RiwayatPenjualanResource\Widgets\PenjualanOverview;
 use App\Models\PenjualanDetail;
@@ -27,7 +26,7 @@ use Filament\Tables\Table;
 use App\Models\LevelHarga;
 use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Actions\Exports\Models\Export;
-use Filament\Forms\Components\Repeater;
+use App\Models\TipeTransfer;
 use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -36,8 +35,9 @@ class RiwayatPenjualanResource extends Resource
 {
     protected static ?string $model = Penjualan::class;
     protected static ?string $navigationIcon = 'heroicon-o-document-duplicate';
-    protected static ?string $label = 'Riwayat Transaksi Penjualan';
+    protected static ?string $label = 'Transaksi Penjualan';
     protected static ?string $pluralLabel = 'Transaksi Penjualan';
+    protected static ?string $slug = 'riwayat-penjualan';
     protected static ?string $navigationLabel = 'Riwayat Penjualan';
     protected static ?int $navigationSort = 2;
     public static function getWidgets(): array
@@ -46,6 +46,17 @@ class RiwayatPenjualanResource extends Resource
             PenjualanOverview::class,
         ];
     }
+
+    protected static array $metodePembayaranOptions = [
+        'tunai' => 'Tunai',
+        'transfer' => 'Transfer',
+    ];
+
+    protected static array $tipePembayaranOptions = [
+        'bank' => 'Bank',
+        'e-wallet' => 'E-wallet',
+    ];
+
     public static function form(Form $form): Form
     {
         return $form
@@ -85,21 +96,7 @@ class RiwayatPenjualanResource extends Resource
                             ]),
                     ])
                     ->columnSpan(['lg' => fn(?Penjualan $record) => $record === null ? 3 : 2]),
-
-                Forms\Components\Section::make()
-                    ->schema([
-                        Forms\Components\Placeholder::make('created_at')
-                            ->label('Dibuat pada')
-                            ->content(fn(Penjualan $record): ?string => $record->created_at?->diffForHumans()),
-
-                        Forms\Components\Placeholder::make('updated_at')
-                            ->label('Terakhir diubah pada')
-                            ->content(fn(Penjualan $record): ?string => $record->updated_at?->diffForHumans()),
-                    ])
-                    ->columnSpan(['lg' => 1])
-                    ->hidden(fn(?Penjualan $record) => $record === null),
-            ])
-            ->columns(3);
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -107,7 +104,7 @@ class RiwayatPenjualanResource extends Resource
         return $table
             ->query(function () {
                 return Penjualan::with(['pelanggan', 'kasir'])
-                    ->whereHas('pelanggan', fn($query) => $query->where('id_pemilik', Filament::auth()->id()));
+                    ->whereHas('kasir', fn($query) => $query->where('id_pemilik', Filament::auth()->id()));
             })
             ->headerActions([
                 ExportAction::make()
@@ -115,7 +112,6 @@ class RiwayatPenjualanResource extends Resource
                     ->formats([
                         ExportFormat::Xlsx,
                     ])
-                    // ->columnMapping(false)
                     ->fileName(function (Export $export): string {
                         $date = now()->format('Ymd');
                         return "LaporanPenjualan-{$date}.csv";
@@ -280,9 +276,7 @@ class RiwayatPenjualanResource extends Resource
         return [
             Forms\Components\TextInput::make('id_penjualan')
                 ->label('Nomor Invoice')
-                ->disabled()
-                ->required(),
-            //->unique(Penjualan::class, 'number', ignoreRecord: true),
+                ->disabled(),
 
             Forms\Components\Select::make('id_pelanggan')
                 ->relationship('pelanggan', 'nama_pelanggan')
@@ -383,222 +377,401 @@ class RiwayatPenjualanResource extends Resource
                         ->modalWidth('lg');
                 }),
 
-            Forms\Components\ToggleButtons::make('status_penjualan')
-                ->label('Status Penjualan')
-                ->inline(true)
-                ->options(StatusTransaksiPenjualan::class)
-                ->required(),
+            Forms\Components\TextInput::make('diskon')
+                ->label('Diskon')
+                ->required()
+                ->reactive()
+                ->afterStateUpdated(function ($state, Forms\Set $set, callable $get) {
+                    $total = $get('total_harga') ?: 0;
+                    $diskon = $state ?: 0;
+                    $set('total_harga', $total - ($total * ($diskon / 100)));
+                })
+                ->dehydrated(),
         ];
     }
 
-    public static function getProdukRepeater(): Repeater
+    public static function getProdukRepeater(): Forms\Components\Component
     {
-        return Repeater::make('penjualanDetail')
-            ->relationship('penjualanDetail')
-            ->schema([
-                // Row 1
-                Forms\Components\Select::make('id_produk')
-                    ->label('Produk')
-                    ->relationship('produk', 'nama_produk')
-                    ->required()
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, Forms\Set $set, callable $get) {
-                        if ($state) {
-                            $standardLevel = LevelHarga::where('id_produk', $state)
-                                ->whereIn('nama_level', ['Standard', 'Standart', 'Default'])
-                                ->first();
+        return Forms\Components\Group::make([
+            Forms\Components\Repeater::make('penjualanDetail')
+                ->relationship('penjualanDetail')
+                ->schema([
+                    Forms\Components\Grid::make()
+                        ->columns(10)
+                        ->schema([
+                            Forms\Components\Select::make('id_produk')
+                                ->label('Produk')
+                                ->relationship('produk', 'nama_produk')
+                                ->required()
+                                ->reactive()
+                                ->preload()
+                                ->distinct()
+                                ->disableOptionsWhenSelectedInSiblingRepeaterItems()
+                                ->afterStateUpdated(function ($state, Forms\Set $set, callable $get) {
+                                    if (!$state) {
+                                        $set('id_level_harga', null);
+                                        $set('harga_jual', 0);
+                                        $set('sub_total_harga', 0);
+                                        return;
+                                    }
+                                    $set('id_level_harga', null);
+                                    $set('harga_jual', 0);
+                                    $set('sub_total_harga', 0);
+                                })
+                                ->columnSpan(['md' => 4])
+                                ->searchable(),
 
-                            if ($standardLevel) {
-                                $set('id_level_harga', $standardLevel->id_level_harga);
-                                $set('harga_jual', $standardLevel->harga_jual);
+                            Forms\Components\Select::make('id_level_harga')
+                                ->label('Level Harga')
+                                ->options(function (callable $get) {
+                                    $idProduk = $get('id_produk');
+                                    if (!$idProduk) return [];
 
-                                $jumlah = $get('jumlah_produk') ?: 1;
-                                $set('total_harga', $standardLevel->harga_jual * $jumlah);
+                                    return \App\Models\LevelHarga::where('id_produk', $idProduk)
+                                        ->pluck('nama_level', 'id_level_harga')
+                                        ->toArray();
+                                })
+                                ->default(function (callable $get) {
+                                    $hargaJual = $get('harga_jual');
+                                    $idProduk = $get('id_produk');
+
+                                    if (!$idProduk || !$hargaJual) return null;
+
+                                    $levelHargaList = \App\Models\LevelHarga::where('id_produk', $idProduk)->get();
+
+                                    $matchingLevel = $levelHargaList->first(function ($item) use ($hargaJual) {
+                                        return $item->harga_jual === $hargaJual;
+                                    });
+                                    return $matchingLevel?->id_level_harga;
+                                })
+                                ->visible(fn(callable $get) => $get('id_produk'))
+                                ->reactive()
+                                ->afterStateHydrated(function (Forms\Set $set, callable $get) {
+                                    $idLevelHarga = $get('id_level_harga');
+                                    if (!$idLevelHarga) {
+                                        $hargaJual = $get('harga_jual');
+                                        $idProduk = $get('id_produk');
+
+                                        if ($idProduk && $hargaJual) {
+                                            $matchingLevel = \App\Models\LevelHarga::where('id_produk', $idProduk)
+                                                ->where('harga_jual', $hargaJual)
+                                                ->first();
+
+                                            if ($matchingLevel) {
+                                                $set('id_level_harga', $matchingLevel->id_level_harga);
+                                            }
+                                        }
+                                    }
+                                })
+                                ->afterStateUpdated(function ($state, Forms\Set $set, callable $get) {
+                                    if (!$state) {
+                                        $set('harga_jual', 0);
+                                        $set('sub_total_harga', 0);
+                                        return;
+                                    }
+
+                                    $levelHarga = \App\Models\LevelHarga::find($state);
+                                    if ($levelHarga) {
+                                        $set('harga_jual', $levelHarga->harga_jual);
+                                        $jumlah = $get('jumlah_produk') ?? 1;
+                                        $set('sub_total_harga', $levelHarga->harga_jual * $jumlah);
+                                    }
+                                })
+                                ->columnSpan(['md' => 2]),
+
+                            Forms\Components\TextInput::make('jumlah_produk')
+                                ->label('Jumlah')
+                                ->numeric()
+                                ->required()
+                                ->reactive()
+                                ->minValue(1)
+                                ->default(1)
+                                ->afterStateUpdated(function ($state, Forms\Set $set, callable $get) {
+                                    $harga = $get('harga_jual') ?: 0;
+                                    $jumlah = $state ?: 1;
+                                    $set('sub_total_harga', $harga * $jumlah);
+                                })
+                                ->dehydrated()
+                                ->visible(fn(callable $get) => $get('id_level_harga'))
+                                ->columnSpan(['md' => 2]),
+
+                            Forms\Components\Placeholder::make('satuan_produk')
+                                ->label('Satuan')
+                                ->content(function (callable $get) {
+                                    $produk = \App\Models\Produk::with('satuan')->find($get('id_produk'));
+                                    return $produk?->satuan?->nama_satuan ?? '-';
+                                })
+                                ->visible(fn(callable $get) => $get('id_level_harga'))
+                                ->columnSpan(['md' => 2]),
+                        ]),
+
+                    Forms\Components\Placeholder::make('harga_jual_display')
+                        ->label('Harga Jual')
+                        ->content(fn(callable $get) => 'Rp. ' . number_format($get('harga_jual') ?? 0, 0, ',', '.'))
+                        ->visible(fn(callable $get) => $get('id_level_harga'))
+                        ->columnSpan(['md' => 2]),
+
+                    Forms\Components\Hidden::make('harga_jual')
+                        ->dehydrated()
+                        ->reactive()
+                        ->afterStateHydrated(function (Forms\Set $set, callable $get, ?PenjualanDetail $record) {
+                            if ($record && $record->harga_jual) {
+                                $set('harga_jual', $record->harga_jual);
+                            } elseif (!$get('harga_jual') && $get('id_level_harga')) {
+                                $levelHarga = LevelHarga::find($get('id_level_harga'));
+                                $set('harga_jual', $levelHarga?->harga_jual ?? 0);
+                            }
+                        }),
+
+                    Forms\Components\Placeholder::make('sub_total_harga_display')
+                        ->label('Sub Total Harga')
+                        ->content(fn(callable $get) => 'Rp. ' . number_format($get('sub_total_harga') ?? 0, 0, ',', '.'))
+                        ->visible(fn(callable $get) => $get('id_level_harga'))
+                        ->columnSpan(['md' => 2]),
+
+                    Forms\Components\Hidden::make('sub_total_harga')
+                        ->dehydrated()
+                        ->reactive()
+                        ->afterStateHydrated(function (Forms\Set $set, callable $get, ?PenjualanDetail $record) {
+                            if ($record && $record->sub_total_harga) {
+                                $set('sub_total_harga', $record->sub_total_harga);
                             } else {
-                                $set('id_level_harga', null);
-                                $set('harga_jual', 0);
-                                $set('total_harga', 0);
+                                $harga = $get('harga_jual') ?? 0;
+                                $jumlah = $get('jumlah_produk') ?? 1;
+                                $set('sub_total_harga', $harga * $jumlah);
                             }
-                        } else {
-                            $set('id_level_harga', null);
-                            $set('harga_jual', 0);
-                            $set('total_harga', 0);
-                        }
+                        }),
+                ])
+                ->dehydrated()
+                ->reactive()
+                ->addActionLabel('Tambah Produk')
+                ->defaultItems(1)
+                ->hiddenLabel()
+                ->columns([
+                    'md' => 10,
+                ])
+                ->required(),
 
-                        if (!$get('jumlah_produk')) {
-                            $set('jumlah_produk', 1);
-                        }
-                    })
-
-                    ->distinct()
-                    ->disableOptionsWhenSelectedInSiblingRepeaterItems()
-                    ->columnSpan([
-                        'md' => 5,
-                    ])
-                    ->searchable(),
-
-                Forms\Components\Select::make('id_level_harga')
-                    ->label('Level Harga')
-                    ->options(fn() => LevelHarga::pluck('nama_level', 'id_level_harga')->toArray())
-                    ->default(function (?PenjualanDetail $record) {
-                        if ($record) {
-                            $hargaJual = $record->harga_jual;
-                            $productId = $record->id_produk;
-
-                            $levelHarga = LevelHarga::where('id_produk', $productId)
-                                ->where('harga_jual', $hargaJual)
-                                ->first();
-
-                            return $levelHarga?->id_level_harga;
-                        }
-
-                        return null;
-                    })
-
-                    ->disabled(function (callable $get) {
-                        // Disable select level harga jika produk belum dipilih
-                        return !$get('id_produk');
-                    })
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, Forms\Set $set, callable $get) {
-                        // Jika level harga dipilih
-                        if ($state) {
-                            // Ambil level harga yang dipilih
-                            $levelHarga = LevelHarga::find($state);
-                            if ($levelHarga) {
-                                // Set harga jual berdasarkan level harga
-                                $set('harga_jual', $levelHarga->harga_jual);
-
-                                // Hitung total harga berdasarkan jumlah produk
-                                $jumlah = $get('jumlah_produk') ?: 1;
-                                $set('total_harga', $levelHarga->harga_jual * $jumlah);
-                            }
-                        } else {
-                            // Reset harga jual dan total harga jika level harga dihapus
-                            $set('harga_jual', 0);
-                            $set('total_harga', 0);
-                        }
-                    })
-                    ->columnSpan([
-                        'md' => 5,
-                    ]),
-
-                // Row 2
-                Forms\Components\TextInput::make('jumlah_produk')
-                    ->label('Jumlah')
-                    ->numeric()
-                    ->default(1)
-                    ->required()
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, Forms\Set $set, callable $get) {
-                        $harga = $get('harga_jual') ?: 0;
-                        $jumlah = $state ?: 1;
-                        $set('total_harga', $harga * $jumlah);
-                    })
-                    ->columnSpan([
-                        'md' => 3,
-                    ]),
-
-                Forms\Components\TextInput::make('harga_jual')
-                    ->label('Harga Jual')
-                    ->numeric()
-                    ->required()
-                    ->disabled()
-                    ->reactive()
-                    ->afterStateUpdated(function ($state, Forms\Set $set, callable $get) {
-                        $jumlah = $get('jumlah_produk') ?: 1;
-                        $set('total_harga', $state * $jumlah);
-                    })
-                    ->columnSpan([
-                        'md' => 3,
-                    ]),
-
-                Forms\Components\TextInput::make('total_harga')
-                    ->label('Total Harga')
-                    ->numeric()
-                    ->disabled()
-                    ->dehydrated(false) // Don't save this to database
-                    ->formatStateUsing(function ($state, callable $get) {
-                        if (!$state) {
-                            $harga = $get('harga_jual') ?: 0;
-                            $jumlah = $get('jumlah_produk') ?: 1;
-                            return $harga * $jumlah;
-                        }
-                        return $state;
-                    })
-                    ->columnSpan([
-                        'md' => 4,
-                    ]),
-            ])
-            ->defaultItems(1)
-            ->hiddenLabel()
-            ->columns([
-                'md' => 10,
-            ])
-            ->required();
+            Forms\Components\Placeholder::make('total_penjualan_display')
+                ->label('Total Harga')
+                ->content(function (callable $get) {
+                    $details = $get('penjualanDetail') ?? [];
+                    $total = collect($details)->sum(fn($item) => $item['sub_total_harga'] ?? 0);
+                    return 'Rp. ' . number_format($total, 0, ',', '.');
+                })
+                ->columnSpanFull(),
+        ])->columnSpanFull();
     }
 
-    public static function getPembayaranRepeater(): Repeater
+    public static function getPembayaranRepeater(): Forms\Components\Component
     {
-        return Repeater::make('pembayaranData')
-            ->schema([
-                // Forms\Components\Select::make('id_metode_pembayaran')
-                //     ->label('Metode Pembayaran')
-                //     ->options(function () {
-                //         return \App\Models\MetodePembayaran::pluck('nama_metode', 'id_metode_pembayaran');
-                //     })
-                //     ->searchable()
-                //     ->required()
-                //     ->columnSpan([
-                //         'md' => 5,
-                //     ]),
+        return Forms\Components\Group::make([
+            Forms\Components\Repeater::make('pembayaranPenjualan')
+                ->relationship('pembayaranPenjualan')
+                ->schema([
+                    Forms\Components\Hidden::make('id_pembayaran')
+                        ->afterStateHydrated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
+                            if (!$state) {
+                                return;
+                            }
 
-                Forms\Components\TextInput::make('total_bayar')
-                    ->label('Total Bayar')
-                    ->numeric()
-                    ->required()
-                    ->minValue(1)
-                    ->columnSpan([
-                        'md' => 5,
-                    ]),
+                            $pembayaran = \App\Models\Pembayaran::find($state);
+                            if ($pembayaran) {
+                                $set('total_bayar', $pembayaran->total_bayar);
+                                $set('jenis_pembayaran', $pembayaran->jenis_pembayaran);
+                                $set('id_tipe_transfer', $pembayaran->id_tipe_transfer);
+                                $set('keterangan', $pembayaran->keterangan);
 
-                Forms\Components\DateTimePicker::make('tanggal_pembayaran')
-                    ->label('Tanggal Pembayaran')
-                    ->default(now())
-                    ->required()
-                    ->columnSpan([
-                        'md' => 5,
-                    ]),
+                                if ($pembayaran->id_tipe_transfer) {
+                                    $tipeTransfer = \App\Models\TipeTransfer::find($pembayaran->id_tipe_transfer);
+                                    if ($tipeTransfer) {
+                                        $set('tipe_pembayaran', $tipeTransfer->metode_transfer);
+                                    }
+                                }
+                            }
+                        }),
 
-                Forms\Components\Textarea::make('keterangan')
-                    ->label('Keterangan')
-                    ->maxLength(255)
-                    ->columnSpan([
-                        'md' => 5,
-                    ]),
-            ])
-            ->default(function ($record) {
-                if (!$record) return [];
+                    Forms\Components\Select::make('jenis_pembayaran')
+                        ->label('Metode Pembayaran')
+                        ->options(self::$metodePembayaranOptions)
+                        ->afterStateUpdated(function ($state, Forms\Set $set) {
+                            if ($state === 'tunai') {
+                                $set('id_tipe_transfer', null);
+                                $set('tipe_pembayaran', null);
+                            }
+                        })
+                        ->required()
+                        ->reactive()
+                        ->columnSpan(['md' => 3])
+                        ->live(),
 
-                // Try to get payment data through the relationship chain
-                $paymentData = [];
+                    Forms\Components\TextInput::make('total_bayar')
+                        ->label('Nominal')
+                        ->prefix('Rp. ')
+                        ->numeric()
+                        ->required()
+                        ->columnSpan(['md' => 3])
+                        ->visible(fn(callable $get) => in_array($get('jenis_pembayaran'), ['tunai', 'transfer']))
+                        ->live()
+                        ->afterStateUpdated(fn() => null),
 
-                if ($record->pembayaranPenjualan && $record->pembayaranPenjualan->pembayaran) {
-                    $pembayaran = $record->pembayaranPenjualan->pembayaran;
-                    $paymentData[] = [
-                        'id_metode_pembayaran' => $pembayaran->id_metode_pembayaran,
-                        'total_bayar' => $pembayaran->total_bayar,
-                        'tanggal_pembayaran' => $pembayaran->tanggal_pembayaran,
-                        'keterangan' => $pembayaran->keterangan,
+                    Forms\Components\Select::make('tipe_pembayaran')
+                        ->label('Tipe Pembayaran')
+                        ->options(self::$tipePembayaranOptions)
+                        ->required()
+                        ->reactive()
+                        ->columnSpan(['md' => 2])
+                        ->visible(fn(callable $get) => $get('jenis_pembayaran') === 'transfer')
+                        ->live(),
+
+                    Forms\Components\Select::make('id_tipe_transfer')
+                        ->label('Jenis Transfer')
+                        ->options(function (callable $get) {
+                            $tipe = $get('tipe_pembayaran');
+                            return $tipe ? TipeTransfer::getOpsiByMetodeTransfer($tipe) : [];
+                        })
+                        ->required()
+                        ->visible(
+                            fn(callable $get) =>
+                            $get('jenis_pembayaran') === 'transfer' &&
+                                in_array($get('tipe_pembayaran'), ['bank', 'e-wallet'])
+                        )
+                        ->searchable()
+                        ->reactive()
+                        ->columnSpan(['md' => 2]),
+                ])
+                ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
+                    $pembayaran = \App\Models\Pembayaran::create([
+                        'total_bayar' => $data['total_bayar'],
+                        'jenis_pembayaran' => $data['jenis_pembayaran'],
+                        'id_tipe_transfer' => $data['id_tipe_transfer'] ?? null,
+                        'keterangan' => $data['keterangan'] ?? null,
+                    ]);
+
+                    return [
+                        'id_pembayaran' => $pembayaran->id_pembayaran,
                     ];
-                }
+                })
+                ->dehydrated()
+                ->reactive()
+                ->addActionLabel('Tambah Pembayaran')
+                ->defaultItems(1)
+                ->hiddenLabel()
+                ->columns([
+                    'md' => 10,
+                ])
+                ->live(true),
 
-                return $paymentData;
-            })
-            ->defaultItems(0) // Don't add default items, we'll add them from the database
-            ->hiddenLabel()
-            ->columns([
-                'md' => 10,
-            ]);
+            Forms\Components\Placeholder::make('total_pembayaran_display')
+                ->label('Total Pembayaran')
+                ->content(function (Forms\Get $get, ?Penjualan $record) {
+                    if ($record) {
+                        $pembayaranItems = $get('pembayaranPenjualan') ?? [];
+                        $total = 0;
+
+                        foreach ($pembayaranItems as $item) {
+                            $total += $item['total_bayar'] ?? 0;
+                        }
+
+                        return 'Rp. ' . number_format($total, 0, ',', '.');
+                    }
+
+                    $pembayaranItems = $get('pembayaranPenjualan') ?? [];
+                    $total = 0;
+
+                    foreach ($pembayaranItems as $item) {
+                        $total += $item['total_bayar'] ?? 0;
+                    }
+
+                    return 'Rp. ' . number_format($total, 0, ',', '.');
+                })
+                ->columnSpanFull()
+                ->live(),
+
+            Forms\Components\Placeholder::make('status_pembayaran')
+                ->label(function (Forms\Get $get) {
+                    $pembayaranItems = $get('pembayaranPenjualan') ?? [];
+                    $totalPembayaran = 0;
+
+                    foreach ($pembayaranItems as $item) {
+                        $totalPembayaran += $item['total_bayar'] ?? 0;
+                    }
+
+                    $penjualanDetail = $get('penjualanDetail') ?? [];
+                    $totalPenjualan = 0;
+
+                    foreach ($penjualanDetail as $item) {
+                        $totalPenjualan += $item['sub_total_harga'] ?? 0;
+                    }
+
+                    return $totalPembayaran > $totalPenjualan ? 'Uang Kembalian' : 'Sisa Pembayaran';
+                })
+                ->content(function (Forms\Get $get, ?Penjualan $record) {
+                    $pembayaranItems = $get('pembayaranPenjualan') ?? [];
+                    $totalPembayaran = 0;
+
+                    foreach ($pembayaranItems as $item) {
+                        $totalPembayaran += $item['total_bayar'] ?? 0;
+                    }
+
+                    $penjualanDetail = $get('penjualanDetail') ?? [];
+                    $totalPenjualan = 0;
+
+                    foreach ($penjualanDetail as $item) {
+                        $totalPenjualan += $item['sub_total_harga'] ?? 0;
+                    }
+
+                    if ($totalPembayaran > $totalPenjualan) {
+                        $kembalian = $totalPembayaran - $totalPenjualan;
+                        return 'Rp. ' . number_format($kembalian, 0, ',', '.');
+                    } else {
+                        $sisa = $totalPenjualan - $totalPembayaran;
+                        return 'Rp. ' . number_format($sisa, 0, ',', '.');
+                    }
+                })
+                ->columnSpanFull()
+                ->live(),
+
+            Forms\Components\Hidden::make('total_harga')
+                ->reactive()
+                ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                    $penjualanDetail = $get('penjualanDetail') ?? [];
+                    $totalHarga = 0;
+
+                    foreach ($penjualanDetail as $item) {
+                        $totalHarga += $item['sub_total_harga'] ?? 0;
+                    }
+
+                    $set('total_harga', $totalHarga);
+                })
+                ->dehydrated(true),
+
+            Forms\Components\Hidden::make('status_penjualan')
+                ->reactive()
+                ->afterStateHydrated(function (Forms\Set $set, Forms\Get $get) {
+                    $pembayaranItems = $get('pembayaranPenjualan') ?? [];
+                    $totalPembayaran = 0;
+
+                    foreach ($pembayaranItems as $item) {
+                        $totalPembayaran += $item['total_bayar'] ?? 0;
+                    }
+
+                    $penjualanDetail = $get('penjualanDetail') ?? [];
+                    $totalPenjualan = 0;
+
+                    foreach ($penjualanDetail as $item) {
+                        $totalPenjualan += $item['sub_total_harga'] ?? 0;
+                    }
+
+                    if ($totalPembayaran >= $totalPenjualan) {
+                        $set('status_penjualan', 'lunas');
+                    } else {
+                        $set('status_penjualan', 'belum lunas');
+                    }
+                })
+                ->dehydrated(true),
+        ])->columnSpanFull()
+            ->reactive()
+            ->live();
     }
 }

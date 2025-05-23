@@ -11,26 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bayar_zakat', function (Blueprint $table) {
-            $table->string('id_bayar_zakat')
-                ->primary();
+        Schema::create('arus_keuangan', function (Blueprint $table) {
+            $table->id("id_arus_keuangan");
             $table->unsignedTinyInteger('id_pemilik');
             $table->foreign('id_pemilik')
                 ->references('id_pemilik')
                 ->on('pemilik')
                 ->onDelete('cascade');
-            $table->unsignedTinyInteger('id_penerima_zakat');
-            $table->foreign('id_penerima_zakat')
-                ->references('id_penerima_zakat')
-                ->on('penerima_zakat')
-                ->onDelete('cascade');
-            $table->foreignId('id_pembayaran')
+            $table->foreignId('id_sumber')
                 ->references('id_pembayaran')
                 ->on('pembayaran')
                 ->onDelete('cascade');
-            $table->unsignedTinyInteger('id_tipe_transfer')
-                ->nullable();
-            $table->bigInteger('modal_terjual');
+            $table->string("keterangan");
+            $table->enum("jenis_transaksi", ["debit", "kredit"]);
+            $table->integer("nominal");
             $table->timestamps();
         });
     }
@@ -40,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bayar_zakat');
+        Schema::dropIfExists('arus_keuangans');
     }
 };
