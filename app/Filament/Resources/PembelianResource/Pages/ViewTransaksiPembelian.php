@@ -14,6 +14,7 @@ use App\Models\PembayaranPembelian;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Filament\Forms;
+use Illuminate\Support\Facades\Log;
 
 class ViewTransaksiPembelian extends ViewRecord
 {
@@ -109,9 +110,10 @@ class ViewTransaksiPembelian extends ViewRecord
                     DB::beginTransaction();
 
                     try {
+                        Log::info("Data : ", $data);
                         $pembelian = $this->record;
 
-                        if (!isset($data['nominal']) || $data['nominal'] <= 0) {
+                        if (!isset($data['total_bayar']) || $data['total_bayar'] <= 0) {
                             throw new \Exception('Nominal pembayaran harus lebih dari 0.');
                         }
 
@@ -121,7 +123,7 @@ class ViewTransaksiPembelian extends ViewRecord
                         $keterangan = $data['keterangan'] ?? 'Pembayaran untuk pembelian #' . $pembelian->id_pembelian;
 
                         $pembayaran = Pembayaran::create([
-                            'total_bayar' => $data['nominal'],
+                            'total_bayar' => $data['total_bayar'],
                             'jenis_pembayaran' => $metode,
                             'tipe_pembayaran' => $tipe,
                             'id_tipe_transfer' => $idTipe,

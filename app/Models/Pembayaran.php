@@ -17,4 +17,19 @@ class Pembayaran extends Model
     {
         return $this->belongsTo(TipeTransfer::class, 'id_tipe_transfer');
     }
+
+    public function pembayaranPenjualan()
+    {
+        return $this->hasOne(PembayaranPenjualan::class, 'id_pembayaran');
+    }
+
+    public function pembayaranPembelian()
+    {
+        return $this->hasOne(PembayaranPembelian::class, 'id_pembayaran');
+    }
+
+    public function bayarZakat()
+    {
+        return $this->hasOne(BayarZakat::class, 'id_pembayaran');
+    }
 }

@@ -80,7 +80,25 @@ class PenjualanObserver
      */
     public function updated(Penjualan $penjualan): void
     {
-        //
+        // Cek apakah total_harga berubah
+        if ($penjualan->wasChanged('total_harga')) {
+            // Ambil semua pembayaran penjualan urut sesuai waktu
+            $pembayaranPenjualans = $penjualan->pembayaranPenjualan()->with('pembayaran')->orderBy('created_at')->get();
+            $totalHarga = $penjualan->total_harga;
+            $totalBayarSebelumnya = 0;
+
+            foreach ($pembayaranPenjualans as $pp) {
+                $pembayaranSekarang = $pp->pembayaran->total_bayar;
+                $sisaKurang = $totalHarga - $totalBayarSebelumnya;
+                $nominalMasuk = min($pembayaranSekarang, max($sisaKurang, 0));
+
+                // Update ArusKeuangan untuk pembayaran ini
+                \App\Models\ArusKeuangan::where('id_sumber', $pp->pembayaran->id_pembayaran)
+                    ->update(['nominal' => $nominalMasuk]);
+
+                $totalBayarSebelumnya += $pembayaranSekarang;
+            }
+        }
     }
 
     /**

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id_penjualan_detail');
             $table->string('id_penjualan');
             $table->foreign('id_penjualan')->references('id_penjualan')->on('penjualan')->onDelete('cascade');
-            $table->foreignId('id_produk')->nullable()->references('id_produk')->on('produk')->onDelete('cascade');
+            $table->foreignId('id_produk')->nullable()->references('id_produk')->on('produk')->onDelete('set null');
             $table->integer('jumlah_produk');
             $table->string('nama_produk')->nullable();
             $table->bigInteger('harga_jual');

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id_pembelian_detail');
             $table->string('id_pembelian');
             $table->foreign('id_pembelian')->references('id_pembelian')->on('pembelian')->onDelete('cascade');
-            $table->foreignId('id_produk')->references('id_produk')->on('produk')->onDelete('cascade');
+            $table->foreignId('id_produk')->nullable()->references('id_produk')->on('produk')->onDelete('set null');
             $table->integer('jumlah_produk');
             $table->timestamps();
         });
