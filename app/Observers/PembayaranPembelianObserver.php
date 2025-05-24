@@ -14,8 +14,7 @@ class PembayaranPembelianObserver
     public function created(PembayaranPembelian $pembayaranPembelian): void
     {
         ArusKeuangan::create([
-            // 'id_pemilik' => Filament::auth()->user()?->id,
-            'id_pemilik' => 1,
+            'id_pemilik' => Filament::auth()->user()?->pemilik?->id_pemilik ?? $pembayaranPembelian->pembelian->pemasok->id_pemilik,
             'id_sumber' => $pembayaranPembelian->pembayaran->id_pembayaran,
             'keterangan' => 'Pembayaran Pembelian ' . $pembayaranPembelian->id_pembelian,
             'jenis_transaksi' => 'kredit',

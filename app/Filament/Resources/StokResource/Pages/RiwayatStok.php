@@ -37,7 +37,7 @@ class RiwayatStok extends ManageRelatedRecords
                     ->where('id_produk', $id_produk)
                     ->where('jenis_transaksi', '!=', 'Stok Awal') // Menghilangkan data dengan keterangan "Stok Awal"
             )
-            ->defaultSort('created_at', 'desc')            
+            ->defaultSort('created_at', 'desc')
             ->headerActions([
                 ExportAction::make()
                     ->exporter(StokDetailExporter::class)
@@ -71,7 +71,9 @@ class RiwayatStok extends ManageRelatedRecords
                     }),
                 TextColumn::make('jumlah_stok')
                     ->label('Jumlah')
-                    ->numeric()
+                    ->integer()
+                    ->minValue(1)
+                    ->rules(['regex:/^\d+$/'])
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('jenis_transaksi')

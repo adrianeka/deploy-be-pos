@@ -19,7 +19,6 @@
         "laravel/tinker": "^2.10.1",
         "nuxtifyts/dash-stack-theme": "^1.2",
         "php-open-source-saver/jwt-auth": "^2.8",
-        "tuxones/filament-js-money-field": "^0.1.6",
         "pusher/pusher-php-server": "^7.2"
     },
     "require-dev": {

@@ -12,9 +12,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Forms\Components;
 use App\Models\TipeTransfer;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Tuxones\JsMoneyField\Forms\Components\JSMoneyInput;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Support\Carbon;
@@ -29,6 +29,12 @@ class ArusKeuanganResource extends Resource
     protected static ?string $slug = 'arus-keuangan';
     protected static ?int $navigationSort = 3;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
+    }
 
     public static function form(Form $form): Form
     {
@@ -83,12 +89,12 @@ class ArusKeuanganResource extends Resource
                                             in_array($get('tipe_pembayaran'), ['bank', 'e-wallet'])
                                     ),
 
-                                JSMoneyInput::make('nominal')
+                                TextInput::make('nominal')
                                     ->label('Nominal')
+                                    ->integer()
                                     ->required()
-                                    ->locale('id-ID')
-                                    ->currency('IDR')
                                     ->minValue(0)
+                                    ->rules(['regex:/^\d+$/'])
                                     ->prefix('Rp. '),
 
                                 TextInput::make('keterangan')

@@ -20,6 +20,7 @@ use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Pages\Page;
 use Filament\Pages\SubNavigationPosition;
+use Illuminate\Database\Eloquent\Builder;
 
 class KasirResource extends Resource
 {
@@ -33,6 +34,12 @@ class KasirResource extends Resource
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?int $navigationSort = 0;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
+    }
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -64,7 +71,7 @@ class KasirResource extends Resource
                                         $record?->user ? $rule->ignore($record->user->id) : $rule
                                     )
                                     ->formatStateUsing(fn($record) => $record?->user?->email)
-                                    ->placeholder('Email kasir yang akan digunakan login'),
+                                    ->placeholder('Email akan digunakan untuk login oleh kasir'),
 
                                 Components\TextInput::make('no_telp')
                                     ->label('Nomor Telepon')
@@ -82,7 +89,7 @@ class KasirResource extends Resource
                                     ->columnSpanFull(),
 
                                 Components\TextInput::make('password')
-                                    ->label('Password')
+                                    ->label('Kata Sandi')
                                     ->password()
                                     ->revealable()
                                     ->required(fn($context) => $context === 'create')
@@ -91,7 +98,7 @@ class KasirResource extends Resource
                                     ->columnSpan(1),
 
                                 Components\TextInput::make('password_confirmation')
-                                    ->label('Konfirmasi Password')
+                                    ->label('Konfirmasi Kata Sandi')
                                     ->password()
                                     ->revealable()
                                     ->same('password')
@@ -104,19 +111,13 @@ class KasirResource extends Resource
                     ->collapsible(),
 
                 Components\Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()?->id()),
+                    ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik),
             ]);
     }
 
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
-            ->query(
-                fn() =>
-                Kasir::query()
-                    ->with('user') // eager load user to avoid N+1
-                    ->where('id_pemilik', Filament::auth()->id())
-            )
             ->columns([
                 TextColumn::make('nama')
                     ->label('Nama')

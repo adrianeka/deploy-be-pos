@@ -56,7 +56,6 @@ class AuthController extends Controller
             }
 
             return response()->json($response);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

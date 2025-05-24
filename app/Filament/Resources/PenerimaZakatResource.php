@@ -21,6 +21,7 @@ use Filament\Infolists\Infolist;
 use Filament\Pages\SubNavigationPosition;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class PenerimaZakatResource extends Resource
 {
@@ -34,6 +35,12 @@ class PenerimaZakatResource extends Resource
     protected static ?string $recordTitleAttribute = 'nama_penerima';
     protected static ?int $navigationSort = 3;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
+    }
 
     public static function form(Form $form): Form
     {
@@ -53,7 +60,8 @@ class PenerimaZakatResource extends Resource
 
                                 Components\TextInput::make('no_telp')
                                     ->label('Nomor Telepon')
-                                    ->numeric()
+                                    ->integer()
+                                    ->rules(['regex:/^\d+$/'])
                                     ->minLength(10)
                                     ->maxLength(13)
                                     ->required()
@@ -62,7 +70,8 @@ class PenerimaZakatResource extends Resource
 
                                 Components\TextInput::make('no_rekening')
                                     ->label('Nomor Rekening')
-                                    ->numeric()
+                                    ->integer()
+                                    ->rules(['regex:/^\d+$/'])
                                     ->minLength(10)
                                     ->maxLength(16)
                                     ->required(),
@@ -89,7 +98,7 @@ class PenerimaZakatResource extends Resource
                     ->collapsible(),
 
                 Components\Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()?->id())
+                    ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik)
                     ->dehydrated(true),
             ]);
     }
@@ -97,7 +106,6 @@ class PenerimaZakatResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(fn() => PenerimaZakat::query()->where('id_pemilik', Filament::auth()?->id()))
             ->columns([
                 TextColumn::make('nama_penerima')
                     ->label('Nama Penerima')

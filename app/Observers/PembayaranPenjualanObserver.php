@@ -14,8 +14,7 @@ class PembayaranPenjualanObserver
     public function created(PembayaranPenjualan $pembayaranPenjualan): void
     {
         ArusKeuangan::create([
-            // 'id_pemilik' => Filament::auth()->user()?->id,
-            'id_pemilik' => 1,
+            'id_pemilik' => Filament::auth()->user()?->pemilik?->id_pemilik ?? $pembayaranPenjualan->penjualan->kasir->id_pemilik,
             'id_sumber' => $pembayaranPenjualan->pembayaran->id_pembayaran,
             'keterangan' => 'Pembayaran Penjualan ' . $pembayaranPenjualan->id_penjualan,
             'jenis_transaksi' => 'debit',

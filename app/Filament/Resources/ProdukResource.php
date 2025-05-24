@@ -31,9 +31,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ActionGroup;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Model;
-use Filament\Forms\Components\TextInput\Mask;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProdukResource extends Resource
 {
@@ -45,6 +44,12 @@ class ProdukResource extends Resource
     protected static ?string $slug = 'inventaris/produk';
     protected static ?string $navigationGroup = 'Inventaris';
     protected static ?int $navigationSort = 4;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
+    }
 
     public static function form(Form $form): Form
     {
@@ -64,7 +69,7 @@ class ProdukResource extends Resource
                                 Select::make('id_kategori')
                                     ->relationship('kategori', 'nama_kategori', function ($query) {
                                         return $query->where(function ($query) {
-                                            $query->where('id_pemilik', Filament::auth()->id())
+                                            $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                                                 ->orWhereNull('id_pemilik');
                                         });
                                     })
@@ -77,7 +82,7 @@ class ProdukResource extends Resource
                                             ->required()
                                             ->maxLength(255),
                                         Hidden::make('id_pemilik')
-                                            ->default(fn() => Filament::auth()->id()),
+                                            ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik),
                                     ])
                                     ->editOptionForm([
                                         TextInput::make('nama_kategori')
@@ -96,7 +101,7 @@ class ProdukResource extends Resource
                                 Select::make('id_satuan')
                                     ->relationship('satuan', 'nama_satuan', function ($query) {
                                         return $query->where(function ($query) {
-                                            $query->where('id_pemilik', Filament::auth()->id())
+                                            $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                                                 ->orWhereNull('id_pemilik');
                                         });
                                     })
@@ -109,7 +114,7 @@ class ProdukResource extends Resource
                                             ->required()
                                             ->maxLength(255),
                                         Hidden::make('id_pemilik')
-                                            ->default(fn() => Filament::auth()->id()),
+                                            ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik),
                                     ])
                                     ->editOptionForm(fn($state) => [
                                         TextInput::make('nama_satuan')
@@ -122,18 +127,25 @@ class ProdukResource extends Resource
 
                                 TextInput::make('harga_beli')
                                     ->label('Harga Beli')
-                                    ->prefix('Rp')
+                                    ->prefix('Rp.')
                                     ->integer()
+                                    ->rules(['regex:/^\d+$/'])
+                                    ->minValue(1)
                                     ->required(),
 
                                 $isCreateOperation ? TextInput::make('harga_jual')
                                     ->label('Harga Jual (Standart)')
+                                    ->prefix('Rp.')
+                                    ->rules(['regex:/^\d+$/'])
                                     ->integer()
+                                    ->minValue(1)
                                     ->required() : null,
 
                                 TextInput::make('stok_minimum')
                                     ->label('Stok Minimum')
                                     ->integer()
+                                    ->rules(['regex:/^\d+$/'])
+                                    ->minValue(1)
                                     ->required(),
 
                                 Textarea::make('deskripsi')
@@ -143,7 +155,7 @@ class ProdukResource extends Resource
                     ])
                     ->collapsible(),
                 Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()->id())
+                    ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik)
                     ->dehydrated(true),
             ]);
     }
@@ -151,7 +163,6 @@ class ProdukResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(fn() => Produk::query()->where('id_pemilik', Filament::auth()->user()->id))
             ->columns([
                 ImageColumn::make('foto_produk')
                     ->getStateUsing(
@@ -196,7 +207,7 @@ class ProdukResource extends Resource
                     ->label('Kategori')
                     ->options(function () {
                         return Kategori::where(function ($query) {
-                            $query->where('id_pemilik', Filament::auth()->id())
+                            $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                                 ->orWhereNull('id_pemilik');
                         })->pluck('nama_kategori', 'id_kategori')->toArray();
                     })
@@ -207,7 +218,7 @@ class ProdukResource extends Resource
                     ->label('Satuan')
                     ->options(function () {
                         return Satuan::where(function ($query) {
-                            $query->where('id_pemilik', Filament::auth()->id())
+                            $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                                 ->orWhereNull('id_pemilik');
                         })->pluck('nama_satuan', 'id_satuan')->toArray();
                     })
@@ -221,9 +232,9 @@ class ProdukResource extends Resource
                     Tables\Actions\Action::make('editHarga')
                         ->label('Edit Level Harga')
                         ->icon('heroicon-o-currency-dollar')
-                        ->modalHeading('Edit Level Harga')
-                        ->modalSubmitActionLabel('Save changes')
-                        ->modalCancelActionLabel('Cancel')
+                        ->modalHeading('Ubah Level Harga')
+                        ->modalSubmitActionLabel('Simpan')
+                        ->modalCancelActionLabel('Batal')
                         ->form([
                             Repeater::make('level_hargas')
                                 ->label('Level Harga')

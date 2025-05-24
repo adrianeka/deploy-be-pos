@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PembelianResource\Pages;
 
+use App\Enums\StatusTransaksiPembelian;
 use App\Filament\Resources\PembelianResource;
 use App\Filament\Resources\PembelianResource\RelationManagers\PembayaranRelationManager;
 use App\Filament\Resources\PembelianResource\RelationManagers\ProdukRelationManager;
@@ -25,7 +26,7 @@ class ViewTransaksiPembelian extends ViewRecord
         $status = $this->record->status_pembelian;
         $actions = [];
 
-        if ($status === 'diproses') {
+        if ($status === StatusTransaksiPembelian::Diproses) {
             $actions[] = Actions\Action::make('konfirmasiPembelian')
                 ->label('Konfirmasi Pembelian')
                 ->action(function () {
@@ -89,7 +90,7 @@ class ViewTransaksiPembelian extends ViewRecord
                 ->color('primary');
         }
 
-        if ($status === 'belum lunas') {
+        if ($status === StatusTransaksiPembelian::BelumLunas) {
             $actions[] = Actions\Action::make('bayarSekarang')
                 ->label('Bayar Sekarang')
                 ->form([

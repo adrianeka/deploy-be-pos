@@ -10,8 +10,8 @@ use App\Models\Pembayaran;
 use App\Models\PembayaranPenjualan;
 use App\Models\BayarZakat;
 use App\Observers\BayarZakatObserver;
-use App\Observers\PembayaranPembelianObserver;
 use App\Observers\PembayaranObserver;
+use App\Observers\PembayaranPembelianObserver;
 use App\Observers\PembayaranPenjualanObserver;
 use Illuminate\Support\Facades\URL;
 

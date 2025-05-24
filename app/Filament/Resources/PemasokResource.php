@@ -21,6 +21,7 @@ use Filament\Pages\SubNavigationPosition;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class PemasokResource extends Resource
 {
@@ -34,6 +35,12 @@ class PemasokResource extends Resource
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?int $navigationSort = 1;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
+    }
 
     public static function form(Form $form): Form
     {
@@ -50,7 +57,8 @@ class PemasokResource extends Resource
                                 Components\TextInput::make('no_telp')
                                     ->label('Nomor Telepon')
                                     ->required()
-                                    ->numeric()
+                                    ->integer()
+                                    ->rules(['regex:/^\d+$/'])
                                     ->minLength(10)
                                     ->maxLength(15),
                                 Components\TextInput::make('alamat')
@@ -61,7 +69,7 @@ class PemasokResource extends Resource
                     ])
                     ->collapsible(),
                 Components\Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()->id())
+                    ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik)
                     ->dehydrated(true),
             ]);
     }
@@ -69,7 +77,6 @@ class PemasokResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(fn() => Pemasok::query()->where('id_pemilik', Filament::auth()->user()->id))
             ->columns([
                 TextColumn::make('nama_perusahaan')
                     ->label('Nama Perusahaan')

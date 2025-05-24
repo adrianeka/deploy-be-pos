@@ -3,19 +3,14 @@
 namespace App\Filament\Resources\PembelianResource\Pages;
 
 use App\Filament\Resources\PembelianResource;
-use App\Models\Pembayaran;
-use App\Models\PembayaranPembelian;
-use App\Models\Pembelian;
-use Carbon\Carbon;
-use Filament\Facades\Filament;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Wizard;
+use App\Models\{Pembayaran, PembayaranPembelian, Pembelian};
+use Filament\Forms\Components\{Section, Wizard};
 use Filament\Forms\Components\Wizard\Step;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\CreateRecord\Concerns\HasWizard;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class CreatePembelian extends CreateRecord
 {
@@ -51,7 +46,7 @@ class CreatePembelian extends CreateRecord
             ]);
 
             $pembayaran = Pembayaran::create([
-                'total_bayar' => $data['nominal'] ?? 0,
+                'total_bayar' => $data['total_bayar'],
                 'jenis_pembayaran' => $data['metode_pembayaran'],
                 'id_tipe_transfer' => $data['metode_pembayaran'] === 'transfer' ? $data['id_tipe_transfer'] : null,
                 'keterangan' => 'Pembayaran Pembelian',

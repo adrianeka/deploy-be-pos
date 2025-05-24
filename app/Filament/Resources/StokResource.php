@@ -28,6 +28,7 @@ use Filament\Resources\Pages\Page;
 use Filament\Forms\Components;
 use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class StokResource extends Resource
 {
@@ -42,6 +43,17 @@ class StokResource extends Resource
     protected static ?int $navigationSort = 5;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('view', ['record' => $record]);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -53,7 +65,7 @@ class StokResource extends Resource
                             ->schema([
                                 Select::make('id_produk')
                                     ->label('Produk')
-                                    ->options(fn() => Produk::where('id_pemilik', Filament::auth()->id())->pluck('nama_produk', 'id_produk'))
+                                    ->options(fn() => Produk::where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)->pluck('nama_produk', 'id_produk'))
                                     ->searchable()
                                     ->required(),
 
@@ -67,7 +79,8 @@ class StokResource extends Resource
 
                                 TextInput::make('jumlah_stok')
                                     ->label('Jumlah Stok')
-                                    ->numeric()
+                                    ->integer()
+                                    ->rules(['regex:/^\d+$/'])
                                     ->required()
                                     ->minValue(1),
                             ]),
@@ -77,16 +90,13 @@ class StokResource extends Resource
                     ->default('Manual'),
 
                 Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()->id()),
+                    ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->query(
-                Produk::query()->where('id_pemilik', Filament::auth()->id())
-            )
             ->headerActions([
                 ExportAction::make()
                     ->exporter(StokExporter::class)
@@ -125,7 +135,7 @@ class StokResource extends Resource
                     ->label('Satuan')
                     ->relationship('satuan', 'nama_satuan', function ($query) {
                         return $query->where(function ($query) {
-                            $query->where('id_pemilik', Filament::auth()->id())
+                            $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                                 ->orWhereNull('id_pemilik');
                         });
                     })
@@ -136,7 +146,7 @@ class StokResource extends Resource
                     ->label('Kategori')
                     ->relationship('kategori', 'nama_kategori', function ($query) {
                         return $query->where(function ($query) {
-                            $query->where('id_pemilik', Filament::auth()->id())
+                            $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                                 ->orWhereNull('id_pemilik');
                         });
                     })

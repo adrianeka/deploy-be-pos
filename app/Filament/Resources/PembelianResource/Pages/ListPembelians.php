@@ -37,15 +37,15 @@ class ListPembelians extends ListRecords
                 ->icon('heroicon-o-bars-3-bottom-left'),
 
             'Diproses' => Tab::make('Diproses')
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('pembelian.status_pembelian', 'Diproses'))
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('pembelian.status_pembelian', 'diproses'))
                 ->icon('heroicon-o-clock'),
 
             'Lunas' => Tab::make('Lunas')
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('pembelian.status_pembelian', 'Lunas'))
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('pembelian.status_pembelian', 'lunas'))
                 ->icon('heroicon-o-check-circle'),
 
             'Belum Lunas' => Tab::make('Belum Lunas')
-                ->modifyQueryUsing(fn(Builder $query) => $query->where('pembelian.status_pembelian', 'Belum Lunas'))
+                ->modifyQueryUsing(fn(Builder $query) => $query->where('pembelian.status_pembelian', 'belum lunas'))
                 ->icon('heroicon-o-x-circle'),
         ];
     }

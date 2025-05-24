@@ -66,6 +66,7 @@ class PembelianSeeder extends Seeder
                         'total_harga' => 0,
                         'status_pembelian' => $status,
                         'created_at' => $createdAt,
+                        'updated_at' => $createdAt,
                         'tanggal_kedatangan' => $updatedAt,
                     ]);
 

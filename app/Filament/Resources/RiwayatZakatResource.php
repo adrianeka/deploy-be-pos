@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\RiwayatZakatResource\Pages;
 use App\Filament\Resources\RiwayatZakatResource\RelationManagers\PenjualanRelationManager;
 use App\Models\BayarZakat;
+use Filament\Facades\Filament;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\Grid;
 use Filament\Forms\Form;
@@ -15,8 +16,8 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
 
 class RiwayatZakatResource extends Resource
 {
@@ -27,7 +28,17 @@ class RiwayatZakatResource extends Resource
     protected static ?string $pluralLabel = 'Riwayat Zakat';
     protected static ?string $navigationLabel = 'Riwayat Zakat';
     protected static ?string $navigationGroup = 'Zakat';
+    protected static ?string $slug = 'zakat/riwayat-zakat';
     protected static ?int $navigationSort = 6;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['penjualan'])
+            ->whereHas('penerimaZakat', function (Builder $query) {
+                $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
+            });
+    }
 
     public static function form(Form $form): Form
     {
@@ -37,13 +48,9 @@ class RiwayatZakatResource extends Resource
             ]);
     }
 
-    public static function getEloquentQuery(): Builder
+    public static function getGlobalSearchResultUrl(Model $record): string
     {
-        return parent::getEloquentQuery()
-            ->with(['penjualan'])
-            ->whereHas('penerimaZakat', function (Builder $query) {
-                $query->where('id_pemilik', Auth::user()->id);
-            });
+        return static::getUrl('view', ['record' => $record]);
     }
 
     public static function table(Table $table): Table

@@ -28,7 +28,6 @@ use Filament\Infolists\Infolist;
 use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
-use Tuxones\JsMoneyField\Tables\Columns\JSMoneyColumn;
 
 class PembelianResource extends Resource
 {
@@ -56,6 +55,14 @@ class PembelianResource extends Resource
         return [
             PembelianOverview::class,
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('pemasok', function ($query) {
+                $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
+            });
     }
 
     public static function form(Form $form): Form
@@ -106,12 +113,6 @@ class PembelianResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(function () {
-                return Pembelian::query()
-                    ->whereHas('pemasok', function ($query) {
-                        $query->where('id_pemilik', Filament::auth()->id());
-                    });
-            })
             ->headerActions([
                 ExportAction::make()
                     ->exporter(PembelianExporter::class)
@@ -134,7 +135,7 @@ class PembelianResource extends Resource
                     ->label('Nama Perusahaan')
                     ->searchable()
                     ->sortable(),
-                JSMoneyColumn::make('total_harga')
+                TextColumn::make('total_harga')
                     ->label('Total Harga')
                     ->formatStateUsing(fn($state) => $state ? 'Rp. ' . number_format($state, 0, ',', '.') : '-')
                     ->searchable()
@@ -284,7 +285,7 @@ class PembelianResource extends Resource
                 ->relationship(
                     'pemasok',
                     'nama_perusahaan',
-                    fn ($query) => $query->where('id_pemilik', Filament::auth()->id())
+                    fn($query) => $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                 )
                 ->searchable()
                 ->preload()
@@ -298,7 +299,8 @@ class PembelianResource extends Resource
                     Components\TextInput::make('no_telp')
                         ->label('Nomor Telepon')
                         ->required()
-                        ->numeric()
+                        ->integer()
+                        ->rules(['regex:/^\d+$/'])
                         ->minLength(10)
                         ->maxLength(15),
 
@@ -308,7 +310,7 @@ class PembelianResource extends Resource
                         ->maxLength(255),
 
                     Forms\Components\Hidden::make('id_pemilik')
-                        ->default(fn() => Filament::auth()?->id()),
+                        ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik),
 
                 ])
                 ->createOptionAction(function (Action $action) {
@@ -329,9 +331,9 @@ class PembelianResource extends Resource
                     Forms\Components\Select::make('id_produk')
                         ->label('Produk')
                         ->relationship(
-                            'produk', 
+                            'produk',
                             'nama_produk',
-                            fn ($query) => $query->where('id_pemilik', Filament::auth()->id())
+                            fn($query) => $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                         )
                         ->required()
                         ->reactive()
@@ -355,7 +357,8 @@ class PembelianResource extends Resource
                         ->schema([
                             Forms\Components\TextInput::make('jumlah_produk')
                                 ->label('Jumlah')
-                                ->numeric()
+                                ->integer()
+                                ->rules(['regex:/^\d+$/'])
                                 ->minValue(1)
                                 ->default(1)
                                 ->required()
@@ -446,10 +449,12 @@ class PembelianResource extends Resource
                 ->required()
                 ->reactive(),
 
-            Components\TextInput::make('nominal')
+            Components\TextInput::make('total_bayar')
                 ->label('Nominal')
                 ->prefix('Rp. ')
-                ->numeric()
+                ->rules(['regex:/^\d+$/'])
+                ->integer()
+                ->minValue(1)
                 ->required()
                 ->visible(fn($get) => in_array($get('metode_pembayaran'), ['tunai', 'transfer'])),
 
@@ -522,7 +527,9 @@ class PembelianResource extends Resource
                     Forms\Components\TextInput::make('total_bayar')
                         ->label('Nominal')
                         ->prefix('Rp. ')
-                        ->numeric()
+                        ->rules(['regex:/^\d+$/'])
+                        ->minValue(1)
+                        ->integer()
                         ->required()
                         ->columnSpan(['md' => 3])
                         ->visible(fn(callable $get) => in_array($get('jenis_pembayaran'), ['tunai', 'transfer']))
