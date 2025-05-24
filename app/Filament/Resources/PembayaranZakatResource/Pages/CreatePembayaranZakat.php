@@ -14,6 +14,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Illuminate\Support\Facades\DB;
+use Filament\Actions\Action;
 
 class CreatePembayaranZakat extends Page
 {
@@ -64,6 +65,15 @@ class CreatePembayaranZakat extends Page
         } catch (\Exception $e) {
             $this->showErrorNotification($e->getMessage());
         }
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            Action::make('create')
+                ->label('Bayar Zakat')
+                ->submit('create'),
+        ];
     }
 
     private function initializeData(): void

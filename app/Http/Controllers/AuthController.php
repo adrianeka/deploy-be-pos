@@ -17,9 +17,9 @@ class AuthController extends Controller
         try {
             // Jika middleware auth:sanctum sudah melewatkan request ke sini,
             // artinya token valid dan kita hanya perlu mengembalikan data user
-            
+
             $user = $request->user();
-            
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -49,7 +49,6 @@ class AuthController extends Controller
             }
 
             return response()->json($response);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

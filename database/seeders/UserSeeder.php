@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
 
         $pemilikData1 = Pemilik::create([
             'id_user' => $pemilik1->id,
-            'nama_pemilik' => 'H. Nurafie',
+            'nama_pemilik' => 'Nurafie',
             'nama_perusahaan' => 'Toko Oleh-Oleh Haji Nurafie',
             'alamat_toko' => 'Jl. Mekah No. 17, Bandung',
             'jenis_usaha' => 'Retail Oleh-Oleh Haji',
@@ -39,7 +39,7 @@ class UserSeeder extends Seeder
 
         $pemilikData2 = Pemilik::create([
             'id_user' => $pemilik2->id,
-            'nama_pemilik' => 'H. Zainal Abidin',
+            'nama_pemilik' => 'Zainal Abidin',
             'nama_perusahaan' => 'Pusat Oleh-Oleh Haji Barokah',
             'alamat_toko' => 'Jl. Madinah No. 25, Bekasi',
             'jenis_usaha' => 'Retail dan Grosir',
@@ -48,7 +48,7 @@ class UserSeeder extends Seeder
 
         // Kasir untuk Toko Nurafie
         $kasir1 = User::create([
-            'name' => 'Ahmad Kasir',
+            'name' => 'Ahmad Fadillah',
             'email' => 'kasir.nurafie@tokohaji.com',
             'password' => Hash::make('password'),
             'role' => 'kasir',
@@ -63,7 +63,7 @@ class UserSeeder extends Seeder
         ]);
 
         $kasir2 = User::create([
-            'name' => 'Siti Kasir',
+            'name' => 'Rendi Rohmah',
             'email' => 'kasir2.nurafie@tokohaji.com',
             'password' => Hash::make('password'),
             'role' => 'kasir',
@@ -78,7 +78,7 @@ class UserSeeder extends Seeder
         ]);
 
         $kasir3 = User::create([
-            'name' => 'Rendi Kasir',
+            'name' => 'Muhammad Rizki',
             'email' => 'kasir.barokah@tokohaji.com',
             'password' => Hash::make('password'),
             'role' => 'kasir',

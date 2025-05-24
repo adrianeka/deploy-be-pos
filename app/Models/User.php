@@ -68,4 +68,9 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->role === 'pemilik';
     }
+
+    public function pemilik()
+    {
+        return $this->hasOne(Pemilik::class, 'id_user', 'id_user');
+    }
 }

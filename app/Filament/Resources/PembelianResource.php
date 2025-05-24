@@ -28,7 +28,7 @@ use Filament\Infolists\Infolist;
 use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
-use Tuxones\JsMoneyField\Tables\Columns\JSMoneyColumn;
+use Tuxones\JsMoneyField\Forms\Components\JSMoneyInput;
 
 class PembelianResource extends Resource
 {
@@ -134,7 +134,7 @@ class PembelianResource extends Resource
                     ->label('Nama Perusahaan')
                     ->searchable()
                     ->sortable(),
-                JSMoneyColumn::make('total_harga')
+                TextColumn::make('total_harga')
                     ->label('Total Harga')
                     ->formatStateUsing(fn($state) => $state ? 'Rp. ' . number_format($state, 0, ',', '.') : '-')
                     ->searchable()
@@ -284,7 +284,7 @@ class PembelianResource extends Resource
                 ->relationship(
                     'pemasok',
                     'nama_perusahaan',
-                    fn ($query) => $query->where('id_pemilik', Filament::auth()->id())
+                    fn($query) => $query->where('id_pemilik', Filament::auth()->id())
                 )
                 ->searchable()
                 ->preload()
@@ -329,9 +329,9 @@ class PembelianResource extends Resource
                     Forms\Components\Select::make('id_produk')
                         ->label('Produk')
                         ->relationship(
-                            'produk', 
+                            'produk',
                             'nama_produk',
-                            fn ($query) => $query->where('id_pemilik', Filament::auth()->id())
+                            fn($query) => $query->where('id_pemilik', Filament::auth()->id())
                         )
                         ->required()
                         ->reactive()
@@ -446,11 +446,14 @@ class PembelianResource extends Resource
                 ->required()
                 ->reactive(),
 
-            Components\TextInput::make('nominal')
+            JSMoneyInput::make('total_bayar')
                 ->label('Nominal')
+                ->locale('id-ID')
+                ->currency('IDR')
                 ->prefix('Rp. ')
-                ->numeric()
+                ->minValue(0)
                 ->required()
+                ->dehydrated(false)
                 ->visible(fn($get) => in_array($get('metode_pembayaran'), ['tunai', 'transfer'])),
 
             Components\Select::make('tipe_pembayaran')

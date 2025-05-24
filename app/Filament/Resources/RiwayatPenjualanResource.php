@@ -30,6 +30,7 @@ use App\Models\TipeTransfer;
 use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Tuxones\JsMoneyField\Forms\Components\JSMoneyInput;
 
 class RiwayatPenjualanResource extends Resource
 {
@@ -280,9 +281,9 @@ class RiwayatPenjualanResource extends Resource
 
             Forms\Components\Select::make('id_pelanggan')
                 ->relationship(
-                    'pelanggan', 
+                    'pelanggan',
                     'nama_pelanggan',
-                    fn ($query) => $query->where('id_pemilik', Filament::auth()->id())
+                    fn($query) => $query->where('id_pemilik', Filament::auth()->id())
                 )
                 ->searchable()
                 ->required()
@@ -609,8 +610,10 @@ class RiwayatPenjualanResource extends Resource
                         ->columnSpan(['md' => 3])
                         ->live(),
 
-                    Forms\Components\TextInput::make('total_bayar')
+                    JSMoneyInput::make('total_bayar')
                         ->label('Nominal')
+                        ->locale('id-ID')
+                        ->currency('IDR')
                         ->prefix('Rp. ')
                         ->numeric()
                         ->required()
