@@ -13,8 +13,7 @@ use App\Observers\BayarZakatObserver;
 use App\Observers\PembayaranPembelianObserver;
 use App\Observers\PembayaranObserver;
 use App\Observers\PembayaranPenjualanObserver;
-
-
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
         //     $switch
         //         ->locales(['id', 'en']);
         // });
+        if($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
 
         PembayaranPembelian::observe(PembayaranPembelianObserver::class);
         PembayaranPenjualan::observe(PembayaranPenjualanObserver::class);
