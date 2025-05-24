@@ -11,6 +11,7 @@ class CreatePembayaranZakat extends Page
 {
     protected static string $resource = PembayaranZakatResource::class;
     protected static string $view = 'filament.resources.pembayaran-zakat-resource.pages.create-pembayaran-zakat';
+    protected static ?string $title = 'Bayar Zakat';
 
     public ?array $data = [];
 

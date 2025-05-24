@@ -19,17 +19,15 @@ return new class extends Migration
                 ->references('id_pemilik')
                 ->on('pemilik')
                 ->onDelete('cascade');
-            $table->unsignedTinyInteger('id_penerima_zakat');
+            $table->unsignedTinyInteger('id_penerima_zakat')->nullable();
             $table->foreign('id_penerima_zakat')
                 ->references('id_penerima_zakat')
                 ->on('penerima_zakat')
-                ->onDelete('cascade');
+                ->onDelete('set null');
             $table->foreignId('id_pembayaran')
                 ->references('id_pembayaran')
                 ->on('pembayaran')
                 ->onDelete('cascade');
-            $table->unsignedTinyInteger('id_tipe_transfer')
-                ->nullable();
             $table->bigInteger('modal_terjual');
             $table->timestamps();
         });

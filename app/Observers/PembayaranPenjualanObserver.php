@@ -13,12 +13,28 @@ class PembayaranPenjualanObserver
      */
     public function created(PembayaranPenjualan $pembayaranPenjualan): void
     {
+        $penjualan = $pembayaranPenjualan->penjualan;
+        $totalHarga = $penjualan->total_harga;
+
+        // Hitung total pembayaran sebelum pembayaran ini
+        $totalBayarSebelumnya = $penjualan->pembayaran()
+            ->where('pembayaran.id_pembayaran', '!=', $pembayaranPenjualan->pembayaran->id_pembayaran)
+            ->sum('total_bayar');
+
+        // Nominal yang benar-benar masuk kas (tidak termasuk kembalian)
+        $sisaKurang = $totalHarga - $totalBayarSebelumnya;
+        $nominalMasuk = min($pembayaranPenjualan->pembayaran->total_bayar, $sisaKurang);
+
+        // Jika sudah lunas, nominalMasuk bisa 0
+        if ($nominalMasuk <= 0) {
+            return;
+        }
         ArusKeuangan::create([
             'id_pemilik' => Filament::auth()->user()?->pemilik?->id_pemilik ?? $pembayaranPenjualan->penjualan->kasir->id_pemilik,
             'id_sumber' => $pembayaranPenjualan->pembayaran->id_pembayaran,
             'keterangan' => 'Pembayaran Penjualan ' . $pembayaranPenjualan->id_penjualan,
             'jenis_transaksi' => 'debit',
-            'nominal' => $pembayaranPenjualan->pembayaran->total_bayar,
+            'nominal' => $nominalMasuk,
             'created_at' => $pembayaranPenjualan->created_at,
         ]);
     }

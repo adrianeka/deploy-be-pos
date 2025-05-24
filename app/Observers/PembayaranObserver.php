@@ -20,9 +20,50 @@ class PembayaranObserver
      */
     public function updated(Pembayaran $pembayaran): void
     {
-        ArusKeuangan::where('id_sumber', $pembayaran->id_pembayaran)->update([
-            'nominal' => $pembayaran->total_bayar,
-        ]);
+        // Cek relasi pembayaran ke penjualan
+        if ($pembayaran->pembayaranPenjualan) {
+            $penjualan = $pembayaran->pembayaranPenjualan->penjualan;
+            if ($penjualan) {
+                // Ambil semua pembayaran penjualan urut sesuai waktu
+                $pembayaranPenjualans = $penjualan->pembayaranPenjualan()->with('pembayaran')->orderBy('created_at')->get();
+                $totalHarga = $penjualan->total_harga;
+                $totalBayarSebelumnya = 0;
+
+                foreach ($pembayaranPenjualans as $pp) {
+                    $pembayaranSekarang = $pp->pembayaran->total_bayar;
+                    $sisaKurang = $totalHarga - $totalBayarSebelumnya;
+                    $nominalMasuk = min($pembayaranSekarang, max($sisaKurang, 0));
+
+                    // Update ArusKeuangan untuk pembayaran ini
+                    ArusKeuangan::where('id_sumber', $pp->pembayaran->id_pembayaran)
+                        ->update(['nominal' => $nominalMasuk]);
+
+                    $totalBayarSebelumnya += $pembayaranSekarang;
+                }
+            }
+        }
+        // Cek relasi pembayaran ke pembelian
+        if ($pembayaran->pembayaranPembelian) {
+            $pembelian = $pembayaran->pembayaranPembelian->pembelian;
+            if ($pembelian) {
+                // Ambil semua pembayaran pembelian urut sesuai waktu
+                $pembayaranPembelians = $pembelian->pembayaranPembelian()->with('pembayaran')->orderBy('created_at')->get();
+                $totalHarga = $pembelian->total_harga;
+                $totalBayarSebelumnya = 0;
+
+                foreach ($pembayaranPembelians as $pp) {
+                    $pembayaranSekarang = $pp->pembayaran->total_bayar;
+                    $sisaKurang = $totalHarga - $totalBayarSebelumnya;
+                    $nominalMasuk = min($pembayaranSekarang, max($sisaKurang, 0));
+
+                    // Update ArusKeuangan untuk pembayaran ini
+                    ArusKeuangan::where('id_sumber', $pp->pembayaran->id_pembayaran)
+                        ->update(['nominal' => $nominalMasuk]);
+
+                    $totalBayarSebelumnya += $pembayaranSekarang;
+                }
+            }
+        }
     }
 
     /**
