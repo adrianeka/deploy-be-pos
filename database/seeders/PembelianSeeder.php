@@ -66,7 +66,7 @@ class PembelianSeeder extends Seeder
                         'total_harga' => 0,
                         'status_pembelian' => $status,
                         'created_at' => $createdAt,
-                        'updated_at' => $updatedAt,
+                        'tanggal_kedatangan' => $updatedAt,
                     ]);
 
                     $jumlahProduk = rand(5, 20);
@@ -75,7 +75,7 @@ class PembelianSeeder extends Seeder
                         'id_produk' => $produk->id_produk,
                         'jumlah_produk' => $jumlahProduk,
                         'created_at' => $createdAt,
-                        'updated_at' => $updatedAt,
+                        'updated_at' => $createdAt,
                     ]);
 
                     DB::table('stok')->insert([

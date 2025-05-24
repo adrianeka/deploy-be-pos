@@ -18,7 +18,7 @@ class StokObserver
         Log::info("MASUK OBSERVER STOK");
         try {
             // Hanya cek untuk stok keluar (penjualan)
-            if (strtolower($stok->jenis_stok) !== 'out') {
+            if (strtolower($stok->jenis_stok) !== 'out') {  
                 return;
             }
             
@@ -67,8 +67,8 @@ class StokObserver
     {
         try {
             Notification::make()
-                ->title('Stok Minimum Tercapai')
-                ->body("Stok produk \"{$produk->nama_produk}\" tersisa {$stokTersedia} dari minimum {$produk->stok_minimum}!")
+                ->title('Stok Hampir Habis!')
+                ->body("Stok produk \"{$produk->nama_produk}\" tersisa {$stokTersedia} segera lakukan pembelian produk!")
                 ->warning()
                 ->sendToDatabase($user)
                 ->broadcast($user);

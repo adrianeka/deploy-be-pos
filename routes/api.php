@@ -10,9 +10,9 @@ use App\Http\Controllers\ProdukController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+Route::get('/cek-token', [AuthController::class, 'checkToken']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/cek-token', [AuthController::class, 'checkToken']);
     // Route::post('/pembelian', [PembelianController::class, 'store']);
     // Pelanggan
     Route::apiResource('pelanggan', PelangganController::class);

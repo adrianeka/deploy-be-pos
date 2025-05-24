@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreign('id_pemasok')->references('id_pemasok')->on('pemasok')->onDelete('cascade');
             $table->bigInteger('total_harga')->default(0);
             $table->enum('status_pembelian', ['diproses', 'lunas', 'belum lunas']);
+            $table->date('tanggal_kedatangan')->nullable();
             $table->timestamps();
         });
     }

@@ -15,10 +15,12 @@ class PenjualanObserver
     // NotifyPenjualan
     protected function notifyPenjualan($user){
         try {
-            Log::info("MASUK NOTIFY PENJUALAN");
             Notification::make()
-                ->title('Transaksi Baru: ' . $this->penjualan->id_penjualan)
-                ->body('Total Rp ' . number_format($this->penjualan->total_harga))
+                ->title('Transaksi Penjualan Baru: ' . $this->penjualan->id_penjualan)
+                ->body(
+                    "ID Penjualan: {$this->penjualan->id_penjualan}\n" .
+                    "Total Harga Rp " . number_format($this->penjualan->total_harga, 0, ',', '.')
+                )
                 ->success()
                 ->sendToDatabase($user);
                 // ->broadcast($user);
@@ -38,8 +40,6 @@ class PenjualanObserver
         try {
             $this->penjualan = Penjualan::with('kasir', 'penjualanDetail', 'penjualanDetail.produk')
                 ->find($penjualan->id_penjualan);
-                
-            Log::info("MASUK OBSERVER PENJUALAN NICH");
             
             if (!$this->penjualan) {
                 Log::warning("Penjualan tidak ditemukan", ['id' => $penjualan->id_penjualan]);
