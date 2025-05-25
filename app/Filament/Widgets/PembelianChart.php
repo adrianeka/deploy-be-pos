@@ -45,7 +45,7 @@ class PembelianChart extends ChartWidget
                         $this->filter = $state;
                         $this->applyQuickFilter($state);
                     }),
-                    
+
                 Select::make('filterPeriod')
                     ->options([
                         'day' => 'Harian',
@@ -90,33 +90,33 @@ class PembelianChart extends ChartWidget
     protected function applyQuickFilter(string $filter): void
     {
         $now = Carbon::now();
-        
+
         switch ($filter) {
             case 'today':
                 $this->startDate = $now->startOfDay()->toDateString();
                 $this->endDate = $now->endOfDay()->toDateString();
                 $this->filterPeriod = 'day';
                 break;
-                
+
             case 'week':
                 $this->startDate = $now->copy()->subWeek()->startOfDay()->toDateString();
                 $this->endDate = $now->endOfDay()->toDateString();
                 $this->filterPeriod = 'day';
                 break;
-                
+
             case 'month':
                 $this->startDate = $now->copy()->subMonth()->startOfDay()->toDateString();
                 $this->endDate = $now->endOfDay()->toDateString();
                 $this->filterPeriod = 'day'; // Diubah dari 'day' ke 'month'
                 break;
-                
+
             case 'year':
                 $this->startDate = $now->copy()->subYear()->startOfDay()->toDateString(); // 1 tahun ke belakang dari sekarang
                 $this->endDate = $now->endOfDay()->toDateString();
                 $this->filterPeriod = 'month';
                 break;
         }
-        
+
         Log::info('Quick filter applied', [
             'filter' => $filter,
             'startDate' => $this->startDate,
@@ -131,14 +131,14 @@ class PembelianChart extends ChartWidget
         if ($this->filter) {
             $this->applyQuickFilter($this->filter);
         }
-        
+
         // Default values jika null
-        $startDate = $this->startDate 
-            ? Carbon::parse($this->startDate)->startOfDay() 
+        $startDate = $this->startDate
+            ? Carbon::parse($this->startDate)->startOfDay()
             : now()->subMonth()->startOfDay();
-            
-        $endDate = $this->endDate 
-            ? Carbon::parse($this->endDate)->endOfDay() 
+
+        $endDate = $this->endDate
+            ? Carbon::parse($this->endDate)->endOfDay()
             : now()->endOfDay();
 
         $periodMethod = 'per' . ucfirst($this->filterPeriod);
@@ -147,7 +147,7 @@ class PembelianChart extends ChartWidget
             ->between($startDate, $endDate)
             ->{$periodMethod}()
             ->count();
-        
+
         $dates = $pengeluaranTrend;
         $pengeluaranData = collect($dates)->map(function ($item) use ($periodMethod) {
             if ($periodMethod == 'perDay') {
@@ -162,14 +162,14 @@ class PembelianChart extends ChartWidget
             }
 
             $pembelians = Pembelian::whereHas('pemasok', function ($query) {
-                    $query->where('id_pemilik', Filament::auth()->id());
-                })
+                $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
+            })
                 ->whereBetween('created_at', [$startDate, $endDate])
-                ->get();   
+                ->get();
             $dibayar = $pembelians->sum('uang_diterima');
             $kembalian = $pembelians->sum('uang_kembalian');
             $totalPengeluaran = $dibayar - $kembalian;
-            
+
             return new TrendValue($item->date, $totalPengeluaran, $totalPengeluaran);
         });
 
@@ -180,7 +180,7 @@ class PembelianChart extends ChartWidget
             )
                 ->between($startDate, $endDate)
                 ->{$periodMethod}();
-                
+
             $dates = $piutangTrend->count(); // Ambil tanggal saja
             $utangData = collect($dates)->map(function ($item) use ($periodMethod) {
                 if ($periodMethod == 'perDay') {
@@ -193,15 +193,15 @@ class PembelianChart extends ChartWidget
                     $startDate = Carbon::parse($item->date)->subYear()->startOfDay();
                     $endDate = Carbon::parse($item->date)->endOfDay();
                 }
-            $pembelians = Pembelian::whereIn('status_pembelian', ['belum lunas', 'pesanan'])
-                ->whereHas('pemasok', function ($query) {
-                    $query->where('id_pemilik', Filament::auth()->id());
-                })
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->get();
-                
-            $totalPiutang = $pembelians->sum('sisa_bayar');
-            return new TrendValue($item->date, $totalPiutang, $totalPiutang);
+                $pembelians = Pembelian::whereIn('status_pembelian', ['belum lunas', 'pesanan'])
+                    ->whereHas('pemasok', function ($query) {
+                        $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
+                    })
+                    ->whereBetween('created_at', [$startDate, $endDate])
+                    ->get();
+
+                $totalPiutang = $pembelians->sum('sisa_bayar');
+                return new TrendValue($item->date, $totalPiutang, $totalPiutang);
             });
         } else {
             $utangData = collect();
@@ -209,7 +209,7 @@ class PembelianChart extends ChartWidget
         // Format labels
         $labels = $pengeluaranData->map(function (TrendValue $value) {
             $date = Carbon::parse($value->date);
-            
+
             return match ($this->filterPeriod) {
                 'day' => $date->translatedFormat('d M'),
                 'month' => $date->translatedFormat('M Y'),
@@ -222,7 +222,7 @@ class PembelianChart extends ChartWidget
         $datasets = [
             [
                 'label' => 'Total Pengeluaran',
-                'data' => $pengeluaranData->map(fn (TrendValue $value) => $value->aggregate)->all(),
+                'data' => $pengeluaranData->map(fn(TrendValue $value) => $value->aggregate)->all(),
                 'borderColor' => '#10B981',
                 'backgroundColor' => 'rgba(16, 185, 129, 0.2)',
                 'tension' => 0.4,
@@ -233,7 +233,7 @@ class PembelianChart extends ChartWidget
         if ($this->showUtang) {
             $datasets[] = [
                 'label' => 'Total Piutang',
-                'data' => $utangData->map(fn (TrendValue $value) => $value->aggregate)->all(),
+                'data' => $utangData->map(fn(TrendValue $value) => $value->aggregate)->all(),
                 'borderColor' => '#EF4444',
                 'backgroundColor' => 'rgba(239, 68, 68, 0.2)',
                 'tension' => 0.4,

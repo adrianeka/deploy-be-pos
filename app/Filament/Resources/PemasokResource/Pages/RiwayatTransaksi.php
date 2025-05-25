@@ -8,7 +8,6 @@ use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\Action;
 
 class RiwayatTransaksi extends ManageRelatedRecords
@@ -33,11 +32,16 @@ class RiwayatTransaksi extends ManageRelatedRecords
                 Pembelian::query()
                     ->where('id_pemasok', $id_pemasok)
             )
-            ->defaultSort('tanggal_pembelian', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->columns([
-                TextColumn::make('tanggal_pembelian')
+                TextColumn::make('created_at')
                     ->label('Tanggal')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('id_pembelian')
+                    ->label('Nomor Invoice')
                     ->searchable()
                     ->sortable(),
 
@@ -45,27 +49,21 @@ class RiwayatTransaksi extends ManageRelatedRecords
                     ->label('Status Transaksi')
                     ->badge()
                     ->searchable()
-                    ->sortable()
-                    ->formatStateUsing(fn(string $state): string => ucwords($state))
-                    ->color(fn(string $state): string => match ($state) {
-                        'Lunas' => 'success',
-                        'Belum Lunas' => 'danger',
-                        'Pesanan' => 'warning',
-                    }),
+                    ->sortable(),
             ])
             ->filters([
                 SelectFilter::make('status_pembelian')
                     ->label('Filter Status Transaksi')
                     ->options([
-                        'lunas' => 'Lunas',
-                        'belum lunas' => 'Belum Lunas',
-                        'pesanan' => 'Pesanan',
+                        'Lunas' => 'Lunas',
+                        'Belum Lunas' => 'Belum Lunas',
+                        'Pesanan' => 'Pesanan',
                     ]),
             ])
             ->actions([
                 Action::make('Lihat')
                     ->icon('heroicon-o-eye')
-                    ->url(fn($record) => route('filament.admin.resources.riwayat-penjualan.view', ['record' => $record->id_penjualan]))
+                    ->url(fn($record) => \App\Filament\Resources\PembelianResource::getUrl('view', ['record' => $record]))
             ])
             ->bulkActions([])
             ->headerActions([]);

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\StatusTransaksiPembelian;
 
 class Pembelian extends Model
 {
@@ -15,6 +16,10 @@ class Pembelian extends Model
     protected $keyType = 'string';
     protected $primaryKey = 'id_pembelian';
     protected $fillable = ['id_pembelian', 'id_pemasok', 'total_harga', 'status_pembelian', 'tanggal_kedatangan'];
+
+    protected $casts = [
+        'status_pembelian' => StatusTransaksiPembelian::class,
+    ];
 
     public function pemasok()
     {

@@ -33,7 +33,7 @@ class ArusKeuanganResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('id_pemilik', Filament::auth()->id());
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
     }
 
     public static function form(Form $form): Form
@@ -91,8 +91,10 @@ class ArusKeuanganResource extends Resource
 
                                 TextInput::make('nominal')
                                     ->label('Nominal')
+                                    ->integer()
                                     ->required()
                                     ->minValue(0)
+                                    ->rules(['regex:/^\d+$/'])
                                     ->prefix('Rp. '),
 
                                 TextInput::make('keterangan')

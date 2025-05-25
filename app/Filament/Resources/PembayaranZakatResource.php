@@ -19,18 +19,19 @@ use Illuminate\Database\Eloquent\Collection;
 class PembayaranZakatResource extends Resource
 {
     protected static ?string $model = Penjualan::class;
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-heart';
     protected static ?string $label = 'Pembayaran Zakat';
     protected static ?string $pluralLabel = 'Pembayaran Zakat';
     protected static ?string $navigationLabel = 'Pembayaran Zakat';
     protected static ?string $navigationGroup = 'Zakat';
+    protected static ?string $slug = 'zakat/bayar-zakat';
     protected static ?int $navigationSort = 5;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereHas('kasir', fn($query) => $query->where('id_pemilik', Filament::auth()->id()));
+            ->whereHas('kasir', fn($query) => $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik));
     }
 
     public static function form(Form $form): Form
@@ -67,7 +68,7 @@ class PembayaranZakatResource extends Resource
         return $query
             ->whereNull('id_bayar_zakat')
             ->whereHas('kasir', function ($q) {
-                $q->where('id_pemilik', Filament::auth()->id());
+                $q->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
             });
     }
 

@@ -45,7 +45,7 @@ class RiwayatPenjualanResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereHas('kasir', fn($query) => $query->where('id_pemilik', Filament::auth()->id()));
+            ->whereHas('kasir', fn($query) => $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik));
     }
 
     public static function getWidgets(): array
@@ -286,7 +286,7 @@ class RiwayatPenjualanResource extends Resource
                 ->relationship(
                     'pelanggan',
                     'nama_pelanggan',
-                    fn($query) => $query->where('id_pemilik', Filament::auth()->id())
+                    fn($query) => $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                 )
                 ->searchable()
                 ->required()
@@ -315,7 +315,7 @@ class RiwayatPenjualanResource extends Resource
                         ->columnSpanFull(),
 
                     Forms\Components\Hidden::make('id_pemilik')
-                        ->default(fn() => Filament::auth()?->id()),
+                        ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik),
 
                 ])
                 ->createOptionAction(function (Action $action) {
@@ -377,7 +377,7 @@ class RiwayatPenjualanResource extends Resource
                         ->columnSpan(1),
 
                     Forms\Components\Hidden::make('id_pemilik')
-                        ->default(fn() => Filament::auth()?->id()),
+                        ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik),
                 ])
                 ->createOptionAction(function (Action $action) {
                     return $action
@@ -489,7 +489,8 @@ class RiwayatPenjualanResource extends Resource
 
                             Forms\Components\TextInput::make('jumlah_produk')
                                 ->label('Jumlah')
-                                ->numeric()
+                                ->integer()
+                                ->rules(['regex:/^\d+$/'])
                                 ->required()
                                 ->reactive()
                                 ->minValue(1)
@@ -616,7 +617,9 @@ class RiwayatPenjualanResource extends Resource
                     Forms\Components\TextInput::make('total_bayar')
                         ->label('Nominal')
                         ->prefix('Rp. ')
-                        ->numeric()
+                        ->minValue(1)
+                        ->rules(['regex:/^\d+$/'])
+                        ->integer()
                         ->required()
                         ->columnSpan(['md' => 3])
                         ->visible(fn(callable $get) => in_array($get('jenis_pembayaran'), ['tunai', 'transfer']))

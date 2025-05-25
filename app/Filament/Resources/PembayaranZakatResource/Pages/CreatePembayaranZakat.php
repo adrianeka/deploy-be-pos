@@ -3,18 +3,9 @@
 namespace App\Filament\Resources\PembayaranZakatResource\Pages;
 
 use App\Filament\Resources\PembayaranZakatResource;
-use App\Models\BayarZakat;
-use App\Models\Pembayaran;
-use App\Models\PenerimaZakat;
-use App\Models\Penjualan;
-use App\Models\TipeTransfer;
-use Filament\Facades\Filament;
-use Filament\Forms\Components;
-use Filament\Forms\Form;
-use Filament\Notifications\Notification;
-use Filament\Resources\Pages\Page;
+use App\Models\{BayarZakat, Pembayaran, PenerimaZakat, Penjualan, TipeTransfer};
+use Filament\{Actions\Action, Facades\Filament, Forms\Components, Forms\Form, Notifications\Notification, Resources\Pages\Page};
 use Illuminate\Support\Facades\DB;
-use Filament\Actions\Action;
 
 class CreatePembayaranZakat extends Page
 {
@@ -24,18 +15,10 @@ class CreatePembayaranZakat extends Page
     public ?array $data = [];
 
     private const ZAKAT_PERCENTAGE = 0.025;
-    private const PAYMENT_TYPES = [
-        'tunai' => 'Tunai',
-        'transfer' => 'Transfer',
-    ];
-    private const TRANSFER_METHODS = [
-        'bank' => 'Bank',
-        'e-wallet' => 'E-wallet',
-    ];
 
     public function mount(): void
     {
-        $this->initializeData();
+        $this->initData();
         $this->fillFormData();
     }
 
@@ -45,10 +28,9 @@ class CreatePembayaranZakat extends Page
             ->schema([
                 Components\Section::make('Form Pembayaran Zakat')
                     ->schema([
-                        Components\Grid::make(2)
-                            ->schema($this->getFormFields())
+                        Components\Grid::make(2)->schema($this->getFormFields())
                     ])
-                    ->collapsible(),
+                    ->collapsible()
             ])
             ->statePath('data');
     }
@@ -57,26 +39,26 @@ class CreatePembayaranZakat extends Page
     {
         try {
             $data = $this->form->getState();
-
             $this->validateRecordIds($data);
-            $this->processZakatPayment($data);
-            $this->showSuccessNotification();
+            $this->handleZakatPayment($data);
+
+            $this->notifySuccess();
             $this->redirectToIndex();
         } catch (\Exception $e) {
-            $this->showErrorNotification($e->getMessage());
+            $this->notifyError($e->getMessage());
         }
     }
 
     protected function getFormActions(): array
     {
         return [
-            Action::make('create')
-                ->label('Bayar Zakat')
-                ->submit('create'),
+            Action::make('create')->label('Bayar Zakat')->submit('create'),
         ];
     }
 
-    private function initializeData(): void
+    // -- Initialization --
+
+    private function initData(): void
     {
         $recordIds = request()->query('recordIds', []);
 
@@ -87,42 +69,15 @@ class CreatePembayaranZakat extends Page
             'id_tipe_transfer' => null,
         ];
 
-        if (!empty($recordIds)) {
-            $this->calculateZakatAmounts($recordIds);
+        if ($recordIds) {
+            $penjualans = $this->getPenjualanDetails($recordIds);
+            $modal = $this->calculateModal($penjualans);
+            $this->data['modal_terjual'] = $modal;
+            $this->data['nominal_zakat'] = $modal * self::ZAKAT_PERCENTAGE;
         } else {
-            $this->setDefaultAmounts();
+            $this->data['modal_terjual'] = 0;
+            $this->data['nominal_zakat'] = 0;
         }
-    }
-
-    private function calculateZakatAmounts(array $recordIds): void
-    {
-        $penjualans = $this->getPenjualanWithDetails($recordIds);
-        $modalTerjual = $this->calculateModalTerjual($penjualans);
-
-        $this->data['modal_terjual'] = (float) $modalTerjual;
-        $this->data['nominal_zakat'] = (float) ($modalTerjual * self::ZAKAT_PERCENTAGE);
-    }
-
-    private function getPenjualanWithDetails(array $recordIds)
-    {
-        return Penjualan::with(['penjualanDetail.produk'])
-            ->whereIn('id_penjualan', $recordIds)
-            ->get();
-    }
-
-    private function calculateModalTerjual($penjualans): float
-    {
-        return $penjualans->sum(function ($penjualan) {
-            return $penjualan->penjualanDetail->sum(function ($detail) {
-                return optional($detail->produk)->harga_beli * $detail->jumlah_produk;
-            });
-        });
-    }
-
-    private function setDefaultAmounts(): void
-    {
-        $this->data['modal_terjual'] = 0;
-        $this->data['nominal_zakat'] = 0;
     }
 
     private function fillFormData(): void
@@ -134,188 +89,187 @@ class CreatePembayaranZakat extends Page
         ]);
     }
 
+    // -- Form Fields --
+
     private function getFormFields(): array
     {
         return [
-            $this->getHiddenRecordIdsField(),
-            $this->getPenerimaZakatField(),
-            $this->getJenisPembayaranField(),
-            $this->getMetodeTransferField(),
-            $this->getTipeTransferField(),
-            $this->getModalTerjualField(),
-            $this->getNominalZakatField(),
+            Components\Hidden::make('recordIds')
+                ->default($this->data['recordIds'] ?? []),
+
+            Components\Hidden::make('modal_terjual'),
+
+            Components\Hidden::make('nominal_zakat'),
+
+            Components\Placeholder::make('modal_terjual_display')
+                ->label('Modal Terjual')
+                ->content(fn(callable $get) => 'Rp. ' . number_format($get('modal_terjual') ?? 0, 0, ',', '.')),
+
+            Components\Placeholder::make('nominal_zakat_display')
+                ->label('Total Zakat (2.5%)')
+                ->content(fn(callable $get) => 'Rp. ' . number_format($get('nominal_zakat') ?? 0, 0, ',', '.')),
+
+            Components\Placeholder::make('norek_display')
+                ->label('Nomor Rekening Penerima Zakat')
+                ->visible(fn($get) => $get('jenis_pembayaran') === 'transfer')
+                ->content(function (callable $get) {
+                    $idPenerima = $get('id_penerima_zakat');
+                    $noRek = \App\Models\PenerimaZakat::find($idPenerima)?->no_rekening;
+
+                    if (!$noRek) {
+                        return '-';
+                    }
+
+                    return trim(chunk_split(preg_replace('/\s+/', '', $noRek), 4, ' '));
+                })
+                ->columnSpanFull(),
+
+
+            Components\Select::make('id_penerima_zakat')
+                ->label('Nama Penerima Zakat')
+                ->options(PenerimaZakat::pluck('nama_penerima', 'id_penerima_zakat'))
+                ->required()
+                ->searchable()
+                ->live(),
+
+            Components\Select::make('jenis_pembayaran')
+                ->label('Metode Pembayaran')
+                ->options(['tunai' => 'Tunai', 'transfer' => 'Transfer'])
+                ->required()
+                ->reactive()
+                ->visible(fn($get) => $get('id_penerima_zakat') !== null)
+                ->afterStateUpdated(fn($state, $set) => $state === 'tunai' ? $set('id_tipe_transfer', null) : null),
+
+            Components\Select::make('metode_transfer')
+                ->label('Metode Transfer')
+                ->options(['bank' => 'Bank', 'e-wallet' => 'E-wallet'])
+                ->visible(fn($get) => $get('jenis_pembayaran') === 'transfer')
+                ->dehydrated(false)
+                ->searchable()
+                ->reactive()
+                ->required(),
+
+            Components\Select::make('id_tipe_transfer')
+                ->label('Jenis Transfer')
+                ->options(fn($get) => $this->getTipeTransferOptions($get('metode_transfer')))
+                ->visible(fn($get) => $get('jenis_pembayaran') === 'transfer' && in_array($get('metode_transfer'), ['bank', 'e-wallet']))
+                ->searchable()
+                ->reactive()
+                ->required(),
         ];
     }
 
-    private function getHiddenRecordIdsField(): Components\Hidden
-    {
-        return Components\Hidden::make('recordIds')
-            ->default($this->data['recordIds'] ?? []);
-    }
-
-    private function getPenerimaZakatField(): Components\Select
-    {
-        return Components\Select::make('id_penerima_zakat')
-            ->label('Nama Penerima Zakat')
-            ->options(PenerimaZakat::pluck('nama_penerima', 'id_penerima_zakat'))
-            ->required()
-            ->searchable()
-            ->live();
-    }
-
-    private function getJenisPembayaranField(): Components\Select
-    {
-        return Components\Select::make('jenis_pembayaran')
-            ->label('Metode Pembayaran')
-            ->options(self::PAYMENT_TYPES)
-            ->afterStateUpdated(function ($state, $set) {
-                if ($state === 'tunai') {
-                    $set('id_tipe_transfer', null);
-                    $set('metode_transfer', null);
-                }
-            })
-            ->required()
-            ->reactive();
-    }
-
-    private function getMetodeTransferField(): Components\Select
-    {
-        return Components\Select::make('metode_transfer')
-            ->label('Metode Transfer')
-            ->options(self::TRANSFER_METHODS)
-            ->dehydrated(false)
-            ->visible(fn($get) => $get('jenis_pembayaran') === 'transfer')
-            ->reactive()
-            ->searchable();
-    }
-
-    private function getTipeTransferField(): Components\Select
-    {
-        return Components\Select::make('id_tipe_transfer')
-            ->label('Jenis Transfer')
-            ->options(fn($get) => $this->getTipeTransferOptions($get('metode_transfer')))
-            ->visible(fn($get) => $this->shouldShowTipeTransfer($get))
-            ->searchable()
-            ->reactive();
-    }
-
-    private function getTipeTransferOptions(?string $metodeTransfer): array
-    {
-        if (!$metodeTransfer) {
-            return [];
-        }
-
-        return TipeTransfer::where('metode_transfer', $metodeTransfer)
-            ->pluck('jenis_transfer', 'id_tipe_transfer')
-            ->toArray();
-    }
-
-    private function shouldShowTipeTransfer($get): bool
-    {
-        return $get('jenis_pembayaran') === 'transfer' &&
-            in_array($get('metode_transfer'), ['bank', 'e-wallet']);
-    }
-
-    private function getModalTerjualField(): Components\TextInput
-    {
-        return Components\TextInput::make('modal_terjual')
-            ->label('Total Modal')
-            ->disabled()
-            ->dehydrated()
-            ->default(0)
-            ->formatStateUsing(fn($state) => $this->formatCurrency($state))
-            ->afterStateHydrated(
-                fn($component, $state) =>
-                $component->state($this->formatCurrency($state))
-            );
-    }
-
-    private function getNominalZakatField(): Components\TextInput
-    {
-        return Components\TextInput::make('nominal_zakat')
-            ->label('Total Zakat (2.5%)')
-            ->disabled()
-            ->dehydrated()
-            ->default(0)
-            ->formatStateUsing(fn($state) => $this->formatCurrency($state, 'Rp '))
-            ->afterStateHydrated(
-                fn($component, $state) =>
-                $component->state($this->formatCurrency($state, 'Rp '))
-            );
-    }
+    // -- Business Logic --
 
     private function validateRecordIds(array $data): void
     {
         if (empty($data['recordIds'])) {
-            throw new \Exception('Tidak ada transaksi yang dipilih');
+            throw new \Exception('Tidak ada transaksi yang dipilih.');
         }
     }
 
-    private function processZakatPayment(array $data): void
+    private function handleZakatPayment(array $data): void
     {
-        $calculatedData = $this->ensureCalculatedAmounts($data);
-        $modalTerjual = $this->parseNumericValue($calculatedData['modal_terjual']);
-        $nominalZakat = $this->parseNumericValue($calculatedData['nominal_zakat']);
+        $data = $this->ensureZakatIsCalculated($data);
+        $modal = $this->parseCurrency($data['modal_terjual']);
+        $zakat = $this->parseCurrency($data['nominal_zakat']);
 
-        DB::transaction(function () use ($calculatedData, $modalTerjual, $nominalZakat) {
-            $pembayaran = $this->createPembayaran($calculatedData, $nominalZakat);
-            $bayarZakat = $this->createBayarZakat($calculatedData, $pembayaran, $modalTerjual);
-            $this->updatePenjualanRecords($calculatedData['recordIds'], $bayarZakat);
+        DB::transaction(function () use ($data, $modal, $zakat) {
+            $pembayaran = $this->createPembayaran($data, $zakat);
+            $bayarZakat = $this->createBayarZakat($data, $pembayaran, $modal);
+            $this->linkPenjualanToBayarZakat($data['recordIds'], $bayarZakat);
         });
     }
 
-    private function ensureCalculatedAmounts(array $data): array
+    private function ensureZakatIsCalculated(array $data): array
     {
         if (!isset($data['modal_terjual']) || !isset($data['nominal_zakat'])) {
-            $penjualans = $this->getPenjualanWithDetails($data['recordIds']);
-            $data['modal_terjual'] = $this->calculateModalTerjual($penjualans);
-            $data['nominal_zakat'] = $data['modal_terjual'] * self::ZAKAT_PERCENTAGE;
+            $penjualans = $this->getPenjualanDetails($data['recordIds']);
+            $modal = $this->calculateModal($penjualans);
+            $data['modal_terjual'] = $modal;
+            $data['nominal_zakat'] = $modal * self::ZAKAT_PERCENTAGE;
         }
 
         return $data;
     }
 
-    private function parseNumericValue($value): float
+    // -- Database Operations --
+
+    private function getPenjualanDetails(array $recordIds)
     {
-        return (float) preg_replace('/[^0-9]/', '', $value);
+        return Penjualan::with('penjualanDetail.produk')
+            ->whereIn('id_penjualan', $recordIds)
+            ->get();
     }
 
-    private function createPembayaran(array $data, float $nominalZakat): Pembayaran
+    private function calculateModal($penjualans): float
+    {
+        return $penjualans->sum(
+            fn($p) =>
+            $p->penjualanDetail->sum(
+                fn($d) =>
+                optional($d->produk)->harga_beli * $d->jumlah_produk
+            )
+        );
+    }
+
+    private function createPembayaran(array $data, float $total): Pembayaran
     {
         return Pembayaran::create([
-            'total_bayar' => $nominalZakat,
+            'total_bayar' => $total,
             'keterangan' => $data['keterangan'] ?? 'Pembayaran Zakat',
             'jenis_pembayaran' => $data['jenis_pembayaran'],
-            'id_tipe_transfer' => $this->getTipeTransferId($data),
+            'id_tipe_transfer' => $data['jenis_pembayaran'] === 'transfer' ? $data['id_tipe_transfer'] : null,
         ]);
     }
 
-    private function getTipeTransferId(array $data): ?int
+    private function createBayarZakat(array $data, Pembayaran $pembayaran, float $modal): BayarZakat
     {
-        return $data['jenis_pembayaran'] === 'transfer' ? $data['id_tipe_transfer'] : null;
-    }
-
-    private function createBayarZakat(array $data, Pembayaran $pembayaran, float $modalTerjual): BayarZakat
-    {
-        $userId = Filament::auth()->id();
-        $idBayarZakat = $this->generateBayarZakatId($userId);
-
+        $userId = Filament::auth()->user()?->pemilik?->id_pemilik;
         return BayarZakat::create([
-            'id_bayar_zakat' => $idBayarZakat,
-            'id_pemilik' => Filament::auth()->id(),
+            'id_bayar_zakat' => $this->generateBayarZakatId($userId),
+            'id_pemilik' => $userId,
             'id_penerima_zakat' => $data['id_penerima_zakat'],
             'id_pembayaran' => $pembayaran->id_pembayaran,
-            'modal_terjual' => $modalTerjual,
+            'modal_terjual' => $modal,
         ]);
     }
 
-    private function updatePenjualanRecords(array $recordIds, BayarZakat $bayarZakat): void
+    private function linkPenjualanToBayarZakat(array $recordIds, BayarZakat $bayarZakat): void
     {
         Penjualan::whereIn('id_penjualan', $recordIds)
             ->update(['id_bayar_zakat' => $bayarZakat->id_bayar_zakat]);
     }
 
-    private function showSuccessNotification(): void
+    // -- Utilities --
+
+    private function getTipeTransferOptions(?string $metode): array
+    {
+        return $metode
+            ? TipeTransfer::where('metode_transfer', $metode)
+            ->pluck('jenis_transfer', 'id_tipe_transfer')
+            ->toArray()
+            : [];
+    }
+
+    private function formatCurrency($value, string $prefix = 'Rp. '): string
+    {
+        return $prefix . number_format((float) $value, 0, ',', '.');
+    }
+
+    private function parseCurrency($value): float
+    {
+        return (float) preg_replace('/[^0-9]/', '', $value);
+    }
+
+    private function generateBayarZakatId(int $userId): string
+    {
+        $date = now()->format('Ymd');
+        $count = BayarZakat::whereDate('created_at', now())->where('id_pemilik', $userId)->count();
+        return sprintf("ZKT-%d%s%02d", $userId, $date, $count + 1);
+    }
+
+    private function notifySuccess(): void
     {
         Notification::make()
             ->title('Berhasil')
@@ -324,11 +278,11 @@ class CreatePembayaranZakat extends Page
             ->send();
     }
 
-    private function showErrorNotification(string $message): void
+    private function notifyError(string $message): void
     {
         Notification::make()
-            ->title('Error')
-            ->body('Terjadi kesalahan: ' . $message)
+            ->title('Terjadi Kesalahan')
+            ->body($message)
             ->danger()
             ->send();
     }
@@ -336,25 +290,5 @@ class CreatePembayaranZakat extends Page
     private function redirectToIndex(): void
     {
         $this->redirect(PembayaranZakatResource::getUrl('index'), navigate: true);
-    }
-
-    private function formatCurrency($state, string $prefix = 'Rp. '): string
-    {
-        $value = is_numeric($state) ? $state : 0;
-        return $prefix . number_format($value, 0, ',', '.');
-    }
-
-    private function generateBayarZakatId(int $userId): string
-    {
-        $today = now();
-        $date = $today->format('Ymd'); // 20250525
-
-        $count = BayarZakat::whereDate('created_at', $today->toDateString())
-            ->where('id_pemilik', $userId)
-            ->count();
-
-        $increment = str_pad($count + 1, 2, '0', STR_PAD_LEFT); // 01, 02, 03, etc.
-
-        return "ZKT-{$userId}{$date}{$increment}";
     }
 }

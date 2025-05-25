@@ -39,7 +39,7 @@ class PelangganResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('id_pemilik', Filament::auth()->id());
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
     }
 
     public static function form(Form $form): Form
@@ -77,7 +77,7 @@ class PelangganResource extends Resource
                     ->collapsible(),
 
                 Components\Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()?->id())
+                    ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik)
                     ->dehydrated(true),
             ]);
     }

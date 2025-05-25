@@ -63,7 +63,7 @@ class RiwayatTransaksi extends ManageRelatedRecords
             ->actions([
                 Action::make('Lihat')
                     ->icon('heroicon-o-eye')
-                    ->url(fn($record) => route('filament.admin.resources.riwayat-penjualan.view', ['record' => $record->id_penjualan]))
+                    ->url(fn($record) => \App\Filament\Resources\RiwayatPenjualanResource::getUrl('view', ['record' => $record]))
             ])
             ->bulkActions([])
             ->headerActions([]);

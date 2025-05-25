@@ -46,7 +46,7 @@ class CreatePembelian extends CreateRecord
             ]);
 
             $pembayaran = Pembayaran::create([
-                'total_bayar' => $$data['total_bayar'],
+                'total_bayar' => $data['total_bayar'],
                 'jenis_pembayaran' => $data['metode_pembayaran'],
                 'id_tipe_transfer' => $data['metode_pembayaran'] === 'transfer' ? $data['id_tipe_transfer'] : null,
                 'keterangan' => 'Pembayaran Pembelian',

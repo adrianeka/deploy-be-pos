@@ -38,7 +38,7 @@ class KasirResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('id_pemilik', Filament::auth()->id());
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
     }
 
     public static function form(Forms\Form $form): Forms\Form
@@ -71,7 +71,7 @@ class KasirResource extends Resource
                                         $record?->user ? $rule->ignore($record->user->id) : $rule
                                     )
                                     ->formatStateUsing(fn($record) => $record?->user?->email)
-                                    ->placeholder('Email kasir yang akan digunakan login'),
+                                    ->placeholder('Email akan digunakan untuk login oleh kasir'),
 
                                 Components\TextInput::make('no_telp')
                                     ->label('Nomor Telepon')
@@ -89,7 +89,7 @@ class KasirResource extends Resource
                                     ->columnSpanFull(),
 
                                 Components\TextInput::make('password')
-                                    ->label('Password')
+                                    ->label('Kata Sandi')
                                     ->password()
                                     ->revealable()
                                     ->required(fn($context) => $context === 'create')
@@ -98,7 +98,7 @@ class KasirResource extends Resource
                                     ->columnSpan(1),
 
                                 Components\TextInput::make('password_confirmation')
-                                    ->label('Konfirmasi Password')
+                                    ->label('Konfirmasi Kata Sandi')
                                     ->password()
                                     ->revealable()
                                     ->same('password')
@@ -111,7 +111,7 @@ class KasirResource extends Resource
                     ->collapsible(),
 
                 Components\Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()?->id()),
+                    ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik),
             ]);
     }
 

@@ -46,7 +46,7 @@ class StokResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('id_pemilik', Filament::auth()->id());
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
     }
 
     public static function getGlobalSearchResultUrl(Model $record): string
@@ -65,7 +65,7 @@ class StokResource extends Resource
                             ->schema([
                                 Select::make('id_produk')
                                     ->label('Produk')
-                                    ->options(fn() => Produk::where('id_pemilik', Filament::auth()->id())->pluck('nama_produk', 'id_produk'))
+                                    ->options(fn() => Produk::where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)->pluck('nama_produk', 'id_produk'))
                                     ->searchable()
                                     ->required(),
 
@@ -79,7 +79,8 @@ class StokResource extends Resource
 
                                 TextInput::make('jumlah_stok')
                                     ->label('Jumlah Stok')
-                                    ->numeric()
+                                    ->integer()
+                                    ->rules(['regex:/^\d+$/'])
                                     ->required()
                                     ->minValue(1),
                             ]),
@@ -89,7 +90,7 @@ class StokResource extends Resource
                     ->default('Manual'),
 
                 Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()->id()),
+                    ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik),
             ]);
     }
 
@@ -134,7 +135,7 @@ class StokResource extends Resource
                     ->label('Satuan')
                     ->relationship('satuan', 'nama_satuan', function ($query) {
                         return $query->where(function ($query) {
-                            $query->where('id_pemilik', Filament::auth()->id())
+                            $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                                 ->orWhereNull('id_pemilik');
                         });
                     })
@@ -145,7 +146,7 @@ class StokResource extends Resource
                     ->label('Kategori')
                     ->relationship('kategori', 'nama_kategori', function ($query) {
                         return $query->where(function ($query) {
-                            $query->where('id_pemilik', Filament::auth()->id())
+                            $query->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik)
                                 ->orWhereNull('id_pemilik');
                         });
                     })

@@ -39,7 +39,7 @@ class PemasokResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('id_pemilik', Filament::auth()->id());
+            ->where('id_pemilik', Filament::auth()->user()?->pemilik?->id_pemilik);
     }
 
     public static function form(Form $form): Form
@@ -57,7 +57,8 @@ class PemasokResource extends Resource
                                 Components\TextInput::make('no_telp')
                                     ->label('Nomor Telepon')
                                     ->required()
-                                    ->numeric()
+                                    ->integer()
+                                    ->rules(['regex:/^\d+$/'])
                                     ->minLength(10)
                                     ->maxLength(15),
                                 Components\TextInput::make('alamat')
@@ -68,7 +69,7 @@ class PemasokResource extends Resource
                     ])
                     ->collapsible(),
                 Components\Hidden::make('id_pemilik')
-                    ->default(fn() => Filament::auth()->id())
+                    ->default(fn() => Filament::auth()->user()?->pemilik?->id_pemilik)
                     ->dehydrated(true),
             ]);
     }

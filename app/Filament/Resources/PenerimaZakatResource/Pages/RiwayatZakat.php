@@ -11,7 +11,7 @@ use Filament\Tables\Actions\Action;
 class RiwayatZakat extends ManageRelatedRecords
 {
     protected static string $resource = PenerimaZakatResource::class;
-    protected static string $relationship = 'bayar_zakat';
+    protected static string $relationship = 'bayarZakat';
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Riwayat Zakat';
     protected static ?string $title = 'Riwayat Zakat';
@@ -24,9 +24,9 @@ class RiwayatZakat extends ManageRelatedRecords
     public function table(Table $table): Table
     {
         return $table
-            ->defaultSort('tanggal_bayar', 'desc')
+            ->defaultSort('created_at', 'desc')
             ->columns([
-                TextColumn::make('tanggal_bayar')
+                TextColumn::make('created_at')
                     ->label('Tanggal Bayar')
                     ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->translatedFormat('d M Y, \\J\\a\\m H:i'))
                     ->searchable()
@@ -38,17 +38,17 @@ class RiwayatZakat extends ManageRelatedRecords
                     ->formatStateUsing(fn($state) => $state ? 'Rp. ' . number_format($state, 0, ',', '.') : '-')
                     ->sortable(),
 
-                TextColumn::make('nominal_zakat')
-                    ->label('Nominal Zakat Sebesar 2.5%')
+                TextColumn::make('pembayaran.total_bayar')
+                    ->label('Nominal Zakat')
                     ->searchable()
                     ->formatStateUsing(fn($state) => $state ? 'Rp. ' . number_format($state, 0, ',', '.') : '-')
                     ->sortable(),
             ])
             ->filters([])
             ->actions([
-                Action::make('view')
-                    ->url(fn() => '#', shouldOpenInNewTab: false)
-                    ->icon('heroicon-o-eye'),
+                Action::make('Lihat')
+                    ->icon('heroicon-o-eye')
+                    ->url(fn($record) => \App\Filament\Resources\RiwayatZakatResource::getUrl('view', ['record' => $record]))
             ])
             ->bulkActions([])
             ->headerActions([]);

@@ -22,7 +22,7 @@ class CreateProduk extends CreateRecord
         $levelHarga =  $this->record->level_hargas()->create([
             'nama_level' => 'Standart',
             'harga_jual' => $hargaJual,
-            'id_pemilik' => Filament::auth()->id(),
+            'id_pemilik' => Filament::auth()->user()?->pemilik?->id_pemilik,
         ]);
 
         // Terapkan harga level harga standar sebagai harga jual produk

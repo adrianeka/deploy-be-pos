@@ -15,7 +15,7 @@ class CreateStok extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['id_pemilik'] = Filament::auth()->id();
+        $data['id_pemilik'] = Filament::auth()->user()?->pemilik?->id_pemilik;
         return $data;
     }
 

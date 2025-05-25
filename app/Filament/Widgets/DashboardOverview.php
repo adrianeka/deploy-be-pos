@@ -14,7 +14,7 @@ class DashboardOverview extends BaseWidget
 {
     protected function getStats(): array
     {
-        $userId = Filament::auth()->id();
+        $userId = Filament::auth()->user()?->pemilik?->id_pemilik;
 
         $stats = [
             [

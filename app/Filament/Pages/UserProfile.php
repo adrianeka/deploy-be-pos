@@ -102,7 +102,7 @@ class UserProfile extends Page implements HasForms
                                                 'email',
                                                 'required',
                                                 'max:255',
-                                                \Illuminate\Validation\Rule::unique('users', 'email')->ignore(Filament::auth()->id()),
+                                                \Illuminate\Validation\Rule::unique('users', 'email')->ignore(Filament::auth()->user()?->pemilik?->id_pemilik),
                                             ]),
                                     ]),
 
