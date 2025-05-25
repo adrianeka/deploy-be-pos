@@ -29,8 +29,8 @@ use Filament\Actions\Exports\Models\Export;
 use App\Models\TipeTransfer;
 use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
-use Tuxones\JsMoneyField\Forms\Components\JSMoneyInput;
 
 class RiwayatPenjualanResource extends Resource
 {
@@ -41,6 +41,13 @@ class RiwayatPenjualanResource extends Resource
     protected static ?string $slug = 'riwayat-penjualan';
     protected static ?string $navigationLabel = 'Riwayat Penjualan';
     protected static ?int $navigationSort = 2;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('kasir', fn($query) => $query->where('id_pemilik', Filament::auth()->id()));
+    }
+
     public static function getWidgets(): array
     {
         return [
@@ -57,6 +64,16 @@ class RiwayatPenjualanResource extends Resource
         'bank' => 'Bank',
         'e-wallet' => 'E-wallet',
     ];
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['id_penjualan', 'kasir.nama', 'pelanggan.nama_pelanggan'];
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('view', ['record' => $record]);
+    }
 
     public static function form(Form $form): Form
     {
@@ -103,10 +120,6 @@ class RiwayatPenjualanResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(function () {
-                return Penjualan::with(['pelanggan', 'kasir'])
-                    ->whereHas('kasir', fn($query) => $query->where('id_pemilik', Filament::auth()->id()));
-            })
             ->headerActions([
                 ExportAction::make()
                     ->exporter(PenjualanExporter::class)
@@ -252,11 +265,6 @@ class RiwayatPenjualanResource extends Resource
             ]);
     }
 
-    public static function getLabel(): string
-    {
-        return 'Data Pembayaran';
-    }
-
     public static function getPages(): array
     {
         return [
@@ -265,11 +273,6 @@ class RiwayatPenjualanResource extends Resource
             'edit' => Pages\EditRiwayatPenjualan::route('/{record}/edit'),
             'view' => Pages\ViewRiwayatPenjualan::route('/{record}'),
         ];
-    }
-
-    public static function getGloballySearchableAttributes(): array
-    {
-        return ['id_penjualan', 'kasir', 'pelanggan'];
     }
 
     public static function getDetailsFormSchema(): array
@@ -610,10 +613,8 @@ class RiwayatPenjualanResource extends Resource
                         ->columnSpan(['md' => 3])
                         ->live(),
 
-                    JSMoneyInput::make('total_bayar')
+                    Forms\Components\TextInput::make('total_bayar')
                         ->label('Nominal')
-                        ->locale('id-ID')
-                        ->currency('IDR')
                         ->prefix('Rp. ')
                         ->numeric()
                         ->required()

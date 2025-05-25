@@ -27,6 +27,12 @@ class PembayaranZakatResource extends Resource
     protected static ?int $navigationSort = 5;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('kasir', fn($query) => $query->where('id_pemilik', Filament::auth()->id()));
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([]);

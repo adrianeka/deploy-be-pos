@@ -28,6 +28,7 @@ use Filament\Resources\Pages\Page;
 use Filament\Forms\Components;
 use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class StokResource extends Resource
 {
@@ -41,6 +42,17 @@ class StokResource extends Resource
     protected static ?string $navigationGroup = 'Inventaris';
     protected static ?int $navigationSort = 5;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('id_pemilik', Filament::auth()->id());
+    }
+
+    public static function getGlobalSearchResultUrl(Model $record): string
+    {
+        return static::getUrl('view', ['record' => $record]);
+    }
 
     public static function form(Form $form): Form
     {
@@ -84,9 +96,6 @@ class StokResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(
-                Produk::query()->where('id_pemilik', Filament::auth()->id())
-            )
             ->headerActions([
                 ExportAction::make()
                     ->exporter(StokExporter::class)

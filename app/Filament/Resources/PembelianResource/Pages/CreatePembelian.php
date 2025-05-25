@@ -35,8 +35,6 @@ class CreatePembelian extends CreateRecord
     protected function handleRecordCreation(array $data): Model
     {
         return DB::transaction(function () use ($data) {
-            $state = $this->form->getRawState();
-            $totalBayar = (int) str_replace(['.', ','], '', $state['total_bayar']);
             $total = collect($data['pembelianDetail'] ?? [])
                 ->sum(fn($item) => $item['sub_total_harga'] ?? 0);
 
@@ -48,7 +46,7 @@ class CreatePembelian extends CreateRecord
             ]);
 
             $pembayaran = Pembayaran::create([
-                'total_bayar' => $totalBayar,
+                'total_bayar' => $$data['total_bayar'],
                 'jenis_pembayaran' => $data['metode_pembayaran'],
                 'id_tipe_transfer' => $data['metode_pembayaran'] === 'transfer' ? $data['id_tipe_transfer'] : null,
                 'keterangan' => 'Pembayaran Pembelian',

@@ -15,6 +15,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 
@@ -29,6 +30,15 @@ class RiwayatZakatResource extends Resource
     protected static ?string $navigationGroup = 'Zakat';
     protected static ?int $navigationSort = 6;
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['penjualan'])
+            ->whereHas('penerimaZakat', function (Builder $query) {
+                $query->where('id_pemilik', Auth::user()->id);
+            });
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -37,13 +47,9 @@ class RiwayatZakatResource extends Resource
             ]);
     }
 
-    public static function getEloquentQuery(): Builder
+    public static function getGlobalSearchResultUrl(Model $record): string
     {
-        return parent::getEloquentQuery()
-            ->with(['penjualan'])
-            ->whereHas('penerimaZakat', function (Builder $query) {
-                $query->where('id_pemilik', Auth::user()->id);
-            });
+        return static::getUrl('view', ['record' => $record]);
     }
 
     public static function table(Table $table): Table

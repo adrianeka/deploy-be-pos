@@ -21,6 +21,7 @@ use Filament\Pages\SubNavigationPosition;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
 class PelangganResource extends Resource
 {
@@ -34,6 +35,12 @@ class PelangganResource extends Resource
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?int $navigationSort = 4;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('id_pemilik', Filament::auth()->id());
+    }
 
     public static function form(Form $form): Form
     {
@@ -78,10 +85,6 @@ class PelangganResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(
-                fn() =>
-                Pelanggan::query()->where('id_pemilik', Filament::auth()?->id())
-            )
             ->columns([
                 TextColumn::make('nama_pelanggan')
                     ->label('Nama Pelanggan')

@@ -28,7 +28,6 @@ use Filament\Infolists\Infolist;
 use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
-use Tuxones\JsMoneyField\Forms\Components\JSMoneyInput;
 
 class PembelianResource extends Resource
 {
@@ -56,6 +55,14 @@ class PembelianResource extends Resource
         return [
             PembelianOverview::class,
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('pemasok', function ($query) {
+                $query->where('id_pemilik', Filament::auth()->id());
+            });
     }
 
     public static function form(Form $form): Form
@@ -106,12 +113,6 @@ class PembelianResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(function () {
-                return Pembelian::query()
-                    ->whereHas('pemasok', function ($query) {
-                        $query->where('id_pemilik', Filament::auth()->id());
-                    });
-            })
             ->headerActions([
                 ExportAction::make()
                     ->exporter(PembelianExporter::class)
@@ -446,10 +447,8 @@ class PembelianResource extends Resource
                 ->required()
                 ->reactive(),
 
-            JSMoneyInput::make('total_bayar')
+            Components\TextInput::make('total_bayar')
                 ->label('Nominal')
-                ->locale('id-ID')
-                ->currency('IDR')
                 ->prefix('Rp. ')
                 ->minValue(0)
                 ->required()

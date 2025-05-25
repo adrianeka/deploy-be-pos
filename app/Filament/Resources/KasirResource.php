@@ -20,6 +20,7 @@ use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Pages\Page;
 use Filament\Pages\SubNavigationPosition;
+use Illuminate\Database\Eloquent\Builder;
 
 class KasirResource extends Resource
 {
@@ -33,6 +34,12 @@ class KasirResource extends Resource
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?int $navigationSort = 0;
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('id_pemilik', Filament::auth()->id());
+    }
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -111,12 +118,6 @@ class KasirResource extends Resource
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
-            ->query(
-                fn() =>
-                Kasir::query()
-                    ->with('user') // eager load user to avoid N+1
-                    ->where('id_pemilik', Filament::auth()->id())
-            )
             ->columns([
                 TextColumn::make('nama')
                     ->label('Nama')

@@ -31,9 +31,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ActionGroup;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Model;
-use Filament\Forms\Components\TextInput\Mask;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProdukResource extends Resource
 {
@@ -45,6 +44,12 @@ class ProdukResource extends Resource
     protected static ?string $slug = 'inventaris/produk';
     protected static ?string $navigationGroup = 'Inventaris';
     protected static ?int $navigationSort = 4;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('id_pemilik', Filament::auth()->id());
+    }
 
     public static function form(Form $form): Form
     {
@@ -151,7 +156,6 @@ class ProdukResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(fn() => Produk::query()->where('id_pemilik', Filament::auth()->user()->id))
             ->columns([
                 ImageColumn::make('foto_produk')
                     ->getStateUsing(
